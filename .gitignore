@@ -1,0 +1,13 @@
+# Virtual Environment
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# VSCode
+.vscode/
+
+# Application
+output/
+ErrorLog
