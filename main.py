@@ -3396,7 +3396,367 @@ class RobotArmApp:
                 f.write(item.strip().decode('utf-8'))
                 f.write('\n')
 
-    # TODO: ln 4911
+    def insertGCprog():
+        try:
+            selRow = tab1.progView.curselection()[0]
+            selRow += 1
+        except IndexError:
+            last = tab1.progView.size() - 1
+            selRow = last
+            tab1.progView.select_set(selRow)
+
+        newProg = PlayGCEntryField.get()
+        GCProg = f"Run Gcode Program - {newProg}"
+        
+        # Insert the Gcode program instruction
+        tab1.progView.insert(selRow, bytes(GCProg + '\n', 'utf-8'))
+        tab1.progView.selection_clear(0, ctk.END)
+        tab1.progView.select_set(selRow)
+
+        # Retrieve all items and save to file
+        items = tab1.progView.get(0, ctk.END)
+        file_path = os.path.relpath(ProgEntryField.get())
+        
+        with open(file_path, 'w', encoding='utf-8') as f:
+            for item in items:
+                f.write(item.strip().decode('utf-8'))
+                f.write('\n')
+
+    def insertReturn():
+        try:
+            selRow = tab1.progView.curselection()[0]
+            selRow += 1
+        except IndexError:
+            last = tab1.progView.size() - 1
+            selRow = last
+            tab1.progView.select_set(selRow)
+
+        value = "Return"
+        
+        # Insert the return instruction
+        tab1.progView.insert(selRow, bytes(value + '\n', 'utf-8'))
+        tab1.progView.selection_clear(0, ctk.END)
+        tab1.progView.select_set(selRow)
+
+        # Retrieve all items and save to file
+        items = tab1.progView.get(0, ctk.END)
+        file_path = os.path.relpath(ProgEntryField.get())
+        
+        with open(file_path, 'w', encoding='utf-8') as f:
+            for item in items:
+                f.write(item.strip().decode('utf-8'))
+                f.write('\n')
+
+    def openText():
+        # Get the file path from the program entry field
+        file_path = os.path.relpath(ProgEntryField.get())
+        
+        if os.path.exists(file_path):
+            os.startfile(file_path)
+        else:
+            print(f"File not found: {file_path}")
+
+    def reloadProg():
+        file_path = os.path.relpath(ProgEntryField.get())
+        
+        # Update the program entry field with the reloaded file path
+        ProgEntryField.delete(0, ctk.END)
+        ProgEntryField.insert(0, file_path)
+        
+        # Clear the current content in progView and load the file
+        tab1.progView.delete(0, ctk.END)
+        
+        with open(file_path, "rb") as Prog:
+            time.sleep(0.1)  # Optional delay for smoother loading
+            for item in Prog:
+                tab1.progView.insert(ctk.END, item)
+        
+        # Refresh the view
+        tab1.progView.pack()
+        scrollbar.config(command=tab1.progView.yview)
+        savePosData()
+
+    def insertvisFind():
+        global ZcurPos, RxcurPos, RycurPos, RzcurPos
+        
+        try:
+            selRow = tab1.progView.curselection()[0]
+            selRow += 1
+        except IndexError:
+            selRow = tab1.progView.size() - 1
+            tab1.progView.select_set(selRow)
+
+        # Get template and background color settings
+        template = selectedTemplate.get() or "None_Selected.jpg"
+        autoBGVal = int(autoBG.get())
+        BGcolor = "(Auto)" if autoBGVal == 1 else VisBacColorEntryField.get()
+        
+        # Retrieve score, pass, and fail tab values
+        score = VisScoreEntryField.get()
+        passTab = visPassEntryField.get()
+        failTab = visFailEntryField.get()
+        
+        # Construct the command string
+        value = f"Vis Find - {template} - BGcolor {BGcolor} Score {score} Pass {passTab} Fail {failTab}"
+        
+        # Insert the command and update selection
+        tab1.progView.insert(selRow, bytes(value + '\n', 'utf-8'))
+        tab1.progView.selection_clear(0, ctk.END)
+        tab1.progView.select_set(selRow)
+        
+        # Save all items to file
+        items = tab1.progView.get(0, ctk.END)
+        file_path = os.path.relpath(ProgEntryField.get())
+        
+        with open(file_path, 'w', encoding='utf-8') as f:
+            for item in items:
+                f.write(item.strip().decode('utf-8'))
+                f.write('\n')
+
+    def IfRegjumpTab():
+        try:
+            # Attempt to get the current selection and set the insertion row
+            selRow = tab1.progView.curselection()[0]
+            selRow += 1
+        except IndexError:
+            selRow = tab1.progView.size() - 1
+            tab1.progView.select_set(selRow)
+        
+        # Get the register number, comparison value, and target tab
+        regNum = regNumJmpEntryField.get()
+        regEqNum = regEqJmpEntryField.get()
+        tabNum = regTabJmpEntryField.get()
+        
+        # Construct the command string
+        tabjmp = f"If Register {regNum} = {regEqNum} Jump to Tab {tabNum}"
+        
+        # Insert command into progView
+        tab1.progView.insert(selRow, bytes(tabjmp + '\n', 'utf-8'))
+        tab1.progView.selection_clear(0, ctk.END)
+        tab1.progView.select_set(selRow)
+        
+        # Save all items in progView to file
+        items = tab1.progView.get(0, ctk.END)
+        file_path = os.path.relpath(ProgEntryField.get())
+        
+        with open(file_path, 'w', encoding='utf-8') as f:
+            for item in items:
+                f.write(item.strip().decode('utf-8'))
+                f.write('\n')
+
+    def insertRegister():
+        try:
+            # Attempt to get the current selection and set the insertion row
+            selRow = tab1.progView.curselection()[0]
+            selRow += 1
+        except IndexError:
+            selRow = tab1.progView.size() - 1
+            tab1.progView.select_set(selRow)
+        
+        # Get register number and command
+        regNum = regNumEntryField.get()
+        regCmd = regEqEntryField.get()
+        
+        # Construct the register command string
+        regIns = f"Register {regNum} = {regCmd}"
+        
+        # Insert command into progView
+        tab1.progView.insert(selRow, bytes(regIns + '\n', 'utf-8'))
+        tab1.progView.selection_clear(0, ctk.END)
+        tab1.progView.select_set(selRow)
+        
+        # Save all items in progView to file
+        items = tab1.progView.get(0, ctk.END)
+        file_path = os.path.relpath(ProgEntryField.get())
+        
+        with open(file_path, 'w', encoding='utf-8') as f:
+            for item in items:
+                f.write(item.strip().decode('utf-8'))
+                f.write('\n')
+
+    def storPos():
+        try:
+            # Attempt to get the current selection and set the insertion row
+            selRow = tab1.progView.curselection()[0]
+            selRow += 1
+        except IndexError:
+            selRow = tab1.progView.size() - 1
+            tab1.progView.select_set(selRow)
+        
+        # Retrieve values from entry fields
+        regNum = storPosNumEntryField.get()
+        regElmnt = storPosElEntryField.get()
+        regCmd = storPosValEntryField.get()
+        
+        # Construct the position register command string
+        regIns = f"Position Register {regNum} Element {regElmnt} = {regCmd}"
+        
+        # Insert the command into progView
+        tab1.progView.insert(selRow, bytes(regIns + '\n', 'utf-8'))
+        tab1.progView.selection_clear(0, ctk.END)
+        tab1.progView.select_set(selRow)
+        
+        # Save all items in progView to file
+        items = tab1.progView.get(0, ctk.END)
+        file_path = os.path.relpath(ProgEntryField.get())
+        
+        with open(file_path, 'w', encoding='utf-8') as f:
+            for item in items:
+                f.write(item.strip().decode('utf-8'))
+                f.write('\n')
+
+    def insCalibrate():
+        try:
+            # Attempt to get the current selection and set the insertion row
+            selRow = tab1.progView.curselection()[0] + 1
+        except IndexError:
+            # Default to the end if there is no selection
+            selRow = tab1.progView.size() - 1
+            tab1.progView.select_set(selRow)
+        
+        # Define the calibration command
+        insCal = "Calibrate Robot"
+        
+        # Insert the command into progView
+        tab1.progView.insert(selRow, bytes(insCal + '\n', 'utf-8'))
+        tab1.progView.selection_clear(0, ctk.END)
+        tab1.progView.select_set(selRow)
+        
+        # Save all items in progView to file
+        items = tab1.progView.get(0, ctk.END)
+        file_path = os.path.relpath(ProgEntryField.get())
+        
+        with open(file_path, 'w', encoding='utf-8') as f:
+            for item in items:
+                f.write(item.strip().decode('utf-8'))
+                f.write('\n')
+
+    def progViewselect(event):
+        try:
+            # Get the selected row index in progView
+            selRow = tab1.progView.curselection()[0]
+            
+            # Update curRowEntryField with the selected row index
+            curRowEntryField.delete(0, ctk.END)
+            curRowEntryField.insert(0, selRow)
+        except IndexError:
+            # Handle case where no item is selected
+            curRowEntryField.delete(0, ctk.END)
+
+    def getSel():
+        try:
+            # Get the selected row index in progView
+            selRow = tab1.progView.curselection()[0]
+            
+            # Scroll the view to make the selected row visible
+            tab1.progView.see(selRow + 2)
+            
+            data = list(map(int, tab1.progView.curselection()))
+            command = tab1.progView.get(data[0]).decode()
+
+            manEntryField.delete(0, ctk.END)
+            manEntryField.insert(0, command)
+        except IndexError:
+            # Handle case where no item is selected
+            manEntryField.delete(0, ctk.END)
+
+    def control_servo(servo_number, position_field):
+        savePosData()
+        servoPos = position_field.get()
+        command = f"SV{servo_number}P{servoPos}\n"
+        ser2.write(command.encode())
+        ser2.flushInput()
+        time.sleep(0.1)
+        ser2.read()
+
+    # Refactored servo control functions
+    def Servo0on():
+        control_servo(0, servo0onEntryField)
+    def Servo0off():
+        control_servo(0, servo0offEntryField)
+    def Servo1on():
+        control_servo(1, servo1onEntryField)
+    def Servo1off():
+        control_servo(1, servo1offEntryField)
+    def Servo2on():
+        control_servo(2, servo2onEntryField)
+    def Servo2off():
+        control_servo(2, servo2offEntryField)
+    def Servo3on():
+        control_servo(3, servo3onEntryField)
+    def Servo3off():
+        control_servo(3, servo3offEntryField)
+
+    def control_output(action, output_field):
+        outputNum = output_field.get()
+        command = f"{action}X{outputNum}\n"
+        ser2.write(command.encode())
+        ser2.flushInput()
+        time.sleep(0.1)
+        ser2.read()
+
+    # Refactored digital output control functions
+    def DO1on():
+        control_output("ON", DO1onEntryField)
+    def DO1off():
+        control_output("OF", DO1offEntryField)
+    def DO2on():
+        control_output("ON", DO2onEntryField)
+    def DO2off():
+        control_output("OF", DO2offEntryField)
+    def DO3on():
+        control_output("ON", DO3onEntryField)
+    def DO3off():
+        control_output("OF", DO3offEntryField)
+    def DO4on():
+        control_output("ON", DO4onEntryField)
+    def DO4off():
+        control_output("OF", DO4offEntryField)
+    def DO5on():
+        control_output("ON", DO5onEntryField)
+    def DO5off():
+        control_output("OF", DO5offEntryField)
+    def DO6on():
+        control_output("ON", DO6onEntryField)
+    def DO6off():
+        control_output("OF", DO6offEntryField)
+
+    def TestString():
+        # Construct command and send it
+        command = "TM" + testSendEntryField.get() + "\n"
+        ser.write(command.encode())
+        ser.flushInput()
+        
+        # Read and display the response
+        echo = ser.readline()
+        testRecEntryField.delete(0, 'end')
+        testRecEntryField.insert(0, echo)
+
+    def ClearTestString():
+        # Clear the test receive entry field
+        testRecEntryField.delete(0, 'end')
+
+    def CalcLinDist(X2, Y2, Z2):
+        global XcurPos, YcurPos, ZcurPos, LineDist
+
+        # Calculate the linear distance between the current position and (X2, Y2, Z2)
+        LineDist = (((X2 - XcurPos) ** 2) + ((Y2 - YcurPos) ** 2) + ((Z2 - ZcurPos) ** 2)) ** 0.5
+        return LineDist
+
+    def CalcLinVect(X2, Y2, Z2):
+        global XcurPos, YcurPos, ZcurPos, Xv, Yv, Zv
+
+        # Calculate the vector components from the current position to (X2, Y2, Z2)
+        Xv = X2 - XcurPos
+        Yv = Y2 - YcurPos
+        Zv = Z2 - ZcurPos
+
+        return Xv, Yv, Zv
+
+    def CalcLinWayPt(CX, CY, CZ, curWayPt):
+        global XcurPos, YcurPos, ZcurPos
+        
+        return CX, CY, CZ
 
     # Calibration and save defs #
 
