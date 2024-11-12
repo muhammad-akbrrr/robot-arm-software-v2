@@ -2209,7 +2209,7 @@ class RobotArmApp:
 
     def jog_joint(joint_index, value, direction):
 
-        """Helper function to jog a joint in a specific direction."""
+        # Helper function to jog a joint in a specific direction.
 
         """
         Args:
@@ -2418,7 +2418,7 @@ class RobotArmApp:
 
     def jog_joint_command(joint_index, value, direction):
 
-        """Helper function to handle jogging for a specific joint in a given direction."""
+        # Helper function to handle jogging for a specific joint in a given direction.
         
         """
         Args:
@@ -3760,7 +3760,960 @@ class RobotArmApp:
 
     # Calibration and save defs #
 
-    
+    def calRobotAll():
+        def create_calibration_command(stage_values, offsets):
+            command = "LL" + "".join(
+                f"{chr(65 + i)}{val}" for i, val in enumerate(stage_values + offsets)
+            ) + "\n"
+            return command
+
+        def send_command(command):
+            ser.write(command.encode())
+            cmdSentEntryField.delete(0, 'end')
+            cmdSentEntryField.insert(0, command)
+            ser.flushInput()
+            return str(ser.readline().strip(), 'utf-8')
+
+        def handle_response(response, stage):
+            success = response.startswith('A')
+            displayPosition(response) if success else ErrorHandler(response)
+            message = f"Auto Calibration Stage {stage} {'Successful' if success else 'Failed - See Log'}"
+            style = "OK.TLabel" if success else "Alarm.TLabel"
+            almStatusLab.config(text=message, style=style)
+            almStatusLab2.config(text=message, style=style)
+            return message
+
+        def update_log(message):
+            Curtime = datetime.datetime.now().strftime("%B %d %Y - %I:%M%p")
+            tab8.ElogView.insert(END, f"{Curtime} - {message}")
+            pickle.dump(tab8.ElogView.get(0, END), open("ErrorLog", "wb"))
+
+        # Stage 1 Calibration
+        stage1_values = [
+            J1CalStatVal, J2CalStatVal, J3CalStatVal, J4CalStatVal, J5CalStatVal,
+            J6CalStatVal, J7CalStatVal, J8CalStatVal, J9CalStatVal
+        ]
+        offsets = [
+            J1calOff, J2calOff, J3calOff, J4calOff, J5calOff, J6calOff, J7calOff,
+            J8calOff, J9calOff
+        ]
+        
+        command = create_calibration_command(stage1_values, offsets)
+        response = send_command(command)
+        message = handle_response(response, stage=1)
+        update_log(message)
+
+        # Stage 2 Calibration
+        stage2_values = [
+            J1CalStatVal2, J2CalStatVal2, J3CalStatVal2, J4CalStatVal2, J5CalStatVal2,
+            J6CalStatVal2, J7CalStatVal2, J8CalStatVal2, J9CalStatVal2
+        ]
+        
+        if sum(stage2_values) > 0:
+            command = create_calibration_command(stage2_values, offsets)
+            response = send_command(command)
+            message = handle_response(response, stage=2)
+            update_log(message)
+
+    def calibrate_joint(joint_id, joint_command):
+        command = f"LL{joint_command}" + "J" + str(J1calOff) + "K" + str(J2calOff) + "L" + str(J3calOff) + "M" + str(
+            J4calOff) + "N" + str(J5calOff) + "O" + str(J6calOff) + "P" + str(J7calOff) + "Q" + str(J8calOff) + "R" + str(J9calOff) + "\n"
+        ser.write(command.encode())
+        cmdSentEntryField.delete(0, 'end')
+        cmdSentEntryField.insert(0, command)
+        ser.flushInput()
+        response = str(ser.readline().strip(), 'utf-8')
+        cmdRecEntryField.delete(0, 'end')
+        cmdRecEntryField.insert(0, response)
+        
+        if response.startswith("A"):
+            displayPosition(response)
+            message = f"J{joint_id} Calibrated Successfully"
+            almStatusLab.config(text=message, style="OK.TLabel")
+            almStatusLab2.config(text=message, style="OK.TLabel")
+        else:
+            message = f"J{joint_id} Calibration Failed"
+            almStatusLab.config(text=message, style="Alarm.TLabel")
+            almStatusLab2.config(text=message, style="Alarm.TLabel")
+            ErrorHandler(response)
+        
+        Curtime = datetime.datetime.now().strftime("%B %d %Y - %I:%M%p")
+        tab8.ElogView.insert(END, Curtime + " - " + message)
+        value = tab8.ElogView.get(0, END)
+        pickle.dump(value, open("ErrorLog", "wb"))
+
+    # Refactored calibration functions for each joint
+    def calRobotJ1():
+        calibrate_joint(1, "A1B0C0D0E0F0G0H0I0")
+    def calRobotJ2():
+        calibrate_joint(2, "A0B1C0D0E0F0G0H0I0")
+    def calRobotJ3():
+        calibrate_joint(3, "A0B0C1D0E0F0G0H0I0")
+    def calRobotJ4():
+        calibrate_joint(4, "A0B0C0D1E0F0G0H0I0")
+    def calRobotJ5():
+        calibrate_joint(5, "A0B0C0D0E1F0G0H0I0")
+    def calRobotJ6():
+        calibrate_joint(6, "A0B0C0D0E0F1G0H0I0")
+    def calRobotJ7():
+        calibrate_joint(7, "A0B0C0D0E0F0G1H0I0")
+    def calRobotJ8():
+        calibrate_joint(8, "A0B0C0D0E0F0G0H1I0")
+    def calRobotJ9():
+        calibrate_joint(9, "A0B0C0D0E0F0G0H0I1")
+
+    def calRobotMid():
+        print("foo")
+        # add mid command
+
+    def correctPos():
+        def send_command(command):
+            ser.write(command.encode())
+            ser.flushInput()
+            time.sleep(0.1)
+            return str(ser.readline().strip(), 'utf-8')
+
+        command = "CP\n"
+        response = send_command(command)
+        displayPosition(response)
+
+    def requestPos():
+        def send_command(command):
+            ser.write(command.encode())
+            ser.flushInput()
+            time.sleep(0.1)
+            return str(ser.readline().strip(), 'utf-8')
+
+        command = "RP\n"
+        response = send_command(command)
+        displayPosition(response)
+
+    def updateParams():
+        def get_entry_fields():
+            params = {
+                "TFx": TFxEntryField.get(),
+                "TFy": TFyEntryField.get(),
+                "TFz": TFzEntryField.get(),
+                "TFrz": TFrzEntryField.get(),
+                "TFry": TFryEntryField.get(),
+                "TFrx": TFrxEntryField.get(),
+                "motDir": [J1MotDirEntryField.get(), J2MotDirEntryField.get(), J3MotDirEntryField.get(), J4MotDirEntryField.get(),
+                        J5MotDirEntryField.get(), J6MotDirEntryField.get(), J7MotDirEntryField.get(), J8MotDirEntryField.get(), J9MotDirEntryField.get()],
+                "calDir": [J1CalDirEntryField.get(), J2CalDirEntryField.get(), J3CalDirEntryField.get(), J4CalDirEntryField.get(),
+                        J5CalDirEntryField.get(), J6CalDirEntryField.get(), J7CalDirEntryField.get(), J8CalDirEntryField.get(), J9CalDirEntryField.get()],
+                "posLim": [J1PosLimEntryField.get(), J2PosLimEntryField.get(), J3PosLimEntryField.get(), J4PosLimEntryField.get(),
+                        J5PosLimEntryField.get(), J6PosLimEntryField.get()],
+                "negLim": [J1NegLimEntryField.get(), J2NegLimEntryField.get(), J3NegLimEntryField.get(), J4NegLimEntryField.get(),
+                        J5NegLimEntryField.get(), J6NegLimEntryField.get()],
+                "stepDeg": [J1StepDegEntryField.get(), J2StepDegEntryField.get(), J3StepDegEntryField.get(),
+                            J4StepDegEntryField.get(), J5StepDegEntryField.get(), J6StepDegEntryField.get()],
+                "encMult": [str(float(J1EncCPREntryField.get()) / float(J1DriveMSEntryField.get())),
+                            str(float(J2EncCPREntryField.get()) / float(J2DriveMSEntryField.get())),
+                            str(float(J3EncCPREntryField.get()) / float(J3DriveMSEntryField.get())),
+                            str(float(J4EncCPREntryField.get()) / float(J4DriveMSEntryField.get())),
+                            str(float(J5EncCPREntryField.get()) / float(J5DriveMSEntryField.get())),
+                            str(float(J6EncCPREntryField.get()) / float(J6DriveMSEntryField.get()))],
+                "dhTheta": [J1ΘEntryField.get(), J2ΘEntryField.get(), J3ΘEntryField.get(), J4ΘEntryField.get(),
+                            J5ΘEntryField.get(), J6ΘEntryField.get()],
+                "dhAlpha": [J1αEntryField.get(), J2αEntryField.get(), J3αEntryField.get(), J4αEntryField.get(),
+                            J5αEntryField.get(), J6αEntryField.get()],
+                "dhDist": [J1dEntryField.get(), J2dEntryField.get(), J3dEntryField.get(), J4dEntryField.get(),
+                        J5dEntryField.get(), J6dEntryField.get()],
+                "dhLink": [J1aEntryField.get(), J2aEntryField.get(), J3aEntryField.get(), J4aEntryField.get(),
+                        J5aEntryField.get(), J6aEntryField.get()]
+            }
+            return params
+
+        def configure_limits(params):
+            limits = zip(
+                [J1negLimLab, J2negLimLab, J3negLimLab, J4negLimLab, J5negLimLab, J6negLimLab],
+                [J1posLimLab, J2posLimLab, J3posLimLab, J4posLimLab, J5posLimLab, J6posLimLab],
+                [J1jogslide, J2jogslide, J3jogslide, J4jogslide, J5jogslide, J6jogslide],
+                params["negLim"],
+                params["posLim"]
+            )
+            for negLab, posLab, slide, negLim, posLim in limits:
+                negLab.config(text="-" + negLim, style="Jointlim.TLabel")
+                posLab.config(text=posLim, style="Jointlim.TLabel")
+                slide.config(from_=-float(negLim), to=float(posLim), length=180, orient=HORIZONTAL, command=eval(slide["command"].cget("command")))
+
+        def construct_command(params):
+            command = (
+                "UP" +
+                f"A{params['TFx']}B{params['TFy']}C{params['TFz']}D{params['TFrz']}E{params['TFry']}F{params['TFrx']}" +
+                "".join(f"{chr(71+i)}{motDir}" for i, motDir in enumerate(params['motDir'])) +
+                "".join(f"{chr(80+i)}{calDir}" for i, calDir in enumerate(params['calDir'])) +
+                "".join(f"{chr(89+i*2)}{posLim}{chr(90+i*2)}{negLim}" for i, (posLim, negLim) in enumerate(zip(params['posLim'], params['negLim']))) +
+                "".join(f"{chr(107+i)}{stepDeg}" for i, stepDeg in enumerate(params['stepDeg'])) +
+                "".join(f"{chr(113+i)}{encMult}" for i, encMult in enumerate(params['encMult'])) +
+                "".join(f"{chr(119+i)}{dhTheta}" for i, dhTheta in enumerate(params['dhTheta'])) +
+                "".join(f"{chr(35+i)}{dhAlpha}" for i, dhAlpha in enumerate(params['dhAlpha'])) +
+                "".join(f"{chr(40+i)}{dhDist}" for i, dhDist in enumerate(params['dhDist'])) +
+                "".join(f"{chr(60+i)}{dhLink}" for i, dhLink in enumerate(params['dhLink'])) +
+                "\n"
+            )
+            return command
+
+        params = get_entry_fields()
+        configure_limits(params)
+        command = construct_command(params)
+
+        ser.write(command.encode())
+        ser.flush()
+        time.sleep(0.1)
+        ser.flushInput()
+        time.sleep(0.1)
+        response = ser.read_all()
+
+    def calExtAxis():
+        def configure_axis(index, pos_limit, neg_limit_label, pos_limit_label, jog_slider, update_command):
+            neg_limit = 0  # Constant for all axes in this context
+            neg_limit_label.config(text=str(-neg_limit), style="Jointlim.TLabel")
+            pos_limit_label.config(text=str(pos_limit), style="Jointlim.TLabel")
+            jog_slider.config(from_=-neg_limit, to=pos_limit, length=125, orient=HORIZONTAL, command=update_command)
+
+        # Retrieve and configure limits
+        pos_limits = [
+            float(axis7lengthEntryField.get()),
+            float(axis8lengthEntryField.get()),
+            float(axis9lengthEntryField.get())
+        ]
+
+        # Configure each axis
+        configure_axis(7, pos_limits[0], J7negLimLab, J7posLimLab, J7jogslide, J7sliderUpdate)
+        configure_axis(8, pos_limits[1], J8negLimLab, J8posLimLab, J8jogslide, J8sliderUpdate)
+        configure_axis(9, pos_limits[2], J9negLimLab, J9posLimLab, J9jogslide, J9sliderUpdate)
+        
+        # Build command string
+        command = (
+            f"CEA{pos_limits[0]}B{J7rotation}C{J7steps}"
+            f"D{pos_limits[1]}E{J8rotation}F{J8steps}"
+            f"G{pos_limits[2]}H{J9rotation}I{J9steps}\n"
+        )
+        
+        # Send command
+        ser.write(command.encode())
+        ser.flushInput()
+        time.sleep(0.1)
+        response = ser.read()
+
+    def zero_axis(axis_number, axis_name):
+        command = f"Z{axis_number}\n"
+        ser.write(command.encode())
+        ser.flushInput()
+        time.sleep(0.1)
+        status_text = f"{axis_name} Calibration Forced to Zero"
+        almStatusLab.config(text=status_text, style="Warn.TLabel")
+        almStatusLab2.config(text=status_text, style="Warn.TLabel")
+        message = f"{axis_name} Calibration Forced to Zero - this is for commissioning and testing - be careful!"
+        curtime = datetime.datetime.now().strftime("%B %d %Y - %I:%M%p")
+        tab8.ElogView.insert(END, f"{curtime} - {message}")
+        value = tab8.ElogView.get(0, END)
+        pickle.dump(value, open("ErrorLog", "wb"))
+        response = str(ser.readline().strip(), 'utf-8')
+        displayPosition(response)
+
+    # Main functions calling the helper function with specific parameters
+    def zeroAxis7():
+        zero_axis(7, "J7")
+    def zeroAxis8():
+        zero_axis(8, "J8")
+    def zeroAxis9():
+        zero_axis(9, "J9")
+
+    def sendPos():
+        # Create the command string with formatted current positions
+        current_positions = {
+            "A": J1AngCur, "B": J2AngCur, "C": J3AngCur, "D": J4AngCur,
+            "E": J5AngCur, "F": J6AngCur, "G": J7PosCur, "H": J8PosCur, "I": J9PosCur
+        }
+        command = "SP" + "".join(f"{key}{value}" for key, value in current_positions.items()) + "\n"
+        
+        # Send the command
+        ser.write(command.encode())
+        ser.flushInput()
+        time.sleep(0.1)
+        response = ser.read()
+
+    def CalZeroPos():
+        # Record the current time for logging
+        current_time = datetime.datetime.now().strftime("%B %d %Y - %I:%M%p")
+
+        # Send zero calibration command
+        command = "SPA0B0C0D0E90F0\n"
+        ser.write(command.encode())
+        ser.flushInput()
+        time.sleep(0.1)
+        ser.read()
+
+        # Request updated position and update status labels
+        requestPos()
+        status_message = "Calibration Forced to Home"
+        almStatusLab.config(text=status_message, style="Warn.TLabel")
+        almStatusLab2.config(text=status_message, style="Warn.TLabel")
+
+        # Log the calibration event
+        log_message = f"{current_time} - {status_message} - this is for commissioning and testing - be careful!"
+        tab8.ElogView.insert(END, log_message)
+        log_content = tab8.ElogView.get(0, END)
+        pickle.dump(log_content, open("ErrorLog", "wb"))
+
+    def CalRestPos():
+        # Record the current time for logging
+        current_time = datetime.datetime.now().strftime("%B %d %Y - %I:%M%p")
+
+        # Send rest position calibration command
+        command = "SPA0B0C-89D0E0F0\n"
+        ser.write(command.encode())
+        ser.flushInput()
+        time.sleep(0.1)
+        ser.read()
+
+        # Request updated position and update status labels
+        requestPos()
+        status_message = "Calibration Forced to Vertical Rest Pos"
+        almStatusLab.config(text=status_message, style="Warn.TLabel")
+        almStatusLab2.config(text=status_message, style="Warn.TLabel")
+
+        # Log the calibration event
+        log_message = f"{current_time} - Calibration Forced to Vertical - this is for commissioning and testing - be careful!"
+        tab8.ElogView.insert(END, log_message)
+        log_content = tab8.ElogView.get(0, END)
+        pickle.dump(log_content, open("ErrorLog", "wb"))
+
+    def displayPosition(response):
+        global J1AngCur, J2AngCur, J3AngCur, J4AngCur, J5AngCur, J6AngCur
+        global J7StepCur, XcurPos, YcurPos, ZcurPos, RxcurPos, RycurPos, RzcurPos
+        global J7PosCur, J8PosCur, J9PosCur, WC
+
+        # Update received command in entry field
+        cmdRecEntryField.delete(0, 'end')
+        cmdRecEntryField.insert(0, response)
+
+        # Parse angles and positions
+        joint_indices = {key: response.find(key) for key in "ABCDEFGHIJKLMNORPQR"}
+        parsed_data = {
+            "J1AngCur": response[joint_indices["A"] + 1 : joint_indices["B"]].strip(),
+            "J2AngCur": response[joint_indices["B"] + 1 : joint_indices["C"]].strip(),
+            "J3AngCur": response[joint_indices["C"] + 1 : joint_indices["D"]].strip(),
+            "J4AngCur": response[joint_indices["D"] + 1 : joint_indices["E"]].strip(),
+            "J5AngCur": response[joint_indices["E"] + 1 : joint_indices["F"]].strip(),
+            "J6AngCur": response[joint_indices["F"] + 1 : joint_indices["G"]].strip(),
+            "XcurPos": response[joint_indices["G"] + 1 : joint_indices["H"]].strip(),
+            "YcurPos": response[joint_indices["H"] + 1 : joint_indices["I"]].strip(),
+            "ZcurPos": response[joint_indices["I"] + 1 : joint_indices["J"]].strip(),
+            "RzcurPos": response[joint_indices["J"] + 1 : joint_indices["K"]].strip(),
+            "RycurPos": response[joint_indices["K"] + 1 : joint_indices["L"]].strip(),
+            "RxcurPos": response[joint_indices["L"] + 1 : joint_indices["M"]].strip(),
+            "SpeedVioation": response[joint_indices["M"] + 1 : joint_indices["N"]].strip(),
+            "Debug": response[joint_indices["N"] + 1 : joint_indices["O"]].strip(),
+            "Flag": response[joint_indices["O"] + 1 : joint_indices["P"]].strip(),
+            "J7PosCur": float(response[joint_indices["P"] + 1 : joint_indices["Q"]].strip()),
+            "J8PosCur": float(response[joint_indices["Q"] + 1 : joint_indices["R"]].strip()),
+            "J9PosCur": float(response[joint_indices["R"] + 1 :].strip())
+        }
+
+        # Assign parsed data to globals
+        for key, value in parsed_data.items():
+            globals()[key] = value
+
+        # Determine wrist configuration
+        WC = "F" if float(parsed_data["J5AngCur"]) > 0 else "N"
+
+        # Update GUI elements
+        entry_fields = [
+            (J1curAngEntryField, parsed_data["J1AngCur"]),
+            (J2curAngEntryField, parsed_data["J2AngCur"]),
+            (J3curAngEntryField, parsed_data["J3AngCur"]),
+            (J4curAngEntryField, parsed_data["J4AngCur"]),
+            (J5curAngEntryField, parsed_data["J5AngCur"]),
+            (J6curAngEntryField, parsed_data["J6AngCur"]),
+            (XcurEntryField, parsed_data["XcurPos"]),
+            (YcurEntryField, parsed_data["YcurPos"]),
+            (ZcurEntryField, parsed_data["ZcurPos"]),
+            (RzcurEntryField, parsed_data["RzcurPos"]),
+            (RycurEntryField, parsed_data["RycurPos"]),
+            (RxcurEntryField, parsed_data["RxcurPos"]),
+            (J7curAngEntryField, parsed_data["J7PosCur"]),
+            (J8curAngEntryField, parsed_data["J8PosCur"]),
+            (J9curAngEntryField, parsed_data["J9PosCur"]),
+            (manEntryField, parsed_data["Debug"])
+        ]
+        for field, value in entry_fields:
+            field.delete(0, 'end')
+            field.insert(0, value)
+
+        # Update sliders
+        jog_sliders = [
+            (J1jogslide, parsed_data["J1AngCur"]),
+            (J2jogslide, parsed_data["J2AngCur"]),
+            (J3jogslide, parsed_data["J3AngCur"]),
+            (J4jogslide, parsed_data["J4AngCur"]),
+            (J5jogslide, parsed_data["J5AngCur"]),
+            (J6jogslide, parsed_data["J6AngCur"]),
+            (J7jogslide, parsed_data["J7PosCur"]),
+            (J8jogslide, parsed_data["J8PosCur"]),
+            (J9jogslide, parsed_data["J9PosCur"])
+        ]
+        for slider, value in jog_sliders:
+            slider.set(value)
+
+        # Save position data and handle errors
+        savePosData()
+        if parsed_data["Flag"]:
+            ErrorHandler(parsed_data["Flag"])
+        if parsed_data["SpeedVioation"] == '1':
+            current_time = datetime.datetime.now().strftime("%B %d %Y - %I:%M%p")
+            message = "Max Speed Violation - Reduce Speed Setpoint or Travel Distance"
+            tab8.ElogView.insert(END, f"{current_time} - {message}")
+            pickle.dump(tab8.ElogView.get(0, END), open("ErrorLog", "wb"))
+            almStatusLab.config(text=message, style="Warn.TLabel")
+            almStatusLab2.config(text=message, style="Warn.TLabel")
+
+    def ClearKinTabFields():
+        # Define field groups for organized clearing
+        motion_dir_fields = [
+            J1MotDirEntryField, J2MotDirEntryField, J3MotDirEntryField, J4MotDirEntryField,
+            J5MotDirEntryField, J6MotDirEntryField, J7MotDirEntryField, J8MotDirEntryField, J9MotDirEntryField
+        ]
+        
+        calibration_dir_fields = [
+            J1CalDirEntryField, J2CalDirEntryField, J3CalDirEntryField, J4CalDirEntryField,
+            J5CalDirEntryField, J6CalDirEntryField, J7CalDirEntryField, J8CalDirEntryField, J9CalDirEntryField
+        ]
+        
+        position_limit_fields = [
+            J1PosLimEntryField, J1NegLimEntryField, J2PosLimEntryField, J2NegLimEntryField,
+            J3PosLimEntryField, J3NegLimEntryField, J4PosLimEntryField, J4NegLimEntryField,
+            J5PosLimEntryField, J5NegLimEntryField, J6PosLimEntryField, J6NegLimEntryField
+        ]
+        
+        step_deg_fields = [
+            J1StepDegEntryField, J2StepDegEntryField, J3StepDegEntryField,
+            J4StepDegEntryField, J5StepDegEntryField, J6StepDegEntryField
+        ]
+        
+        drive_ms_fields = [
+            J1DriveMSEntryField, J2DriveMSEntryField, J3DriveMSEntryField,
+            J4DriveMSEntryField, J5DriveMSEntryField, J6DriveMSEntryField
+        ]
+        
+        encoder_cpr_fields = [
+            J1EncCPREntryField, J2EncCPREntryField, J3EncCPREntryField,
+            J4EncCPREntryField, J5EncCPREntryField, J6EncCPREntryField
+        ]
+        
+        theta_fields = [
+            J1ΘEntryField, J2ΘEntryField, J3ΘEntryField, J4ΘEntryField,
+            J5ΘEntryField, J6ΘEntryField
+        ]
+        
+        alpha_fields = [
+            J1αEntryField, J2αEntryField, J3αEntryField, J4αEntryField,
+            J5αEntryField, J6αEntryField
+        ]
+        
+        d_fields = [
+            J1dEntryField, J2dEntryField, J3dEntryField, J4dEntryField,
+            J5dEntryField, J6dEntryField
+        ]
+        
+        a_fields = [
+            J1aEntryField, J2aEntryField, J3aEntryField, J4aEntryField,
+            J5aEntryField, J6aEntryField
+        ]
+        
+        # Clear all fields
+        for field_group in [
+            motion_dir_fields, calibration_dir_fields, position_limit_fields,
+            step_deg_fields, drive_ms_fields, encoder_cpr_fields, theta_fields,
+            alpha_fields, d_fields, a_fields
+        ]:
+            for field in field_group:
+                field.delete(0, 'end')
+
+    ## Profiles defs ##
+
+    def LoadAR4Mk3default():
+        ClearKinTabFields()
+
+        # Define default values for each entry field
+        default_values = {
+            # Motor directions
+            J1MotDirEntryField: 0, J2MotDirEntryField: 1, J3MotDirEntryField: 1,
+            J4MotDirEntryField: 1, J5MotDirEntryField: 1, J6MotDirEntryField: 1,
+            J7MotDirEntryField: 1, J8MotDirEntryField: 1, J9MotDirEntryField: 1,
+            
+            # Calibration directions
+            J1CalDirEntryField: 1, J2CalDirEntryField: 0, J3CalDirEntryField: 1,
+            J4CalDirEntryField: 0, J5CalDirEntryField: 0, J6CalDirEntryField: 1,
+            J7CalDirEntryField: 0, J8CalDirEntryField: 0, J9CalDirEntryField: 0,
+            
+            # Position limits
+            J1PosLimEntryField: 170, J1NegLimEntryField: 170, J2PosLimEntryField: 90,
+            J2NegLimEntryField: 42, J3PosLimEntryField: 52, J3NegLimEntryField: 89,
+            J4PosLimEntryField: 180, J4NegLimEntryField: 180, J5PosLimEntryField: 105,
+            J5NegLimEntryField: 105, J6PosLimEntryField: 180, J6NegLimEntryField: 180,
+            
+            # Steps per degree
+            J1StepDegEntryField: 44.4444, J2StepDegEntryField: 55.5555,
+            J3StepDegEntryField: 55.5555, J4StepDegEntryField: 49.7777,
+            J5StepDegEntryField: 21.8602, J6StepDegEntryField: 22.2222,
+            
+            # Drive MS settings
+            J1DriveMSEntryField: 400, J2DriveMSEntryField: 400, J3DriveMSEntryField: 400,
+            J4DriveMSEntryField: 400, J5DriveMSEntryField: 800, J6DriveMSEntryField: 400,
+            
+            # Encoder CPR settings
+            J1EncCPREntryField: 4000, J2EncCPREntryField: 4000, J3EncCPREntryField: 4000,
+            J4EncCPREntryField: 4000, J5EncCPREntryField: 4000, J6EncCPREntryField: 4000,
+            
+            # Θ (Theta) angles
+            J1ΘEntryField: 0, J2ΘEntryField: -90, J3ΘEntryField: 0,
+            J4ΘEntryField: 0, J5ΘEntryField: 0, J6ΘEntryField: 180,
+            
+            # α (Alpha) angles
+            J1αEntryField: 0, J2αEntryField: -90, J3αEntryField: 0,
+            J4αEntryField: -90, J5αEntryField: 90, J6αEntryField: -90,
+            
+            # d distances
+            J1dEntryField: 169.77, J2dEntryField: 0, J3dEntryField: 0,
+            J4dEntryField: 222.63, J5dEntryField: 0, J6dEntryField: 41,
+            
+            # a distances
+            J1aEntryField: 0, J2aEntryField: 64.2, J3aEntryField: 305,
+            J4aEntryField: 0, J5aEntryField: 0, J6aEntryField: 0
+        }
+
+        # Insert default values into each entry field
+        for entry_field, value in default_values.items():
+            entry_field.insert(0, str(value))
+
+    ## Profiles defs ##
+
+    def SaveAndApplyCalibration():
+        global J1AngCur, J2AngCur, J3AngCur, J4AngCur, J5AngCur, J6AngCur
+        global XcurPos, YcurPos, ZcurPos, RxcurPos, RycurPos, RzcurPos
+        global J7PosCur, J8PosCur, J9PosCur, VisFileLoc, VisProg
+        global VisOrigXpix, VisOrigXmm, VisOrigYpix, VisOrigYmm
+        global VisEndXpix, VisEndXmm, VisEndYpix, VisEndYmm
+        global J1calOff, J2calOff, J3calOff, J4calOff, J5calOff, J6calOff, J7calOff, J8calOff, J9calOff
+        global J1OpenLoopVal, J2OpenLoopVal, J3OpenLoopVal, J4OpenLoopVal, J5OpenLoopVal, J6OpenLoopVal
+        global DisableWristRotVal
+        global J1CalStatVal, J2CalStatVal, J3CalStatVal, J4CalStatVal, J5CalStatVal, J6CalStatVal
+        global J7CalStatVal, J8CalStatVal, J9CalStatVal
+        global J1CalStatVal2, J2CalStatVal2, J3CalStatVal2, J4CalStatVal2, J5CalStatVal2, J6CalStatVal2
+        global J7CalStatVal2, J8CalStatVal2, J9CalStatVal2
+        global J7PosLim, J7rotation, J7steps, J8length, J8rotation, J8steps, J9length, J9rotation, J9steps
+        global IncJogStat
+
+        # Set values from GUI inputs
+        J7PosCur = J7curAngEntryField.get()
+        J8PosCur = J8curAngEntryField.get()
+        J9PosCur = J9curAngEntryField.get()
+        VisProg = visoptions.get()
+        J1calOff = float(J1calOffEntryField.get())
+        J2calOff = float(J2calOffEntryField.get())
+        J3calOff = float(J3calOffEntryField.get())
+        J4calOff = float(J4calOffEntryField.get())
+        J5calOff = float(J5calOffEntryField.get())
+        J6calOff = float(J6calOffEntryField.get())
+        J7calOff = float(J7calOffEntryField.get())
+        J8calOff = float(J8calOffEntryField.get())
+        J9calOff = float(J9calOffEntryField.get())
+        J1OpenLoopVal = int(J1OpenLoopStat.get())
+        J2OpenLoopVal = int(J2OpenLoopStat.get())
+        J3OpenLoopVal = int(J3OpenLoopStat.get())
+        J4OpenLoopVal = int(J4OpenLoopStat.get())
+        J5OpenLoopVal = int(J5OpenLoopStat.get())
+        J6OpenLoopVal = int(J6OpenLoopStat.get())
+        DisableWristRotVal = int(DisableWristRot.get())
+        J1CalStatVal = int(J1CalStat.get())
+        J2CalStatVal = int(J2CalStat.get())
+        J3CalStatVal = int(J3CalStat.get())
+        J4CalStatVal = int(J4CalStat.get())
+        J5CalStatVal = int(J5CalStat.get())
+        J6CalStatVal = int(J6CalStat.get())
+        J7CalStatVal = int(J7CalStat.get())
+        J8CalStatVal = int(J8CalStat.get())
+        J9CalStatVal = int(J9CalStat.get())
+        J1CalStatVal2 = int(J1CalStat2.get())
+        J2CalStatVal2 = int(J2CalStat2.get())
+        J3CalStatVal2 = int(J3CalStat2.get())
+        J4CalStatVal2 = int(J4CalStat2.get())
+        J5CalStatVal2 = int(J5CalStat2.get())
+        J6CalStatVal2 = int(J6CalStat2.get())
+        J7CalStatVal2 = int(J7CalStat2.get())
+        J8CalStatVal2 = int(J8CalStat2.get())
+        J9CalStatVal2 = int(J9CalStat2.get())
+        J7PosLim = float(axis7lengthEntryField.get())
+        J7rotation = float(axis7rotEntryField.get())
+        J7steps = float(axis7stepsEntryField.get())
+        J8length = float(axis8lengthEntryField.get())
+        J8rotation = float(axis8rotEntryField.get())
+        J8steps = float(axis8stepsEntryField.get())
+        J9length = float(axis9lengthEntryField.get())
+        J9rotation = float(axis9rotEntryField.get())
+        J9steps = float(axis9stepsEntryField.get())
+
+        # Apply the updates and save
+        try:
+            updateParams()
+            time.sleep(0.1)
+            calExtAxis()
+        except:
+            print("No serial connection with Teensy board")
+
+        savePosData()
+
+    def savePosData():
+        global J1AngCur, J2AngCur, J3AngCur, J4AngCur, J5AngCur, J6AngCur
+        global XcurPos, YcurPos, ZcurPos, RxcurPos, RycurPos, RzcurPos, curTheme
+        global J7PosLim, J7rotation, J7steps, J8length, J8rotation, J8steps, J9length, J9rotation, J9steps
+        global mX1, mY1, mX2, mY2
+
+        # Clear the calibration list and insert values sequentially
+        calibration.delete(0, END)
+        
+        # Joint Angles
+        calibration.insert(END, J1AngCur)
+        calibration.insert(END, J2AngCur)
+        calibration.insert(END, J3AngCur)
+        calibration.insert(END, J4AngCur)
+        calibration.insert(END, J5AngCur)
+        calibration.insert(END, J6AngCur)
+
+        # Current Positions (X, Y, Z, Rz, Ry, Rx)
+        calibration.insert(END, XcurPos)
+        calibration.insert(END, YcurPos)
+        calibration.insert(END, ZcurPos)
+        calibration.insert(END, RzcurPos)
+        calibration.insert(END, RycurPos)
+        calibration.insert(END, RxcurPos)
+
+        # Ports and Program Entry Fields
+        calibration.insert(END, comPortEntryField.get())
+        calibration.insert(END, ProgEntryField.get())
+        calibration.insert(END, servo0onEntryField.get())
+        calibration.insert(END, servo0offEntryField.get())
+        calibration.insert(END, servo1onEntryField.get())
+        calibration.insert(END, servo1offEntryField.get())
+        calibration.insert(END, DO1onEntryField.get())
+        calibration.insert(END, DO1offEntryField.get())
+        calibration.insert(END, DO2onEntryField.get())
+        calibration.insert(END, DO2offEntryField.get())
+
+        # Transform Fields (TFx to TFrz)
+        calibration.insert(END, TFxEntryField.get())
+        calibration.insert(END, TFyEntryField.get())
+        calibration.insert(END, TFzEntryField.get())
+        calibration.insert(END, TFrxEntryField.get())
+        calibration.insert(END, TFryEntryField.get())
+        calibration.insert(END, TFrzEntryField.get())
+
+        # Joint 7 to 9 Calibration Fields
+        calibration.insert(END, J7curAngEntryField.get())
+        calibration.insert(END, J8curAngEntryField.get())
+        calibration.insert(END, J9curAngEntryField.get())
+
+        # Visual Calibration Fields
+        calibration.insert(END, "VisFileLocEntryField")  # Placeholder
+        calibration.insert(END, visoptions.get())
+        calibration.insert(END, "VisPicOxPEntryField")
+        calibration.insert(END, "VisPicOxMEntryField")
+        calibration.insert(END, "VisPicOyPEntryField")
+        calibration.insert(END, "VisPicOyMEntryField")
+        calibration.insert(END, "VisPicXPEntryField")
+        calibration.insert(END, "VisPicXMEntryField")
+        calibration.insert(END, "VisPicYPEntryField")
+        calibration.insert(END, "VisPicYMEntryField")
+
+        # Calibration Offsets (J1 to J6)
+        calibration.insert(END, J1calOffEntryField.get())
+        calibration.insert(END, J2calOffEntryField.get())
+        calibration.insert(END, J3calOffEntryField.get())
+        calibration.insert(END, J4calOffEntryField.get())
+        calibration.insert(END, J5calOffEntryField.get())
+        calibration.insert(END, J6calOffEntryField.get())
+
+        # Open Loop Values (J1 to J6)
+        calibration.insert(END, J1OpenLoopVal)
+        calibration.insert(END, J2OpenLoopVal)
+        calibration.insert(END, J3OpenLoopVal)
+        calibration.insert(END, J4OpenLoopVal)
+        calibration.insert(END, J5OpenLoopVal)
+        calibration.insert(END, J6OpenLoopVal)
+
+        # Additional Configuration Fields
+        calibration.insert(END, com2PortEntryField.get())
+        calibration.insert(END, curTheme)
+        calibration.insert(END, J1CalStatVal)
+        calibration.insert(END, J2CalStatVal)
+        calibration.insert(END, J3CalStatVal)
+        calibration.insert(END, J4CalStatVal)
+        calibration.insert(END, J5CalStatVal)
+        calibration.insert(END, J6CalStatVal)
+
+        # Joint 7 Calibration Parameters
+        calibration.insert(END, J7PosLim)
+        calibration.insert(END, J7rotation)
+        calibration.insert(END, J7steps)
+        calibration.insert(END, J7StepCur)
+
+        # Joint Calibration Status Values (2nd Set)
+        calibration.insert(END, J1CalStatVal2)
+        calibration.insert(END, J2CalStatVal2)
+        calibration.insert(END, J3CalStatVal2)
+        calibration.insert(END, J4CalStatVal2)
+        calibration.insert(END, J5CalStatVal2)
+        calibration.insert(END, J6CalStatVal2)
+
+        # Visual Settings
+        calibration.insert(END, VisBrightSlide.get())
+        calibration.insert(END, VisContrastSlide.get())
+        calibration.insert(END, VisBacColorEntryField.get())
+        calibration.insert(END, VisScoreEntryField.get())
+        calibration.insert(END, VisX1PixEntryField.get())
+        calibration.insert(END, VisY1PixEntryField.get())
+        calibration.insert(END, VisX2PixEntryField.get())
+        calibration.insert(END, VisY2PixEntryField.get())
+        calibration.insert(END, VisX1RobEntryField.get())
+        calibration.insert(END, VisY1RobEntryField.get())
+        calibration.insert(END, VisX2RobEntryField.get())
+        calibration.insert(END, VisY2RobEntryField.get())
+        calibration.insert(END, VisZoomSlide.get())
+
+        # Other Options
+        calibration.insert(END, pick180.get())
+        calibration.insert(END, pickClosest.get())
+        calibration.insert(END, visoptions.get())
+        calibration.insert(END, fullRot.get())
+        calibration.insert(END, autoBG.get())
+
+        # Miscellaneous Parameters
+        calibration.insert(END, mX1)
+        calibration.insert(END, mY1)
+        calibration.insert(END, mX2)
+        calibration.insert(END, mY2)
+
+        # Joint 8 and 9 Parameters
+        calibration.insert(END, J8length)
+        calibration.insert(END, J8rotation)
+        calibration.insert(END, J8steps)
+        calibration.insert(END, J9length)
+        calibration.insert(END, J9rotation)
+        calibration.insert(END, J9steps)
+
+        # Joint Calibration Offsets (J7 to J9)
+        calibration.insert(END, J7calOffEntryField.get())
+        calibration.insert(END, J8calOffEntryField.get())
+        calibration.insert(END, J9calOffEntryField.get())
+
+        # General Calibration Settings (GC_ST)
+        calibration.insert(END, GC_ST_E1_EntryField.get())
+        calibration.insert(END, GC_ST_E2_EntryField.get())
+        calibration.insert(END, GC_ST_E3_EntryField.get())
+        calibration.insert(END, GC_ST_E4_EntryField.get())
+        calibration.insert(END, GC_ST_E5_EntryField.get())
+        calibration.insert(END, GC_ST_E6_EntryField.get())
+        calibration.insert(END, GC_SToff_E1_EntryField.get())
+        calibration.insert(END, GC_SToff_E2_EntryField.get())
+        calibration.insert(END, GC_SToff_E3_EntryField.get())
+        calibration.insert(END, GC_SToff_E4_EntryField.get())
+        calibration.insert(END, GC_SToff_E5_EntryField.get())
+        calibration.insert(END, GC_SToff_E6_EntryField.get())
+
+        # Wrist Rotation Disable
+        calibration.insert(END, DisableWristRotVal)
+
+        # Motor Direction Fields (J1 to J9)
+        calibration.insert(END, J1MotDirEntryField.get())
+        calibration.insert(END, J2MotDirEntryField.get())
+        calibration.insert(END, J3MotDirEntryField.get())
+        calibration.insert(END, J4MotDirEntryField.get())
+        calibration.insert(END, J5MotDirEntryField.get())
+        calibration.insert(END, J6MotDirEntryField.get())
+        calibration.insert(END, J7MotDirEntryField.get())
+        calibration.insert(END, J8MotDirEntryField.get())
+        calibration.insert(END, J9MotDirEntryField.get())
+
+        # Calibration Direction Fields (J1 to J9)
+        calibration.insert(END, J1CalDirEntryField.get())
+        calibration.insert(END, J2CalDirEntryField.get())
+        calibration.insert(END, J3CalDirEntryField.get())
+        calibration.insert(END, J4CalDirEntryField.get())
+        calibration.insert(END, J5CalDirEntryField.get())
+        calibration.insert(END, J6CalDirEntryField.get())
+        calibration.insert(END, J7CalDirEntryField.get())
+        calibration.insert(END, J8CalDirEntryField.get())
+        calibration.insert(END, J9CalDirEntryField.get())
+
+        # Position Limits Fields (J1 to J9)
+        calibration.insert(END, J1PosLimEntryField.get())
+        calibration.insert(END, J1NegLimEntryField.get())
+        calibration.insert(END, J2PosLimEntryField.get())
+        calibration.insert(END, J2NegLimEntryField.get())
+        calibration.insert(END, J3PosLimEntryField.get())
+        calibration.insert(END, J3NegLimEntryField.get())
+        calibration.insert(END, J4PosLimEntryField.get())
+        calibration.insert(END, J4NegLimEntryField.get())
+        calibration.insert(END, J5PosLimEntryField.get())
+        calibration.insert(END, J5NegLimEntryField.get())
+        calibration.insert(END, J6PosLimEntryField.get())
+        calibration.insert(END, J6NegLimEntryField.get())
+        calibration.insert(END, J7PosLimEntryField.get())
+        calibration.insert(END, J7NegLimEntryField.get())
+        calibration.insert(END, J8PosLimEntryField.get())
+        calibration.insert(END, J8NegLimEntryField.get())
+        calibration.insert(END, J9PosLimEntryField.get())
+        calibration.insert(END, J9NegLimEntryField.get())
+
+        # Encoder Settings (J1 to J9)
+        calibration.insert(END, J1EncCPREntryField.get())
+        calibration.insert(END, J2EncCPREntryField.get())
+        calibration.insert(END, J3EncCPREntryField.get())
+        calibration.insert(END, J4EncCPREntryField.get())
+        calibration.insert(END, J5EncCPREntryField.get())
+        calibration.insert(END, J6EncCPREntryField.get())
+
+        # Drive Modes (J1 to J6)
+        calibration.insert(END, J1DriveMSEntryField.get())
+        calibration.insert(END, J2DriveMSEntryField.get())
+        calibration.insert(END, J3DriveMSEntryField.get())
+        calibration.insert(END, J4DriveMSEntryField.get())
+        calibration.insert(END, J5DriveMSEntryField.get())
+        calibration.insert(END, J6DriveMSEntryField.get())
+
+        # Step Degrees (J1 to J6)
+        calibration.insert(END, J1StepDegEntryField.get())
+        calibration.insert(END, J2StepDegEntryField.get())
+        calibration.insert(END, J3StepDegEntryField.get())
+        calibration.insert(END, J4StepDegEntryField.get())
+        calibration.insert(END, J5StepDegEntryField.get())
+        calibration.insert(END, J6StepDegEntryField.get())
+        
+        # Serialize and save the data
+        value = calibration.get(0, END)
+        pickle.dump(value, open("ARbot.cal", "wb"))
+
+    def checkSpeedVals():
+        try:
+            speedtype = speedOption.get()
+            Speed = float(speedEntryField.get())
+            
+            # Validate Speed based on speedtype
+            if speedtype == "mm per Sec" and Speed <= 0.01:
+                speedEntryField.delete(0, 'end')
+                speedEntryField.insert(0, "5")
+            elif speedtype == "Seconds" and Speed <= 0.001:
+                speedEntryField.delete(0, 'end')
+                speedEntryField.insert(0, "1")
+            elif speedtype == "Percent" and (Speed <= 0.01 or Speed > 100):
+                speedEntryField.delete(0, 'end')
+                speedEntryField.insert(0, "10")
+            
+            # Validate ACCspd
+            ACCspd = float(ACCspeedField.get())
+            if ACCspd <= 0.01 or ACCspd > 100:
+                ACCspeedField.delete(0, 'end')
+                ACCspeedField.insert(0, "10")
+            
+            # Validate DECspd
+            DECspd = float(DECspeedField.get())
+            if DECspd <= 0.01 or DECspd >= 100:
+                DECspeedField.delete(0, 'end')
+                DECspeedField.insert(0, "10")
+            
+            # Validate ACCramp
+            ACCramp = float(ACCrampField.get())
+            if ACCramp <= 0.01 or ACCramp > 100:
+                ACCrampField.delete(0, 'end')
+                ACCrampField.insert(0, "50")
+        
+        except ValueError:
+            # Handle cases where fields contain non-numeric values
+            speedEntryField.delete(0, 'end')
+            speedEntryField.insert(0, "5")
+            ACCspeedField.delete(0, 'end')
+            ACCspeedField.insert(0, "10")
+            DECspeedField.delete(0, 'end')
+            DECspeedField.insert(0, "10")
+            ACCrampField.delete(0, 'end')
+            ACCrampField.insert(0, "50")
+
+    def ErrorHandler(response):
+        global estopActive
+        global posOutreach
+        cur_time = datetime.datetime.now().strftime("%B %d %Y - %I:%M%p")
+        
+        def log_error(message):
+            """Logs the message to ElogView and saves the log to a file."""
+            tab8.ElogView.insert(END, f"{cur_time} - {message}")
+            value = tab8.ElogView.get(0, END)
+            pickle.dump(value, open("ErrorLog", "wb"))
+
+        def update_status(message):
+            """Updates the alarm status labels with a message."""
+            almStatusLab.config(text=message, style="Alarm.TLabel")
+            almStatusLab2.config(text=message, style="Alarm.TLabel")
+            GCalmStatusLab.config(text=message, style="Alarm.TLabel")
+
+        cmdRecEntryField.delete(0, 'end')
+        cmdRecEntryField.insert(0, response)
+        
+        # AXIS LIMIT ERROR
+        if response[1:2] == 'L':
+            for i in range(1, 10):
+                if response[i + 1:i + 2] == '1':
+                    log_error(f"J{i} Axis Limit")
+            update_status("Axis Limit Error - See Log")
+            
+        # COLLISION ERROR
+        elif response[1:2] == 'C':
+            for i in range(1, 7):
+                if response[i + 1:i + 2] == '1':
+                    log_error(f"J{i} Collision or Motor Error")
+                    correctPos()
+                    stopProg()
+                    update_status("Collision or Motor Error - See Log")
+            
+        # POSITION OUT OF REACH ERROR
+        elif response[1:2] == 'R':
+            posOutreach = True
+            stopProg()
+            log_error("Position Out of Reach")
+            update_status("Position Out of Reach")
+        
+        # SPLINE ERROR
+        elif response[1:2] == 'S':
+            stopProg()
+            log_error("Spline Can Only Have Move L Types")
+            update_status("Spline Can Only Have Move L Types")
+        
+        # GCODE ERROR
+        elif response[1:2] == 'G':
+            stopProg()
+            log_error("Gcode file not found")
+            update_status("Gcode file not found")
+        
+        # ESTOP BUTTON ERROR
+        elif response[1:2] == 'B':
+            estopActive = True
+            stopProg()
+            log_error("Estop Button was Pressed")
+            update_status("Estop Button was Pressed")
+        
+        # CALIBRATION ERROR
+        elif response[1:2] == 'A':
+            for i in range(1, 10):
+                if response[2:3] == str(i):
+                    log_error(f"J{i} CALIBRATION ERROR")
+                    
+        # UNKNOWN ERROR
+        else:
+            stopProg()
+            log_error("Unknown Error")
+            update_status("Unknown Error")
 
     # Vision defs #
 
