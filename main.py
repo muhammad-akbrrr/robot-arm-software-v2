@@ -768,8 +768,8 @@ class RobotArmApp:
         time.sleep(0.1)
         ser.read()
 
+    # Handle 'Wait Input ON' command for the given serial connection.
     def processWaitInputOn(self, command, ser):
-        """Handle 'Wait Input ON' command for the given serial connection."""
         if self.moveInProc:
             self.moveInProc = 2
 
@@ -787,8 +787,8 @@ class RobotArmApp:
         time.sleep(0.1)
         ser.read()
 
+    # Handle 'Wait Input OFF' command for the given serial connection.
     def processWaitInputOff(self, command, ser):
-        """Handle 'Wait Input OFF' command for the given serial connection."""
         if self.moveInProc:
             self.moveInProc = 2
 
@@ -806,8 +806,8 @@ class RobotArmApp:
         time.sleep(0.1)
         ser.read()
 
+    # Handle 'Wait Time' command.
     def processWaitTime(self, command):
-        """Handle 'Wait Time' command."""
         if self.moveInProc:
             self.moveInProc = 2
 
@@ -825,8 +825,8 @@ class RobotArmApp:
         time.sleep(0.1)
         self.ser.read()
 
+    # Handles the 'Set Register' command.
     def processSetRegister(self, command):
-        """Handles the 'Set Register' command."""
         if self.moveInProc:
             self.moveInProc = 2
 
@@ -857,8 +857,8 @@ class RobotArmApp:
         entry_field.delete(0, 'end')
         entry_field.insert(0, str(reg_new_val))
 
+    # Handles the 'Set Position Register' command.
     def processSetPositionRegister(self, command):
-        """Handles the 'Set Position Register' command."""
         if self.moveInProc:
             self.moveInProc = 2
 
@@ -896,16 +896,16 @@ class RobotArmApp:
         entry_field.delete(0, 'end')
         entry_field.insert(0, str(reg_new_val))
 
+    # Handles the 'Calibrate' command.
     def processCalibrate(self):
-        """Handles the 'Calibrate' command."""
         if self.moveInProc:
             self.moveInProc = 2
         calRobotAll()
         if calStat == 0:
             stopProg()
 
+    # Process the Tool S command, send it to the device, handle errors, and display position data.
     def processToolS(self, command):
-        """Process the Tool S command, send it to the device, handle errors, and display position data."""
 
         # Set move process state and system status
         if self.moveInProc == 1:
@@ -1195,8 +1195,8 @@ class RobotArmApp:
                 self.errorStatusLabel.config(text=errorMsg, style="Error.TLabel")
                 print(f"Error: {errorMsg}")
 
+    # Process the Move V command, send it to the device, handle errors, and display position.
     def handleMoveVCommand(self, command):
-        """Process the Move V command, send it to the device, handle errors, and display position."""
 
         # Ensure movement is in progress
         if self.moveInProc == 0:
@@ -1262,8 +1262,8 @@ class RobotArmApp:
         else:
             # Display position
             try:
+                # Extracts a numeric value from the response string given a label prefix.
                 def extract_value(response, label):
-                    """Extracts a numeric value from the response string given a label prefix."""
                     index = response.find(f"{label}")
                     if index == -1:
                         raise ValueError(f"Label '{label}' not found in response.")
@@ -1288,8 +1288,8 @@ class RobotArmApp:
                 print(error_msg)
                 self.errorStatusLabel.config(text=error_msg, style="Error.TLabel")
 
+    # Process the MoveP command, send it to the device, handle errors, and display position data.
     def handleMovePCommand(self, command):
-        """Process the MoveP command, send it to the device, handle errors, and display position data."""
 
         # Begin processing MoveP command
         if self.moveInProc == 0:
@@ -1379,8 +1379,8 @@ class RobotArmApp:
             print(f"Error: {errorMsg}")
             self.errorStatusLabel.config(text=errorMsg, style="Error.TLabel")
 
+    # Process the OffsPR command, construct the command string, send it to the device, and handle response errors.
     def handleOffsPRCommand(self, command):
-        """Process the OffsPR command, construct the command string, send it to the device, and handle response errors."""
         
         # Set move process state
         if self.moveInProc == 0:
@@ -4369,7 +4369,9 @@ class RobotArmApp:
     def savePosData():
         global J1AngCur, J2AngCur, J3AngCur, J4AngCur, J5AngCur, J6AngCur
         global XcurPos, YcurPos, ZcurPos, RxcurPos, RycurPos, RzcurPos, curTheme
-        global J7PosLim, J7rotation, J7steps, J8length, J8rotation, J8steps, J9length, J9rotation, J9steps
+        global J7PosLim, J7rotation, J7steps
+        global J8length, J8rotation, J8steps
+        global J9length, J9rotation, J9steps
         global mX1, mY1, mX2, mY2
 
         # Clear the calibration list and insert values sequentially
@@ -4597,127 +4599,811 @@ class RobotArmApp:
         pickle.dump(value, open("ARbot.cal", "wb"))
 
     def checkSpeedVals():
-        try:
-            speedtype = speedOption.get()
-            Speed = float(speedEntryField.get())
-            
-            # Validate Speed based on speedtype
-            if speedtype == "mm per Sec" and Speed <= 0.01:
-                speedEntryField.delete(0, 'end')
-                speedEntryField.insert(0, "5")
-            elif speedtype == "Seconds" and Speed <= 0.001:
-                speedEntryField.delete(0, 'end')
-                speedEntryField.insert(0, "1")
-            elif speedtype == "Percent" and (Speed <= 0.01 or Speed > 100):
-                speedEntryField.delete(0, 'end')
-                speedEntryField.insert(0, "10")
-            
-            # Validate ACCspd
-            ACCspd = float(ACCspeedField.get())
-            if ACCspd <= 0.01 or ACCspd > 100:
-                ACCspeedField.delete(0, 'end')
-                ACCspeedField.insert(0, "10")
-            
-            # Validate DECspd
-            DECspd = float(DECspeedField.get())
-            if DECspd <= 0.01 or DECspd >= 100:
-                DECspeedField.delete(0, 'end')
-                DECspeedField.insert(0, "10")
-            
-            # Validate ACCramp
-            ACCramp = float(ACCrampField.get())
-            if ACCramp <= 0.01 or ACCramp > 100:
-                ACCrampField.delete(0, 'end')
-                ACCrampField.insert(0, "50")
+        speedtype = speedOption.get()
         
-        except ValueError:
-            # Handle cases where fields contain non-numeric values
-            speedEntryField.delete(0, 'end')
-            speedEntryField.insert(0, "5")
-            ACCspeedField.delete(0, 'end')
-            ACCspeedField.insert(0, "10")
-            DECspeedField.delete(0, 'end')
-            DECspeedField.insert(0, "10")
-            ACCrampField.delete(0, 'end')
-            ACCrampField.insert(0, "50")
+        # Validate and update a field with a default value if out of bounds.
+        def validate_and_update(field, value, min_val, max_val=None):
+            speed = float(field.get())
+            if speed <= min_val or (max_val is not None and speed > max_val):
+                field.delete(0, 'end')
+                field.insert(0, str(value))
+        
+        # Validate speed based on type
+        if speedtype == "mm per Sec":
+            validate_and_update(speedEntryField, 5, 0.01)
+        elif speedtype == "Seconds":
+            validate_and_update(speedEntryField, 1, 0.001)
+        elif speedtype == "Percent":
+            validate_and_update(speedEntryField, 10, 0.01, 100)
+        
+        # Validate acceleration, deceleration, and ramp fields
+        validate_and_update(ACCspeedField, 10, 0.01, 100)
+        validate_and_update(DECspeedField, 10, 0.01, 100)
+        validate_and_update(ACCrampField, 50, 0.01, 100)
 
     def ErrorHandler(response):
-        global estopActive
-        global posOutreach
-        cur_time = datetime.datetime.now().strftime("%B %d %Y - %I:%M%p")
+        global estopActive, posOutreach
+        Curtime = datetime.datetime.now().strftime("%B %d %Y - %I:%M%p")
         
+        # Log error message to ElogView and save to a file.
         def log_error(message):
-            """Logs the message to ElogView and saves the log to a file."""
-            tab8.ElogView.insert(END, f"{cur_time} - {message}")
-            value = tab8.ElogView.get(0, END)
-            pickle.dump(value, open("ErrorLog", "wb"))
+            tab8.ElogView.insert(END, f"{Curtime} - {message}")
+            pickle.dump(tab8.ElogView.get(0, END), open("ErrorLog", "wb"))
 
-        def update_status(message):
-            """Updates the alarm status labels with a message."""
+        # Update alarm labels with a specific message and style.
+        def update_alarm_status(message):
             almStatusLab.config(text=message, style="Alarm.TLabel")
             almStatusLab2.config(text=message, style="Alarm.TLabel")
             GCalmStatusLab.config(text=message, style="Alarm.TLabel")
 
+        # Handle specific axis limit errors based on response.
+        def handle_axis_limit_error():
+            axis_errors = {
+                2: "J1 Axis Limit", 3: "J2 Axis Limit", 4: "J3 Axis Limit",
+                5: "J4 Axis Limit", 6: "J5 Axis Limit", 7: "J6 Axis Limit",
+                8: "J7 Axis Limit", 9: "J8 Axis Limit", 10: "J9 Axis Limit"
+            }
+            for i, message in axis_errors.items():
+                if response[i:i+1] == '1':
+                    log_error(message)
+            update_alarm_status("Axis Limit Error - See Log")
+
+        # Handle specific collision or motor errors based on response.
+        def handle_collision_error():
+            collision_errors = {
+                2: "J1 Collision or Motor Error", 3: "J2 Collision or Motor Error",
+                4: "J3 Collision or Motor Error", 5: "J4 Collision or Motor Error",
+                6: "J5 Collision or Motor Error", 7: "J6 Collision or Motor Error"
+            }
+            for i, message in collision_errors.items():
+                if response[i:i+1] == '1':
+                    log_error(message)
+                    correctPos()
+                    stopProg()
+            update_alarm_status("Collision or Motor Error - See Log")
+
+        # Handle specific calibration errors based on response.
+        def handle_calibration_error():
+            calibration_errors = {
+                "1": "J1 CALIBRATION ERROR", "2": "J2 CALIBRATION ERROR", "3": "J3 CALIBRATION ERROR",
+                "4": "J4 CALIBRATION ERROR", "5": "J5 CALIBRATION ERROR", "6": "J6 CALIBRATION ERROR",
+                "7": "J7 CALIBRATION ERROR", "8": "J8 CALIBRATION ERROR", "9": "J9 CALIBRATION ERROR"
+            }
+            axis_id = response[2:3]
+            if axis_id in calibration_errors:
+                log_error(calibration_errors[axis_id])
+
         cmdRecEntryField.delete(0, 'end')
         cmdRecEntryField.insert(0, response)
         
-        # AXIS LIMIT ERROR
+        # Axis Limit Error
         if response[1:2] == 'L':
-            for i in range(1, 10):
-                if response[i + 1:i + 2] == '1':
-                    log_error(f"J{i} Axis Limit")
-            update_status("Axis Limit Error - See Log")
-            
-        # COLLISION ERROR
+            handle_axis_limit_error()
+            stopProg()
+
+        # Collision Error
         elif response[1:2] == 'C':
-            for i in range(1, 7):
-                if response[i + 1:i + 2] == '1':
-                    log_error(f"J{i} Collision or Motor Error")
-                    correctPos()
-                    stopProg()
-                    update_status("Collision or Motor Error - See Log")
-            
-        # POSITION OUT OF REACH ERROR
+            handle_collision_error()
+
+        # Position Out of Reach
         elif response[1:2] == 'R':
             posOutreach = True
             stopProg()
             log_error("Position Out of Reach")
-            update_status("Position Out of Reach")
-        
-        # SPLINE ERROR
+            update_alarm_status("Position Out of Reach")
+
+        # Spline Error
         elif response[1:2] == 'S':
             stopProg()
             log_error("Spline Can Only Have Move L Types")
-            update_status("Spline Can Only Have Move L Types")
-        
-        # GCODE ERROR
+            update_alarm_status("Spline Can Only Have Move L Types")
+
+        # GCode Error
         elif response[1:2] == 'G':
             stopProg()
             log_error("Gcode file not found")
-            update_status("Gcode file not found")
-        
-        # ESTOP BUTTON ERROR
+            update_alarm_status("Gcode file not found")
+
+        # Estop Button Pressed
         elif response[1:2] == 'B':
             estopActive = True
             stopProg()
             log_error("Estop Button was Pressed")
-            update_status("Estop Button was Pressed")
-        
-        # CALIBRATION ERROR
+            update_alarm_status("Estop Button was Pressed")
+
+        # Calibration Error
         elif response[1:2] == 'A':
-            for i in range(1, 10):
-                if response[2:3] == str(i):
-                    log_error(f"J{i} CALIBRATION ERROR")
-                    
-        # UNKNOWN ERROR
+            handle_calibration_error()
+
+        # Unknown Error
         else:
             stopProg()
             log_error("Unknown Error")
-            update_status("Unknown Error")
+            update_alarm_status("Unknown Error")
 
     # Vision defs #
 
+    def testvis():
+        visprog = visoptions.get()
+        visprog_functions = {
+            "Openvision": openvision,
+            "Roborealm 1.7.5": roborealm175,
+            "x,y,r": xyr
+        }
+        # Call the function if the visprog option exists in the mapping
+        if visprog in visprog_functions:
+            visprog_functions[visprog]()
 
+    def openvision():
+        global Xpos, Ypos, VisEndYmm
+        visfail = 1
+
+        # Update system status label
+        def update_status(label, text="SYSTEM READY", style="OK.TLabel"):
+            label.config(text=text, style=style)
+
+        # Read the last line from a file, retry if file not found.
+        def read_last_line(file_path):
+            while True:
+                try:
+                    with open(file_path, "r") as f:
+                        return f.readlines()[-1]
+                except FileNotFoundError:
+                    time.sleep(0.1)
+
+        # Update an entry field with a new value.
+        def update_entry(field, value):
+            field.delete(0, 'end')
+            field.insert(0, value)
+
+        # Main loop for vision processing
+        while visfail:
+            update_status(almStatusLab)
+            update_status(almStatusLab2)
+            value = read_last_line(VisFileLoc)
+
+            x = int(value[110:122])
+            y = int(value[130:142])
+            viscalc(x, y)
+
+            visfail = Ypos > VisEndYmm
+            if visfail:
+                time.sleep(0.1)
+
+        open(VisFileLoc, "w").close()  # Clear the vision file
+
+        # Update fields with position data
+        update_entry(VisXfindEntryField, Xpos)
+        update_entry(VisYfindEntryField, Ypos)
+        update_entry(VisRZfindEntryField, 0)
+        update_entry(VisXpixfindEntryField, x)
+        update_entry(VisYpixfindEntryField, y)
+        update_entry(SP_1_E1_EntryField, Xpos)
+        update_entry(SP_1_E2_EntryField, Ypos)
+
+    def roborealm175():
+        global Xpos, Ypos, VisEndYmm
+        visfail = 1
+
+        # Update a label with specified text and style.
+        def update_status(label, text, style):
+            label.config(text=text, style=style)
+
+        # Read the last line from a file, retry if file not found.
+        def read_last_line(file_path):
+            while True:
+                try:
+                    with open(file_path, "r") as f:
+                        return f.readlines()[-1]
+                except FileNotFoundError:
+                    time.sleep(0.1)
+
+        # Update an entry field with a new value.
+        def update_entry(field, value):
+            field.delete(0, 'end')
+            field.insert(0, value)
+
+        # Main loop for processing vision data
+        while visfail:
+            update_status(almStatusLab, "WAITING FOR CAMERA", "Alarm.TLabel")
+            update_status(almStatusLab2, "WAITING FOR CAMERA", "Alarm.TLabel")
+
+            value = read_last_line(VisFileLoc)
+
+            update_status(almStatusLab, "SYSTEM READY", "OK.TLabel")
+            update_status(almStatusLab2, "SYSTEM READY", "OK.TLabel")
+
+            # Extract x and y values from the comma-separated value
+            index = value.index(',')
+            x = float(value[:index])
+            y = float(value[index+1:])
+            
+            viscalc(x, y)
+
+            visfail = float(Ypos) > float(VisEndYmm)
+            if visfail:
+                time.sleep(0.1)
+
+        open(VisFileLoc, "w").close()  # Clear the vision file
+
+        # Update fields with position data
+        update_entry(VisXfindEntryField, Xpos)
+        update_entry(VisYfindEntryField, Ypos)
+        update_entry(VisRZfindEntryField, 0)
+        update_entry(VisXpixfindEntryField, x)
+        update_entry(VisYpixfindEntryField, y)
+        update_entry(SP_1_E1_EntryField, Xpos)
+        update_entry(SP_1_E2_EntryField, Ypos)
+
+    def xyr():
+        global Xpos, Ypos, VisEndYmm
+        visfail = 1
+
+        # Update a label with specified text and style.
+        def update_status(label, text, style):
+            label.config(text=text, style=style)
+
+        # Read the last line from a file, retry if file not found.
+        def read_last_line(file_path):
+            while True:
+                try:
+                    with open(file_path, "r") as f:
+                        return f.readlines()[-1]
+                except FileNotFoundError:
+                    time.sleep(0.1)
+
+        # Update an entry field with a new value.
+        def update_entry(field, value):
+            field.delete(0, 'end')
+            field.insert(0, value)
+
+        # Main loop for processing vision data
+        while visfail:
+            update_status(almStatusLab, "SYSTEM READY", "OK.TLabel")
+            update_status(almStatusLab2, "SYSTEM READY", "OK.TLabel")
+
+            value = read_last_line(VisFileLoc)
+
+            # Update status to indicate system is ready
+            update_status(almStatusLab, "SYSTEM READY", "OK.TLabel")
+            update_status(almStatusLab2, "SYSTEM READY", "OK.TLabel")
+
+            # Parse x, y, r values from comma-separated string
+            index1 = value.index(',')
+            x = float(value[:index1])
+
+            remaining_value = value[index1 + 1:]
+            index2 = remaining_value.index(',')
+            y = float(remaining_value[:index2])
+            r = float(remaining_value[index2 + 1:])
+
+            viscalc(x, y)
+
+            visfail = Ypos > float(VisEndYmm)
+            if visfail:
+                time.sleep(0.1)
+
+        open(VisFileLoc, "w").close()  # Clear the vision file
+
+        # Update fields with position and rotation data
+        update_entry(VisXfindEntryField, Xpos)
+        update_entry(VisYfindEntryField, Ypos)
+        update_entry(VisRZfindEntryField, r)
+        update_entry(VisXpixfindEntryField, x)
+        update_entry(VisYpixfindEntryField, y)
+        update_entry(SP_1_E1_EntryField, Xpos)
+        update_entry(SP_1_E2_EntryField, Ypos)
+        update_entry(SP_1_E3_EntryField, r)
+
+    def viscalc():
+        global xMMpos, yMMpos
+
+        # Retrieve and convert an entry field's value to float.
+        def get_entry_float(entry_field):
+            return float(entry_field.get())
+
+        # Calculate the millimeter position based on pixel and millimeter ranges and the target pixel value.
+        def calculate_mm_position(origin_pix, end_pix, origin_mm, end_mm, target_pix):
+            pixel_range = end_pix - origin_pix
+            ratio = (target_pix - origin_pix) / pixel_range
+            mm_range = end_mm - origin_mm
+            return origin_mm + (mm_range * ratio)
+
+        # Retrieve origin and end positions in both pixel and millimeter units
+        VisOrigXpix = get_entry_float(VisX1PixEntryField)
+        VisOrigXmm = get_entry_float(VisX1RobEntryField)
+        VisOrigYpix = get_entry_float(VisY1PixEntryField)
+        VisOrigYmm = get_entry_float(VisY1RobEntryField)
+
+        VisEndXpix = get_entry_float(VisX2PixEntryField)
+        VisEndXmm = get_entry_float(VisX2RobEntryField)
+        VisEndYpix = get_entry_float(VisY2PixEntryField)
+        VisEndYmm = get_entry_float(VisY2RobEntryField)
+
+        # Target pixel coordinates to be converted
+        x = get_entry_float(VisRetXpixEntryField)
+        y = get_entry_float(VisRetYpixEntryField)
+
+        # Calculate mm positions for x and y based on pixel inputs
+        xMMpos = calculate_mm_position(VisOrigXpix, VisEndXpix, VisOrigXmm, VisEndXmm, x)
+        yMMpos = calculate_mm_position(VisOrigYpix, VisEndYpix, VisOrigYmm, VisEndYmm, y)
+
+        return xMMpos, yMMpos
+
+    ## Define function to show frame ##
+
+    def show_frame():
+        if cam_on:
+            ret, frame = cap.read()
+
+            if ret:
+                # Convert the frame to RGB and resize for display
+                cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                img = Image.fromarray(cv2image).resize((480, 320))
+                imgtk = ImageTk.PhotoImage(image=img)
+                
+                # Update customtkinter label with the new frame
+                live_lbl.imgtk = imgtk
+                live_lbl.configure(image=imgtk)
+
+            # Schedule the next frame update
+            live_lbl.after(10, show_frame)
+
+    def start_vid():
+        global cam_on, cap
+        stop_vid()  # Ensure any previous video capture is stopped
+        cam_on = True
+
+        # Get the selected camera index
+        selectedCam = camList.index(visoptions.get()) if visoptions.get() in camList else 0
+        cap = cv2.VideoCapture(selectedCam)  # Open the selected camera
+
+        show_frame()
+
+    def stop_vid():
+        global cam_on, cap
+        cam_on = False
+
+        if cap and cap.isOpened():
+            cap.release()
+
+    ## Define function to show frame ##
+
+    def take_pic():
+        global selectedCam, cap, BGavg, mX1, mY1, mX2, mY2
+
+        # Capture frame from selected camera
+        if cam_on:
+            ret, frame = cap.read()
+        else:
+            selectedCam = camList.index(visoptions.get())
+            cap = cv2.VideoCapture(selectedCam)
+            ret, frame = cap.read()
+
+        # Apply brightness and contrast adjustments
+        brightness = int(VisBrightSlide.get())
+        contrast = int(VisContrastSlide.get())
+        zoom = int(VisZoomSlide.get())
+
+        frame = np.int16(frame) * (contrast / 127 + 1) - contrast + brightness
+        frame = np.clip(frame, 0, 255).astype(np.uint8)
+        cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+        # Calculate cropping bounds
+        height, width = cv2image.shape
+        centerX, centerY = height // 2, width // 2
+        radiusX, radiusY = int(zoom * height / 100), int(zoom * width / 100)
+        cropped = cv2image[centerX - radiusX:centerX + radiusX, centerY - radiusY:centerY + radiusY]
+        cv2image = cv2.resize(cropped, (width, height))
+
+        # Update background average color based on autoBG setting
+        if autoBG.get():
+            bg_points = [
+                cv2image[int(VisX1PixEntryField.get()), int(VisY1PixEntryField.get())],
+                cv2image[int(VisX1PixEntryField.get()), int(VisY2PixEntryField.get())],
+                cv2image[int(VisX2PixEntryField.get()), int(VisY2PixEntryField.get())]
+            ]
+            BGavg = (avg := int(np.mean(bg_points)), avg, avg)
+            background = avg
+            VisBacColorEntryField.configure(state='enabled')
+            VisBacColorEntryField.delete(0, 'end')
+            VisBacColorEntryField.insert(0, str(BGavg))
+            VisBacColorEntryField.configure(state='disabled')
+        else:
+            temp = VisBacColorEntryField.get()
+            background = int(temp[temp.find("(") + 1 : temp.find(",")])
+
+        # Apply background mask to image
+        mask = np.ones_like(cv2image) * background
+        mask[mY1:mY2, mX1:mX2] = cv2image[mY1:mY2, mX1:mX2]
+        cv2image = mask
+
+        # Update UI with processed image
+        img = Image.fromarray(cv2image).resize((640, 480))
+        imgtk = ImageTk.PhotoImage(image=img)
+        vid_lbl.imgtk = imgtk
+        vid_lbl.configure(image=imgtk)
+
+        # Save the image
+        cv2.imwrite('curImage.jpg', cv2image)
+
+    def mask_pic():
+        global selectedCam, cap, BGavg, mX1, mY1, mX2, mY2
+
+        # Capture frame from selected camera
+        if cam_on:
+            ret, frame = cap.read()
+        else:
+            selectedCam = camList.index(visoptions.get())
+            cap = cv2.VideoCapture(selectedCam)
+            ret, frame = cap.read()
+
+        # Apply brightness and contrast adjustments
+        brightness = int(VisBrightSlide.get())
+        contrast = int(VisContrastSlide.get())
+        zoom = int(VisZoomSlide.get())
+
+        frame = np.int16(frame) * (contrast / 127 + 1) - contrast + brightness
+        frame = np.clip(frame, 0, 255).astype(np.uint8)
+        cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+        # Crop and resize based on zoom level
+        height, width = cv2image.shape
+        centerX, centerY = height // 2, width // 2
+        radiusX, radiusY = int(zoom * height / 100), int(zoom * width / 100)
+        cropped = cv2image[centerX - radiusX:centerX + radiusX, centerY - radiusY:centerY + radiusY]
+        cv2image = cv2.resize(cropped, (width, height))
+
+        # Save the image
+        cv2.imwrite('curImage.jpg', cv2image)
+
+    def mask_crop(event, x, y, flags, param):
+        global x_start, y_start, x_end, y_end, cropping, button_down
+        global mX1, mY1, mX2, mY2, background, cropDone
+
+        cropDone = False
+
+        # Set a background color based on autoBG toggle.
+        def handle_bg_color():
+            autoBGVal = int(autoBG.get())
+            if autoBGVal == 1:
+                BG1 = oriImage[int(VisX1PixEntryField.get())][int(VisY1PixEntryField.get())]
+                BG2 = oriImage[int(VisX1PixEntryField.get())][int(VisY2PixEntryField.get())]
+                BG3 = oriImage[int(VisX2PixEntryField.get())][int(VisY2PixEntryField.get())]
+                avg = int(mean([BG1, BG2, BG3]))
+                BGavg = (avg, avg, avg)
+                VisBacColorEntryField.configure(state='enabled')
+                VisBacColorEntryField.delete(0, 'end')
+                VisBacColorEntryField.insert(0, str(BGavg))
+                VisBacColorEntryField.configure(state='disabled')
+                return avg
+            else:
+                return eval(VisBacColorEntryField.get())
+
+        # Apply the selected background to areas outside the crop region.
+        def crop_image_with_bg():
+            h, w = oriImage.shape[:2]
+            for y in range(h):
+                for x in range(w):
+                    if x >= mX2 or x <= mX1 or y <= mY1 or y >= mY2:
+                        oriImage[y, x] = background
+
+        # Update and display the image on the UI.
+        def update_displayed_image():
+            img = Image.fromarray(oriImage)
+            imgtk = ImageTk.PhotoImage(image=img)
+            vid_lbl.imgtk = imgtk
+            vid_lbl.configure(image=imgtk)
+            filename = 'curImage.jpg'
+            cv2.imwrite(filename, oriImage)
+            cv2.destroyAllWindows()
+
+        # Mouse button down event
+        if not button_down and event == cv2.EVENT_LBUTTONDOWN:
+            x_start, y_start = x, y
+            cropping, button_down = True, True
+            box_points[:] = [(x, y)]
+
+        # Mouse is moving
+        elif button_down and event == cv2.EVENT_MOUSEMOVE and cropping:
+            image_copy = oriImage.copy()
+            x_end, y_end = x, y
+            cv2.rectangle(image_copy, box_points[0], (x, y), (0, 255, 0), 2)
+            cv2.imshow("image", image_copy)
+
+        # Mouse button up event
+        elif event == cv2.EVENT_LBUTTONUP:
+            button_down = False
+            cropping = False
+            box_points.append((x, y))
+            x_end, y_end = x, y
+            mX1, mY1, mX2, mY2 = x_start+3, y_start+3, x_end-3, y_end-3
+
+            # Set background, crop image, and update display
+            background = handle_bg_color()
+            crop_image_with_bg()
+            update_displayed_image()
+
+    def selectMask():
+        global oriImage, button_down
+
+        def setup_mask_window():
+            cv2.namedWindow("image")
+            cv2.setMouseCallback("image", mask_crop)
+            cv2.imshow("image", oriImage)
+
+        button_down = False
+        x_start, y_start, x_end, y_end = 0, 0, 0, 0  # Initialize coordinates
+        mask_pic()  # Call external function for initial masking setup
+
+        oriImage = cv2.imread('curImage.jpg').copy()  # Load and duplicate the current image
+        setup_mask_window()  # Set up the window and callback for cropping
+
+    def mouse_crop(event, x, y, flags, param):
+        global x_start, y_start, x_end, y_end, cropping, button_down, oriImage, box_points
+
+        # Draw a rectangle on a copy of the image and display it.
+        def update_image_with_rectangle(image, start, end, color=(0, 255, 0), thickness=2):
+            image_copy = image.copy()
+            cv2.rectangle(image_copy, start, end, color, thickness)
+            cv2.imshow("image", image_copy)
+
+        cropDone = False
+
+        if not button_down and event == cv2.EVENT_LBUTTONDOWN:
+            # Start cropping
+            x_start, y_start, x_end, y_end = x, y, x, y
+            cropping = True
+            button_down = True
+            box_points = [(x, y)]
+
+        elif button_down and event == cv2.EVENT_MOUSEMOVE and cropping:
+            # Update rectangle as mouse moves
+            x_end, y_end = x, y
+            update_image_with_rectangle(oriImage, box_points[0], (x_end, y_end))
+
+        elif event == cv2.EVENT_LBUTTONUP:
+            # Finish cropping
+            button_down = False
+            box_points.append((x, y))
+            cv2.rectangle(oriImage, box_points[0], box_points[1], (0, 255, 0), 2)
+            cv2.imshow("image", oriImage)
+
+            # Record final crop coordinates and set ROI
+            x_end, y_end = x, y
+            cropping = False
+            refPoint = [(x_start + 3, y_start + 3), (x_end - 3, y_end - 3)]
+
+            if len(refPoint) == 2:
+                # Crop and save the region of interest
+                roi = oriImage[refPoint[0][1]:refPoint[1][1], refPoint[0][0]:refPoint[1][0]]
+                cv2.imshow("Cropped", roi)
+
+                # Prompt for template name and save the cropped image
+                template_name = simpledialog.askstring(title="Teach Vision Object", prompt="Save Object As:")
+                if template_name:
+                    cv2.imwrite(f"{template_name}.jpg", roi)
+                cv2.destroyAllWindows()
+                updateVisOp()
+
+    def selectTemplate():
+        global oriImage, button_down
+
+        button_down = False
+        x_start = y_start = x_end = y_end = 0
+
+        image = cv2.imread("curImage.jpg")
+        oriImage = image.copy()
+
+        cv2.namedWindow("image")
+        cv2.setMouseCallback("image", mouse_crop)
+        cv2.imshow("image", image)
+
+    def snapFind():
+        global selectedTemplate, BGavg
+
+        take_pic()
+
+        template = selectedTemplate.get()
+        min_score = float(VisScoreEntryField.get()) * 0.01
+        autoBGVal = int(autoBG.get())
+        background = BGavg if autoBGVal == 1 else eval(VisBacColorEntryField.get())
+
+        if autoBGVal == 1:
+            VisBacColorEntryField.configure(state="normal")
+            VisBacColorEntryField.delete(0, "end")
+            VisBacColorEntryField.insert(0, str(BGavg))
+            VisBacColorEntryField.configure(state="disabled")
+
+        visFind(template, min_score, background)
+
+    def rotate_image(img, angle, background):
+        image_center = tuple(np.array(img.shape[1::-1]) / 2)
+        rot_mat = cv2.getRotationMatrix2D(image_center, -angle, 1.0)
+        return cv2.warpAffine(
+            img, rot_mat, img.shape[1::-1],
+            borderMode=cv2.BORDER_CONSTANT, borderValue=background, flags=cv2.INTER_LINEAR
+        )
+
+    def visFind(template, min_score, background):
+        global xMMpos, yMMpos, autoBG
+
+        def set_background():
+            if background == "Auto":
+                background_val = BGavg
+                VisBacColorEntryField.configure(state='enabled')
+                VisBacColorEntryField.delete(0, 'end')
+                VisBacColorEntryField.insert(0, str(BGavg))
+                VisBacColorEntryField.configure(state='disabled')
+                return background_val
+            return eval(VisBacColorEntryField.get())
+
+        def rotate_and_match_template(angle_step, method):
+            best_score, best_angle, best_loc, best_dims = 0, 0, (0, 0), (0, 0)
+            for angle in range(0, 360, angle_step):
+                rotated_template = rotate_image(img2, angle, background)
+                res = cv2.matchTemplate(img1, rotated_template, method)
+                _, max_val, _, max_loc = cv2.minMaxLoc(res)
+                if max_val > best_score:
+                    best_score, best_angle, best_loc = max_val, angle, max_loc
+                    best_dims = rotated_template.shape[1::-1]
+            return best_score, best_angle, best_loc, best_dims
+
+        def refine_angle_search(method):
+            high_score, high_angle, high_loc, high_dims = 0, 0, (0, 0), (0, 0)
+            for angle_offset in [0, 120, 240]:
+                score, angle, loc, dims = rotate_and_match_template(120, method)
+                if score > high_score:
+                    high_score, high_angle, high_loc, high_dims = score, angle, loc, dims
+
+            angle_step = high_angle / 2
+            while angle_step >= 0.9:
+                for next_angle in [high_angle + angle_step, high_angle - angle_step]:
+                    score, angle, loc, dims = rotate_and_match_template(1, method)
+                    if score > high_score:
+                        high_score, high_angle, high_loc, high_dims = score, angle, loc, dims
+                angle_step /= 2
+            return high_score, high_angle, high_loc, high_dims
+
+        def normalize_angle(angle):
+            angle = angle - 360 if angle > 180 else angle
+            if pick180.get() == "1":
+                angle += -180 if angle > 90 else (180 if angle < -90 else 0)
+            limit = J6PosLim if angle > 0 else J6NegLim
+            if pickClosest.get() == "0" and abs(angle) > limit:
+                return "fail"
+            return min(angle, limit)
+
+        def draw_alignment_lines(angle, center):
+            green = (0, 255, 0)
+            for offset in [-90, 90, 0, 180]:
+                end_x = int(center[0] + 30 * math.cos(math.radians(angle + offset)))
+                end_y = int(center[1] + 30 * math.sin(math.radians(angle + offset)))
+                cv2.line(img_copy, center, (end_x, end_y), green, 3)
+
+        def update_display():
+            img_resized = Image.fromarray(cv2.resize(img_copy, (640, 480)))
+            vid_lbl.imgtk = ImageTk.PhotoImage(image=img_resized)
+            vid_lbl.configure(image=vid_lbl.imgtk)
+
+        def fail_status():
+            cv2.rectangle(img_copy, (5, 5), (635, 475), (255, 0, 0), 5)
+            update_display()
+            for field in [VisRetScoreEntryField, VisRetAngleEntryField, VisRetXpixEntryField, VisRetYpixEntryField]:
+                field.delete(0, 'end')
+                field.insert(0, "NA" if field != VisRetScoreEntryField else str(round(score * 100, 2)))
+            return "fail"
+
+        def process_match_success(score, angle, loc, dims):
+            angle = normalize_angle(angle)
+            xPos, yPos = int(loc[1] + dims[1] / 2), int(loc[0] + dims[0] / 2)
+            draw_alignment_lines(angle, (xPos, yPos))
+            update_display()
+            
+            fields_data = [
+                (VisRetScoreEntryField, str(round(score * 100, 2))),
+                (VisRetAngleEntryField, str(angle)),
+                (VisRetXpixEntryField, str(xPos)),
+                (VisRetYpixEntryField, str(yPos)),
+                (VisRetXrobEntryField, str(round(xMMpos, 2))),
+                (VisRetYrobEntryField, str(round(yMMpos, 2))),
+            ]
+            for field, data in fields_data:
+                field.delete(0, 'end')
+                field.insert(0, data)
+            viscalc()
+            return "pass"
+
+        background = set_background()
+        img1 = cv2.imread('curImage.jpg')
+        img2 = cv2.imread(template)
+        img_copy = img1.copy()
+        method = cv2.TM_CCOEFF_NORMED
+        fullRotVal = int(fullRot.get())
+
+        if fullRotVal == 0:
+            score, angle, loc, dims = refine_angle_search(method)
+        else:
+            score, angle, loc, dims = rotate_and_match_template(1, method)
+
+        if score < min_score:
+            return fail_status()
+        else:
+            return process_match_success(score, angle, loc, dims)
+    
+    def updateVisOp():
+        global selectedTemplate
+        selectedTemplate = StringVar()
+
+        folder = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.realpath(__file__))
+        
+        filelist = [fname for fname in os.listdir(folder) if fname.endswith('.jpg')]
+
+        # Create and place the dropdown menu with file options
+        Visoptmenu = ttk.Combobox(
+            tab6, textvariable=selectedTemplate, values=filelist, state='readonly')
+        Visoptmenu.place(x=390, y=52)
+
+        # Bind the selection event to update functionality
+        Visoptmenu.bind("<<ComboboxSelected>>", VisOpUpdate)
+
+    def VisOpUpdate(_):
+        global selectedTemplate
+        file = selectedTemplate.get()
+
+        # Load and convert the image to RGB
+        img = cv2.cvtColor(cv2.imread(file, cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
+
+        # Calculate the resizing dimensions to match target pixel area
+        TARGET_PIXEL_AREA = 22500
+        ratio = img.shape[1] / img.shape[0]
+        new_height = int(math.sqrt(TARGET_PIXEL_AREA / ratio) + 0.5)
+        new_width = int(new_height * ratio + 0.5)
+
+        # Resize image and update display
+        resized_img = cv2.resize(img, (new_width, new_height))
+        imgtk = ImageTk.PhotoImage(image=Image.fromarray(resized_img))
+        template_lbl.imgtk = imgtk
+        template_lbl.configure(image=imgtk)
+
+    def zeroBrCn():
+        global mX1, mY1, mX2, mY2
+
+        # Set default coordinates and reset sliders
+        mX1, mY1 = 0, 0
+        mX2, mY2 = 640, 480
+        VisBrightSlide.set(0)
+        VisContrastSlide.set(0)
+
+        take_pic()
+
+    def VisUpdateBriCon(_):
+        take_pic()
+
+    def motion(event):
+        y = event.x
+        x = event.y
+
+        if x <= 240 and y <= 320:
+            # Update top-left corner coordinates
+            VisX1PixEntryField.delete(0, 'end')
+            VisX1PixEntryField.insert(0, x)
+            VisY1PixEntryField.delete(0, 'end')
+            VisY1PixEntryField.insert(0, y)
+        elif x > 240:
+            # Update bottom-right X coordinate
+            VisX2PixEntryField.delete(0, 'end')
+            VisX2PixEntryField.insert(0, x)
+        elif y > 320:
+            # Update bottom-right Y coordinate
+            VisY2PixEntryField.delete(0, 'end')
+            VisY2PixEntryField.insert(0, y)
+
+    def checkAutoBG():
+        autoBGVal = int(autoBG.get())
+        # Disable or enable VisBacColorEntryField based on autoBG value
+        state = 'disabled' if autoBGVal == 1 else 'enabled'
+        VisBacColorEntryField.configure(state=state)
 
     # GCODE defs #
 
