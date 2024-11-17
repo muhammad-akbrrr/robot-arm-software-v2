@@ -5407,9 +5407,496 @@ class RobotArmApp:
 
     # GCODE defs #
 
+    def gcodeFrame():
+        # Create and place the CTkFrame
+        gcodeframe = ctk.CTkFrame(tab7)
+        gcodeframe.place(x=300, y=10)
 
+        # Set up the CTkScrollbar
+        scrollbar = ctk.CTkScrollbar(gcodeframe)
+        scrollbar.pack(side=ctk.RIGHT, fill=ctk.Y)
 
-    # Program Exit
+        # Configure the CTkListbox (if `customtkinter` lacks a CTkListbox, you may have to fall back to Listbox)
+        tab7.gcodeView = ctk.CTkTextbox(gcodeframe, width=105, height=46, yscrollcommand=scrollbar.set)
+        tab7.gcodeView.bind('<<ListboxSelect>>', gcodeViewselect)
+        tab7.gcodeView.pack()
+        
+        # Configure the scrollbar to scroll the Listbox
+        scrollbar.configure(command=tab7.gcodeView.yview)
+
+        # Brief delay to allow the interface to update
+        time.sleep(0.1)
+
+    def gcodeViewselect(e):
+        # Get the selected row in the gcodeView Listbox
+        gcodeRow = tab7.gcodeView.curselection()[0]
+        
+        # Update the GcodCurRowEntryField with the selected row index
+        GcodCurRowEntryField.delete(0, 'end')
+        GcodCurRowEntryField.insert(0, gcodeRow)
+
+    def loadGcodeProg():
+        # Set file types for the file dialog
+        filetypes = (('G-code files', '*.gcode *.nc *.ngc *.cnc *.tap'),
+                    ('Text files', '*.txt'))
+
+        # Open file dialog and get the selected file path
+        filename = fd.askopenfilename(title='Open files', initialdir='/', filetypes=filetypes)
+        if not filename:
+            return  # Exit if no file is selected
+
+        # Update GcodeProgEntryField with the selected filename
+        GcodeProgEntryField.delete(0, 'end')
+        GcodeProgEntryField.insert(0, filename)
+
+        # Clear the current contents of gcodeView
+        tab7.gcodeView.delete(0, END)
+        
+        # Open and read the G-code file
+        with open(filename, "rb") as gcodeProg:
+            previtem = b""
+            for item in gcodeProg:
+                # Remove comments from each line, if present
+                commentIndex = item.find(b";")
+                item = item[:commentIndex].strip() + b" "
+
+                # Insert only unique lines
+                if item != previtem:
+                    tab7.gcodeView.insert(END, item)
+                previtem = item
+
+        # Configure scrollbar for gcodeView
+        gcodescrollbar.config(command=tab7.gcodeView.yview)
+
+    def SetGcodeStartPos():
+        # List of entry fields and corresponding position variables
+        entry_fields = [
+            (GC_ST_E1_EntryField, XcurPos),
+            (GC_ST_E2_EntryField, YcurPos),
+            (GC_ST_E3_EntryField, ZcurPos),
+            (GC_ST_E4_EntryField, RzcurPos),
+            (GC_ST_E5_EntryField, RycurPos),
+            (GC_ST_E6_EntryField, RxcurPos),
+            (GC_ST_WC_EntryField, WC)
+        ]
+
+        # Update each entry field with the corresponding position value
+        for entry_field, pos_value in entry_fields:
+            entry_field.delete(0, 'end')
+            entry_field.insert(0, str(pos_value))
+
+    def MoveGcodeStartPos():
+        # Calculate positions
+        positions = {
+            "X": float(GC_ST_E1_EntryField.get()) + float(GC_SToff_E1_EntryField.get()),
+            "Y": float(GC_ST_E2_EntryField.get()) + float(GC_SToff_E2_EntryField.get()),
+            "Z": float(GC_ST_E3_EntryField.get()) + float(GC_SToff_E3_EntryField.get()),
+            "Rz": float(GC_ST_E4_EntryField.get()) + float(GC_SToff_E4_EntryField.get()),
+            "Ry": float(GC_ST_E5_EntryField.get()) + float(GC_SToff_E5_EntryField.get()),
+            "Rx": float(GC_ST_E6_EntryField.get()) + float(GC_SToff_E6_EntryField.get()),
+            "J7": J7PosCur,
+            "J8": J8PosCur,
+            "J9": J9PosCur,
+        }
+
+        # Motion parameters
+        speed_params = {
+            "speedPrefix": "Sm",
+            "Speed": "25",
+            "ACCspd": "10",
+            "DECspd": "10",
+            "ACCramp": "100",
+            "WC": GC_ST_WC_EntryField.get(),
+        }
+
+        # Loop mode
+        loop_mode = "".join(
+            str(stat.get())
+            for stat in [J1OpenLoopStat, J2OpenLoopStat, J3OpenLoopStat, J4OpenLoopStat, J5OpenLoopStat, J6OpenLoopStat]
+        )
+
+        # Construct command string
+        command = (
+            f"MJX{positions['X']}Y{positions['Y']}Z{positions['Z']}"
+            f"Rz{positions['Rz']}Ry{positions['Ry']}Rx{positions['Rx']}"
+            f"J7{positions['J7']}J8{positions['J8']}J9{positions['J9']}"
+            f"{speed_params['speedPrefix']}{speed_params['Speed']}"
+            f"Ac{speed_params['ACCspd']}Dc{speed_params['DECspd']}"
+            f"Rm{speed_params['ACCramp']}W{speed_params['WC']}Lm{loop_mode}\n"
+        )
+
+        # Send and handle command
+        cmdSentEntryField.delete(0, 'end')
+        cmdSentEntryField.insert(0, command)
+        ser.write(command.encode())
+        ser.flushInput()
+        time.sleep(0.1)
+        response = ser.readline().strip().decode('utf-8')
+
+        if response.startswith("E"):
+            ErrorHandler(response)
+        else:
+            displayPosition(response)
+
+    def GCstepFwd():
+        # Update G-Code status
+        GCalmStatusLab.config(text="GCODE READY", style="OK.TLabel")
+        GCexecuteRow()
+
+        # Get the currently selected row and total rows
+        selected_row = tab7.gcodeView.curselection()[0]
+        total_rows = tab7.gcodeView.index('end')
+
+        # Update colors for executed, current, and pending rows
+        for row in range(0, selected_row):
+            tab7.gcodeView.itemconfig(row, {'fg': 'dodger blue'})
+        tab7.gcodeView.itemconfig(selected_row, {'fg': 'blue2'})
+        for row in range(selected_row + 1, total_rows):
+            tab7.gcodeView.itemconfig(row, {'fg': 'black'})
+
+        # Update selection for the next row
+        tab7.gcodeView.selection_clear(0, END)
+        next_row = selected_row + 1
+        tab7.gcodeView.select_set(next_row)
+
+        # Update the current row display field
+        try:
+            GcodCurRowEntryField.delete(0, 'end')
+            GcodCurRowEntryField.insert(0, next_row)
+        except Exception:  # Fallback in case of an error
+            GcodCurRowEntryField.delete(0, 'end')
+            GcodCurRowEntryField.insert(0, "---")
+
+    def GCdelete():
+        filename = GcodeFilenameField.get()
+
+        # Validate input
+        if not filename:
+            messagebox.showwarning("Warning", "Please enter a filename")
+            return
+
+        # Prepare and send the delete command
+        full_filename = f"{filename}.txt"
+        command = f"DGFn{full_filename}\n"
+        cmdSentEntryField.delete(0, 'end')
+        cmdSentEntryField.insert(0, command)
+        ser.write(command.encode())
+        ser.flushInput()
+        time.sleep(0.1)
+
+        # Process response
+        response = ser.readline().strip().decode('utf-8')
+        if response.startswith('E'):
+            ErrorHandler(response)
+            return
+
+        # Handle successful or failed deletion
+        if response == "P":
+            GCalmStatusLab.config(
+                text=f"{full_filename} has been deleted", style="OK.TLabel")
+            GCread("no")
+        elif response == "F":
+            GCalmStatusLab.config(
+                text=f"{full_filename} was not found", style="Alarm.TLabel")
+
+    def GCread(status):
+        # Prepare and send the command
+        command = "RG\n"
+        cmdSentEntryField.delete(0, 'end')
+        cmdSentEntryField.insert(0, command)
+        ser.write(command.encode())
+        ser.flushInput()
+        time.sleep(0.1)
+
+        # Receive and process the response
+        response = ser.readline().strip().decode('utf-8')
+        if response.startswith('E'):
+            ErrorHandler(response)
+            return
+
+        # Update status if files are found
+        if status == "yes":
+            GCalmStatusLab.configure(text="FILES FOUND ON SD CARD:", fg_color="green")  # Updated for CTkLabel
+
+        # Update the G-code program view
+        GcodeProgEntryField.delete(0, 'end')
+        tab7.gcodeView.delete(0, ctk.END)
+        for value in response.split(","):
+            tab7.gcodeView.insert(ctk.END, value)
+        tab7.gcodeView.pack()
+        gcodescrollbar.configure(command=tab7.gcodeView.yview)
+
+    def GCplay():
+        filename = GcodeFilenameField.get().strip()
+        
+        if not filename:
+            messagebox.showwarning("Warning", "Please enter a valid filename.")
+            return
+        
+        GCplayProg(filename)
+
+    def GCplayProg(filename):
+        if not filename.strip():
+            GCalmStatusLab.config(text="No G-code file specified", style="Alarm.TLabel")
+            return
+
+        GCalmStatusLab.config(text=f"Running G-code File: {filename}", style="OK.TLabel")
+
+    def GCplayProg(Filename):
+        GCalmStatusLab.config(text="GCODE FILE RUNNING", style="OK.TLabel")
+
+        def GCthreadPlay():
+            global estopActive
+
+            # Build the command and update UI fields
+            Fn = Filename + ".txt"
+            command = "PG" + "Fn" + Fn + "\n"
+            cmdSentEntryField.delete(0, 'end')
+            cmdSentEntryField.insert(0, command)
+
+            # Send the command
+            ser.write(command.encode())
+            ser.flushInput()
+            time.sleep(.1)
+
+            # Process the response
+            response = str(ser.readline().strip(), 'utf-8')
+            if response[:1] == 'E':
+                ErrorHandler(response)
+            else:
+                displayPosition(response)
+
+                # Update status label based on estop state
+                if estopActive == TRUE:
+                    GCalmStatusLab.config(
+                        text="Estop Button was Pressed", style="Alarm.TLabel")
+                else:
+                    GCalmStatusLab.config(
+                        text="GCODE FILE COMPLETE", style="Warn.TLabel")
+
+        # Start the process in a separate thread
+        GCplay = threading.Thread(target=GCthreadPlay)
+        GCplay.start()
+
+    def GCconvertProg():
+        if GcodeProgEntryField.get() == "":
+            messagebox.showwarning("warning", "Please Load a Gcode Program")
+            return
+        if GcodeFilenameField.get() == "":
+            messagebox.showwarning("warning", "Please Enter a Filename")
+            return
+
+        # Prepare command and update UI fields
+        Filename = GcodeFilenameField.get() + ".txt"
+        command = "DG" + "Fn" + Filename + "\n"
+        cmdSentEntryField.delete(0, 'end')
+        cmdSentEntryField.insert(0, command)
+        ser.write(command.encode())
+        ser.flushInput()
+        time.sleep(.1)
+        response = str(ser.readline().strip(), 'utf-8')
+        last = tab7.gcodeView.index('end')
+        for row in range(0, last):
+            tab7.gcodeView.itemconfig(row, {'fg': 'black'})
+
+        def GCthreadProg():
+            global GCrowinproc, GCstopQueue, splineActive, prevxVal, prevyVal, prevzVal
+            prevxVal, prevyVal, prevzVal = 0, 0, 0
+            GCstopQueue, splineActive = "0", "0"
+
+            try:
+                GCselRow = tab7.gcodeView.curselection()[0]
+                if GCselRow == 0:
+                    GCselRow = 1
+            except:
+                GCselRow = 1
+                tab7.gcodeView.selection_clear(0, END)
+                tab7.gcodeView.select_set(GCselRow)
+
+            tab7.GCrunTrue = 1
+
+            while tab7.GCrunTrue == 1:
+                if tab7.GCrunTrue == 0:
+                    GCalmStatusLab.config(
+                        text="GCODE CONVERSION STOPPED", style="Alarm.TLabel")
+                    break
+
+                GCalmStatusLab.config(
+                    text="GCODE CONVERSION RUNNING", style="OK.TLabel")
+
+                GCrowinproc = 1
+                GCexecuteRow()
+
+                while GCrowinproc == 1:
+                    time.sleep(.1)
+
+                try:
+                    GCselRow = tab7.gcodeView.curselection()[0]
+                    tab7.gcodeView.itemconfig(GCselRow, {'fg': 'blue2'})
+                    tab7.gcodeView.selection_clear(0, END)
+                    GCselRow += 1
+                    tab7.gcodeView.select_set(GCselRow)
+                    GcodCurRowEntryField.delete(0, 'end')
+                    GcodCurRowEntryField.insert(0, GCselRow)
+                except:
+                    GcodCurRowEntryField.delete(0, 'end')
+                    GcodCurRowEntryField.insert(0, "---")
+                    tab7.GCrunTrue = 0
+                    GCalmStatusLab.config(
+                        text="GCODE CONVERSION STOPPED", style="Alarm.TLabel")
+
+        GCt = threading.Thread(target=GCthreadProg)
+        GCt.start()
+
+    def GCstopProg():
+        global cmdType, splineActive, GCstopQueue, moveInProc
+        tab7.GCrunTrue = 0
+        GCalmStatusLab.config(text="GCODE CONVERSION STOPPED", style="Alarm.TLabel")
+
+        if splineActive == 1:
+            splineActive = "0"
+            if GCstopQueue == "1":
+                GCstopQueue = "0"
+                stop()
+
+            if moveInProc == 1:
+                moveInProc = 2
+
+            command = "SS\n"
+            cmdSentEntryField.delete(0, 'end')
+            cmdSentEntryField.insert(0, command)
+            ser.write(command.encode())
+            ser.flushInput()
+            response = str(ser.readline().strip(), 'utf-8')
+
+            if response[:1] == 'E':
+                ErrorHandler(response)
+            else:
+                displayPosition(response)
+
+    def GCexecuteRow():
+        # Current position variables
+        global J1AngCur, J2AngCur, J3AngCur, J4AngCur, J5AngCur, J6AngCur
+
+        # State and status flags
+        global calStat, GCrowinproc, LineDist, moveInProc, splineActive, stopQueue
+
+        # Coordinate and value tracking
+        global Xv, Yv, Zv, prevxVal, prevyVal, prevzVal, xVal, yVal, zVal
+
+        # Speed and configuration variables
+        global commandCalc, gcodeSpeed, inchTrue
+
+        def parse_coordinate(command, axis, default_val):
+            if axis in command:
+                value = command[command.find(axis) + 1:]
+                value = value[:value.find(" ")] if " " in value else value
+                value = str(round(float(value), 3))
+                if inchTrue:
+                    value = str(float(value) * 25.4)
+                value = str(round(float(default_val) + float(value), 3))
+            else:
+                try:
+                    value = str(default_val) if eval(f"prev{axis.lower()}Val") == 0 else eval(f"prev{axis.lower()}Val")
+                except:
+                    value = str(default_val)
+            return value
+
+        def create_gcode_command(xVal, yVal, zVal, rzVal, ryVal, rxVal, J7Val, speed):
+            ACCspd, DECspd, ACCramp, Rounding = ".1", ".1", "100", "0"
+            WC = GC_ST_WC_EntryField.get()
+            LoopMode = "111111"
+            Filename = GcodeFilenameField.get() + ".txt"
+            return (
+                f"WCX{xVal}Y{yVal}Z{zVal}Rz{rzVal}Ry{ryVal}Rx{rxVal}J7{J7Val}J8{J8PosCur}J9{J9PosCur}"
+                f"Sm{speed}Ac{ACCspd}Dc{DECspd}Rm{ACCramp}Rnd{Rounding}W{WC}Lm{LoopMode}Fn{Filename}\n"
+            )
+
+        GCstartTime = time.time()
+        GCselRow = tab7.gcodeView.curselection()[0]
+        tab7.gcodeView.see(GCselRow + 2)
+        command = tab7.gcodeView.get(tab7.gcodeView.curselection()[0]).decode()
+        cmdType, subCmd = command[:1], command[1:command.find(" ")].rstrip()
+
+        if cmdType == "F":
+            gcodeSpeed = command[command.find("F") + 1:]
+
+        elif cmdType == "G":
+            if subCmd in {"20", "21"}:
+                inchTrue = subCmd == "20"
+
+            elif subCmd in {"90", "91", "28"}:
+                xVal, yVal, zVal = [
+                    str(float(eval(f"GC_ST_E{i}_EntryField.get()")) + float(eval(f"GC_SToff_E{i}_EntryField.get()")))
+                    for i in range(1, 4)
+                ]
+                rzVal, ryVal, rxVal = [
+                    str(float(eval(f"GC_ST_E{i}_EntryField.get()")) + float(eval(f"GC_SToff_E{i}_EntryField.get()")))
+                    for i in range(4, 7)
+                ]
+                command = create_gcode_command(xVal, yVal, zVal, rzVal, ryVal, rxVal, str(J7PosCur), "25")
+                cmdSentEntryField.delete(0, 'end')
+                cmdSentEntryField.insert(0, command)
+                ser.write(command.encode())
+                ser.flushInput()
+                time.sleep(.1)
+                response = str(ser.readline().strip(), 'utf-8')
+                if response.startswith('E'):
+                    ErrorHandler(response)
+                    GCstopProg()
+                    tab7.GCrunTrue = 0
+                    GCalmStatusLab.config(text="UNABLE TO WRITE TO SD CARD", style="Alarm.TLabel")
+                else:
+                    displayPosition(response)
+
+            elif subCmd in {"0", "1"}:
+                xVal = parse_coordinate(command, "X", XcurPos)
+                yVal = parse_coordinate(command, "Y", YcurPos)
+                zVal = parse_coordinate(command, "Z", ZcurPos)
+
+                rzVal = parse_coordinate(command, "A", RzcurPos)
+                ryVal = parse_coordinate(command, "B", RycurPos)
+                rxVal = parse_coordinate(command, "C", RxcurPos)
+
+                J7Val = parse_coordinate(command, "E", J7PosCur)
+
+                speed = gcodeSpeed if subCmd == "1" else speedEntryField.get()
+                command = create_gcode_command(xVal, yVal, zVal, rzVal, ryVal, rxVal, J7Val, speed)
+                prevxVal, prevyVal, prevzVal = xVal, yVal, zVal
+                cmdSentEntryField.delete(0, 'end')
+                cmdSentEntryField.insert(0, command)
+                ser.write(command.encode())
+                ser.flushInput()
+                time.sleep(.05)
+                response = str(ser.readline().strip(), 'utf-8')
+                if response.startswith('E'):
+                    ErrorHandler(response)
+                    tab7.GCrunTrue = 0
+                    GCalmStatusLab.config(text="UNABLE TO WRITE TO SD CARD", style="Alarm.TLabel")
+                else:
+                    displayPosition(response)
+
+        GCrowinproc = 0
+
+    # Application styling defs #
+
+    ## TAB 1 ##
+
+    ## TAB 2 ##
+
+    ## TAB 3 ##
+
+    ## TAB 4 ##
+
+    ## TAB 5 ##
+
+    ## TAB 6 ##
+
+    ## TAB 7 ##
+
+    ## TAB 8 ##
+
+    # Program Exit #
 
     def on_closing(self):
         # Handle program exit with cleanup
@@ -5430,7 +5917,7 @@ class RobotArmApp:
         self.root.mainloop()
 
 
-# Run the application
+## Run the application ##
 if __name__ == "__main__":
     app = RobotArmApp()
     app.run()
