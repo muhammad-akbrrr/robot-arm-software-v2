@@ -31,64 +31,31 @@ from pygrabber.dshow_graph import FilterGraph
 # Application code #
 class RobotArmApp:
     def __init__(self):
-        # Initialize main window
+        # Main window setup
         self.root = ctk.CTk()
-        self.root.title("Robot Arm Software Ver 5.0")
-        self.root.geometry('1536x792+0+0')
+        self.root.title("Robot Arm Software Ver 6.0")
+        self.root.iconbitmap(r'EE.ico')
         self.root.resizable(width=False, height=False)
+        self.root.geometry('1536x792+0+0')
 
-        # Define paths and key variables
-        self.curTheme = "dark"
-        self.cropping = False
-        self.cam_on = False
-        self.cap = None
-        self.moveInProc = 0
-        self.estopActive = False
-        self.posOutreach = False
-        self.SplineTrue = False
-        self.gcodeSpeed = "10"
-        self.inchTrue = False
+        # Define on_closing as an instance method
+        def on_closing():
+            # Handle program exit with cleanup
+            if messagebox.askokcancel("Close Program", "Do you want to quit?"):
+                try:
+                    command = "CL"
+                    if self.ser:
+                        self.ser.write(command.encode())
+                except Exception as e:
+                    print("Error in closing command:", e)
+                finally:
+                    if self.ser:
+                        self.ser.close()
+                    self.root.destroy()
 
-        # Serial communication variables
-        self.ser = None
-        self.ser2 = None
+        self.root.wm_protocol("WM_DELETE_WINDOW", on_closing)
 
-        # ExecuteRow variables
-        self.J1AngCur = 0
-        self.J2AngCur = 0
-        self.J3AngCur = 0
-        self.J4AngCur = 0
-        self.J5AngCur = 0
-        self.J6AngCur = 0
-        self.calStat = 0
-        self.LineDist = 0
-        self.Xv = 0
-        self.Yv = 0
-        self.Zv = 0
-        self.commandCalc = False
-        self.lastRow = None
-        self.lastProg = None
-
-        # Axis limits
-        self.axis_limits = {
-            "J1": {"pos": 170, "neg": 170},
-            "J2": {"pos": 90, "neg": 42},
-            "J3": {"pos": 52, "neg": 89},
-            "J4": {"pos": 165, "neg": 165},
-            "J5": {"pos": 105, "neg": 105},
-            "J6": {"pos": 155, "neg": 155},
-            "J7": {"pos": 500, "neg": 0},
-            "J8": {"pos": 500, "neg": 0},
-            "J9": {"pos": 500, "neg": 0}
-        }
-
-        # RunProg variables
-        self.stopQueue = "0"
-        self.splineActive = "0"
-        self.rowInProc = False
-        self.runTrue = False
-
-        # Variables added for backward compatibility
+        # GUI state variables
         self.JogStepsStat = ctk.IntVar()
         self.J1OpenLoopStat = ctk.IntVar()
         self.J2OpenLoopStat = ctk.IntVar()
@@ -97,7 +64,8 @@ class RobotArmApp:
         self.J5OpenLoopStat = ctk.IntVar()
         self.J6OpenLoopStat = ctk.IntVar()
         self.DisableWristRot = ctk.IntVar()
-        self.xboxUse = 0  # or ctk.BooleanVar() if preferred
+        self.xboxUse = ctk.IntVar()
+        self.curTheme = 1
         self.J1CalStat = ctk.IntVar()
         self.J2CalStat = ctk.IntVar()
         self.J3CalStat = ctk.IntVar()
@@ -122,287 +90,445 @@ class RobotArmApp:
         self.pickClosest = ctk.IntVar()
         self.autoBG = ctk.IntVar()
 
-        # Initialize tabs and widgets
-        self.init_tabs()
-        self.init_widgets()
+        # Axis limits
+        self.J1PosLim = 170
+        self.J1NegLim = 170
+        self.J2PosLim = 90
+        self.J2NegLim = 42
+        self.J3PosLim = 52
+        self.J3NegLim = 89
+        self.J4PosLim = 165
+        self.J4NegLim = 165
+        self.J5PosLim = 105
+        self.J5NegLim = 105
+        self.J6PosLim = 155
+        self.J6NegLim = 155
+        self.J7PosLim = 500
+        self.J7NegLim = 0
+        self.J8PosLim = 500
+        self.J8NegLim = 0
+        self.J9PosLim = 500
+        self.J9NegLim = 0
 
-        # Set protocol for closing
-        self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
+        # Other key states
+        self.cropping = False
+        self.cam_on = False
+        self.cap = None
+        self.estopActive = False
+        self.posOutreach = False
+        self.SplineTrue = False
+        self.gcodeSpeed = "10"
+        self.inchTrue = False
+        self.moveInProc = 0
+        
+        # Initialize serial connection
+        self.ser = None
 
-    def init_tabs(self):
-        # Create Tabview
+        # Define Tabs
         self.nb = ctk.CTkTabview(self.root, width=1536, height=792)
-        self.nb.pack(fill="both", expand=True)
+        self.nb.place(x=0, y=0)
 
-        # Define and add tabs to tabview
-        tab_labels = [
-            "Main Controls", "Config Settings", "Kinematics",
-            "Inputs Outputs", "Registers", "Vision", "G-Code", "Log"
-        ]
-        self.tabs = {}
-        for label in tab_labels:
-            tab = self.nb.add(label)
-            self.tabs[label] = tab
+        self.tab1_name = self.nb.add("Main Controls")
+        self.tab1 = ctk.CTkFrame(self.tab1_name)
 
-    def init_widgets(self):
-        # Status labels on the log tab (tab8)
-        self.almStatusLab = ctk.CTkLabel(self.tabs["Log"], text="SYSTEM INIT")
-        self.almStatusLab.pack()
+        self.tab2_name = self.nb.add("Config Settings")
+        self.tab2 = ctk.CTkFrame(self.tab2_name)
 
-        # Error log view
-        self.ElogView = ctk.CTkTextbox(
-            self.tabs["Log"], height=200, wrap="word")
-        self.ElogView.pack(fill="both", expand=True)
+        self.tab3_name = self.nb.add("Kinematics")
+        self.tab3 = ctk.CTkFrame(self.tab3_name)
 
-    def log_message(self, message):
-        # Log message with timestamp in ErrorLog view and save to file
-        timestamp = datetime.datetime.now().strftime("%B %d %Y - %I:%M%p")
-        log_entry = f"{timestamp} - {message}"
-        self.ElogView.insert(END, log_entry + "\n")
-        self.ElogView.yview(END)
+        self.tab4_name = self.nb.add("Inputs Outputs")
+        self.tab4 = ctk.CTkFrame(self.tab4_name)
 
-        # Save log entry to a file
-        with open("ErrorLog", "ab") as log_file:
-            pickle.dump(log_entry, log_file)
+        self.tab5_name = self.nb.add("Registers")
+        self.tab5 = ctk.CTkFrame(self.tab5_name)
+
+        self.tab6_name = self.nb.add("Vision")
+        self.tab6 = ctk.CTkFrame(self.tab6_name)
+
+        self.tab7_name = self.nb.add("G-Code")
+        self.tab7 = ctk.CTkFrame(self.tab7_name)
+
+        self.tab8_name = self.nb.add("Log")
+        self.tab8 = ctk.CTkFrame(self.tab8_name)
+
+        # Application styling defs
+
+        ## TAB 1 ##
+
+        """ Define widgets with customtkinter """
+
+        self.CartjogFrame = ctk.CTkFrame(self.tab1, width=1536, height=792)
+        self.CartjogFrame.place(x=330, y=0)
+
+        self.curRowLab = ctk.CTkLabel(self.tab1, text="Current Row:")
+        self.curRowLab.place(x=98, y=120)
+
+        self.almStatusLab = ctk.CTkLabel(
+            self.tab1, text="SYSTEM READY - NO ACTIVE ALARMS", text_color="green"
+        )
+        self.almStatusLab.place(x=25, y=12)
+
+        self.xbcStatusLab = ctk.CTkLabel(self.tab1, text="Xbox OFF")
+        self.xbcStatusLab.place(x=1270, y=80)
+
+        self.runStatusLab = ctk.CTkLabel(self.tab1, text="PROGRAM STOPPED")
+        self.runStatusLab.place(x=20, y=150)
+
+        self.ProgLab = ctk.CTkLabel(self.tab1, text="Program:")
+        self.ProgLab.place(x=10, y=45)
+
+        self.jogIncrementLab = ctk.CTkLabel(self.tab1, text="Increment Value:")
+        # self.jogIncrementLab.place(x=370, y=45)
+
+        self.speedLab = ctk.CTkLabel(self.tab1, text="Speed")
+        self.speedLab.place(x=300, y=83)
+
+        self.ACCLab = ctk.CTkLabel(self.tab1, text="Acceleration %")
+        self.ACCLab.place(x=300, y=103)
+
+        self.DECLab = ctk.CTkLabel(self.tab1, text="Deceleration %")
+        self.DECLab.place(x=300, y=123)
+
+        self.RampLab = ctk.CTkLabel(self.tab1, text="Ramp %")
+        self.RampLab.place(x=300, y=143)
+
+        self.RoundLab = ctk.CTkLabel(self.tab1, text="Rounding mm")
+        self.RoundLab.place(x=525, y=82)
+
+        """ Cartesian Jog Labels """
+
+        self.XLab = ctk.CTkLabel(self.CartjogFrame, font=("Arial", 18), text=" X")
+        self.XLab.place(x=660, y=162)
+
+        self.YLab = ctk.CTkLabel(self.CartjogFrame, font=("Arial", 18), text=" Y")
+        self.YLab.place(x=750, y=162)
+
+        self.ZLab = ctk.CTkLabel(self.CartjogFrame, font=("Arial", 18), text=" Z")
+        self.ZLab.place(x=840, y=162)
+
+        self.yLab = ctk.CTkLabel(self.CartjogFrame, font=("Arial", 18), text="Rz")
+        self.yLab.place(x=930, y=162)
+
+        self.pLab = ctk.CTkLabel(self.CartjogFrame, font=("Arial", 18), text="Ry")
+        self.pLab.place(x=1020, y=162)
+
+        self.rLab = ctk.CTkLabel(self.CartjogFrame, font=("Arial", 18), text="Rx")
+        self.rLab.place(x=1110, y=162)
+
+        self.TXLab = ctk.CTkLabel(self.CartjogFrame, font=("Arial", 18), text="Tx")
+        self.TXLab.place(x=660, y=265)
+
+        self.TYLab = ctk.CTkLabel(self.CartjogFrame, font=("Arial", 18), text="Ty")
+        self.TYLab.place(x=750, y=265)
+
+        self.TZLab = ctk.CTkLabel(self.CartjogFrame, font=("Arial", 18), text="Tz")
+        self.TZLab.place(x=840, y=265)
+
+        self.TyLab = ctk.CTkLabel(self.CartjogFrame, font=("Arial", 18), text="Trz")
+        self.TyLab.place(x=930, y=265)
+
+        self.TpLab = ctk.CTkLabel(self.CartjogFrame, font=("Arial", 18), text="Try")
+        self.TpLab.place(x=1020, y=265)
+
+        self.J7Lab = ctk.CTkLabel(self.CartjogFrame, font=("Arial", 18), text="Trx")
+        self.J7Lab.place(x=1110, y=265)
 
     # Startup defs #
 
-    def startup(self):
-        self.moveInProc = 0
-        self.updateParams()
+    def startup():
+        updateParams()
         time.sleep(0.1)
-        self.calExtAxis()
+
+        calExtAxis()
         time.sleep(0.1)
-        self.sendPos()
+
+        sendPos()
         time.sleep(0.1)
-        self.requestPos()
+
+        requestPos()
 
     # Communication defs #
 
-    def setCom(self):
+    def setCom():
         try:
-            port = "COM" + self.comPortEntryField.get()
+            global ser
+            port = "COM" + comPortEntryField.get()
             baud = 9600
-            self.ser = serial.Serial(port, baud)
-            self.almStatusLab.config(text="SYSTEM READY")
-            self.log_message(
-                "COMMUNICATIONS STARTED WITH TEENSY 4.1 CONTROLLER")
+            ser = serial.Serial(port, baud)
+
+            # Update status labels
+            almStatusLab.config(text="SYSTEM READY", style="OK.TLabel")
+            almStatusLab2.config(text="SYSTEM READY", style="OK.TLabel")
+
+            # Log success
+            Curtime = datetime.datetime.now().strftime("%B %d %Y - %I:%M%p")
+            self.tab8.ElogView.insert(
+                END, f"{Curtime} - COMMUNICATIONS STARTED WITH TEENSY 4.1 CONTROLLER"
+            )
+            value = self.tab8.ElogView.get(0, END)
+            pickle.dump(value, open("ErrorLog", "wb"))
+
             time.sleep(0.1)
-            self.ser.flushInput()
-            self.startup()
-        except Exception as e:
-            self.almStatusLab.config(text="UNABLE TO ESTABLISH COMMUNICATIONS")
-            self.log_message(
-                "UNABLE TO ESTABLISH COMMUNICATIONS WITH TEENSY 4.1 CONTROLLER")
+            ser.flushInput()
+            startup()
 
-    def setCom2(self):
+        except:
+            # Update status labels on failure
+            error_message = (
+                "UNABLE TO ESTABLISH COMMUNICATIONS WITH TEENSY 4.1 CONTROLLER"
+            )
+            almStatusLab.config(text=error_message, style="Alarm.TLabel")
+            almStatusLab2.config(text=error_message, style="Alarm.TLabel")
+
+            # Log failure
+            Curtime = datetime.datetime.now().strftime("%B %d %Y - %I:%M%p")
+            self.tab8.ElogView.insert(
+                END, f"{Curtime} - {error_message}"
+            )
+            value = self.tab8.ElogView.get(0, END)
+            pickle.dump(value, open("ErrorLog", "wb"))
+
+    def setCom2():
         try:
-            port = "COM" + self.com2PortEntryField.get()
+            global ser2
+            port = "COM" + com2PortEntryField.get()
             baud = 115200
-            self.ser2 = serial.Serial(port, baud)
-            self.almStatusLab.config(text="SYSTEM READY")
-            self.log_message("COMMUNICATIONS STARTED WITH ARDUINO IO BOARD")
-        except Exception as e:
-            self.almStatusLab.config(text="UNABLE TO ESTABLISH COMMUNICATIONS")
-            self.log_message(
-                "UNABLE TO ESTABLISH COMMUNICATIONS WITH ARDUINO IO BOARD")
+            ser2 = serial.Serial(port, baud)
 
-    def switch_to_dark_theme(self):
-        # Apply dark theme with CustomTkinter
-        self.curTheme = "dark"
-        ctk.set_appearance_mode("dark")
-        self.update_styles()
+            # Update status labels
+            almStatusLab.config(text="SYSTEM READY", style="OK.TLabel")
+            almStatusLab2.config(text="SYSTEM READY", style="OK.TLabel")
 
-    def switch_to_light_theme(self):
-        # Apply light theme with CustomTkinter
-        self.curTheme = "light"
-        ctk.set_appearance_mode("light")
-        self.update_styles()
+            # Log success
+            Curtime = datetime.datetime.now().strftime("%B %d %Y - %I:%M%p")
+            self.tab8.ElogView.insert(
+                END, f"{Curtime} - COMMUNICATIONS STARTED WITH ARDUINO IO BOARD"
+            )
+            value = self.tab8.ElogView.get(0, END)
+            pickle.dump(value, open("ErrorLog", "wb"))
 
-    def update_styles(self):
-        # Set the label color according to the theme
-        if self.curTheme == "dark":
-            self.almStatusLab.configure(fg_color="light green")
-        else:
-            self.almStatusLab.configure(fg_color="green")
+        except:
+            # Log failure
+            error_message = (
+                "UNABLE TO ESTABLISH COMMUNICATIONS WITH ARDUINO IO BOARD"
+            )
+            Curtime = datetime.datetime.now().strftime("%B %d %Y - %I:%M%p")
+            self.tab8.ElogView.insert(
+                END, f"{Curtime} - {error_message}"
+            )
+            value = self.tab8.ElogView.get(0, END)
+            pickle.dump(value, open("ErrorLog", "wb"))
+
+    def darkTheme():
+        global curTheme
+        curTheme = 0
+
+        # Set dark mode
+        ctk.set_appearance_mode("dark")  # "dark" for dark theme
+        ctk.set_default_color_theme("blue")  # Optionally set a specific color theme
+
+        # Update custom styles (if specific widget styles are still needed)
+        almStatusLab.configure(text_color="IndianRed1", font=("Arial", 10, "bold"))
+        almStatusLab2.configure(text_color="IndianRed1", font=("Arial", 10, "bold"))
+
+        warnLabel.configure(text_color="orange", font=("Arial", 10, "bold"))
+        okLabel.configure(text_color="light green", font=("Arial", 10, "bold"))
+        jointLimLabel.configure(text_color="light blue", font=("Arial", 8))
+
+    def lightTheme():
+        global curTheme
+        curTheme = 1
+
+        # Set light mode
+        ctk.set_appearance_mode("light")  # "light" for light theme
+        ctk.set_default_color_theme("blue")  # Optionally set a specific color theme
+
+        # Update custom styles (if specific widget styles are still needed)
+        almStatusLab.configure(text_color="red", font=("Arial", 10, "bold"))
+        almStatusLab2.configure(text_color="red", font=("Arial", 10, "bold"))
+
+        warnLabel.configure(text_color="dark orange", font=("Arial", 10, "bold"))
+        okLabel.configure(text_color="green", font=("Arial", 10, "bold"))
+        jointLimLabel.configure(text_color="dark blue", font=("Arial", 8))
 
     # Execution defs #
 
-    def runProg(self):
+    def runProg():
         def threadProg():
-            self.estopActive = False
-            self.posOutreach = False
-            self.stopQueue = "0"
-            self.splineActive = "0"
+            estopActive = False
+            posOutreach = False
+            stopQueue = "0"
+            splineActive = "0"
             try:
-                curRow = self.tabs["Main Controls"].progView.curselection()[0]
+                curRow = tabs["Main Controls"].progView.curselection()[0]
                 if curRow == 0:
                     curRow = 1
             except:
                 curRow = 1
-                self.tabs["Main Controls"].progView.selection_clear(0, END)
-                self.tabs["Main Controls"].progView.select_set(curRow)
+                tabs["Main Controls"].progView.selection_clear(0, END)
+                tabs["Main Controls"].progView.select_set(curRow)
 
-            self.runTrue = True
-            while self.runTrue:
-                if not self.runTrue:
-                    if self.estopActive:
-                        self.almStatusLab.configure(
+            runTrue = True
+            while runTrue:
+                if not runTrue:
+                    if estopActive:
+                        almStatusLab.configure(
                             text="Estop Button was Pressed", fg_color="red")
-                    elif self.posOutreach:
-                        self.almStatusLab.configure(
+                    elif posOutreach:
+                        almStatusLab.configure(
                             text="Position Out of Reach", fg_color="red")
                     else:
-                        self.almStatusLab.configure(
+                        almStatusLab.configure(
                             text="PROGRAM STOPPED", fg_color="red")
                 else:
-                    self.almStatusLab.configure(
+                    almStatusLab.configure(
                         text="PROGRAM RUNNING", fg_color="green")
 
-                self.rowInProc = True
-                self.executeRow()
-                while self.rowInProc:
+                rowInProc = True
+                executeRow()
+                while rowInProc:
                     time.sleep(0.1)
 
-                selRow = self.tabs["Main Controls"].progView.curselection()[0]
-                last = self.tabs["Main Controls"].progView.index('end')
-                self.tabs["Main Controls"].progView.selection_clear(0, END)
+                selRow = tabs["Main Controls"].progView.curselection()[0]
+                last = tabs["Main Controls"].progView.index('end')
+                tabs["Main Controls"].progView.selection_clear(0, END)
                 selRow += 1
-                self.tabs["Main Controls"].progView.select_set(selRow)
+                tabs["Main Controls"].progView.select_set(selRow)
                 curRow += 1
                 time.sleep(0.1)
 
                 try:
-                    selRow = self.tabs["Main Controls"].progView.curselection()[
+                    selRow = tabs["Main Controls"].progView.curselection()[
                         0]
-                    self.curRowEntryField.delete(0, 'end')
-                    self.curRowEntryField.insert(0, selRow)
+                    curRowEntryField.delete(0, 'end')
+                    curRowEntryField.insert(0, selRow)
                 except:
-                    self.curRowEntryField.delete(0, 'end')
-                    self.curRowEntryField.insert(0, "---")
-                    self.runTrue = False
-                    if self.estopActive:
-                        self.almStatusLab.configure(
+                    curRowEntryField.delete(0, 'end')
+                    curRowEntryField.insert(0, "---")
+                    runTrue = False
+                    if estopActive:
+                        almStatusLab.configure(
                             text="Estop Button was Pressed", fg_color="red")
-                    elif self.posOutreach:
-                        self.almStatusLab.configure(
+                    elif posOutreach:
+                        almStatusLab.configure(
                             text="Position Out of Reach", fg_color="red")
                     else:
-                        self.almStatusLab.configure(
+                        almStatusLab.configure(
                             text="PROGRAM STOPPED", fg_color="red")
         t = threading.Thread(target=threadProg)
         t.start()
 
-    def stepFwd(self):
-        self.estopActive = False
-        self.posOutreach = False
-        self.almStatusLab.configure(text="SYSTEM READY", fg_color="green")
-        self.executeRow()
-        selRow = self.tabs["Main Controls"].progView.curselection()[0]
-        last = self.tabs["Main Controls"].progView.index('end')
+    def stepFwd():
+        estopActive = False
+        posOutreach = False
+        almStatusLab.configure(text="SYSTEM READY", fg_color="green")
+        executeRow()
+        selRow = tabs["Main Controls"].progView.curselection()[0]
+        last = tabs["Main Controls"].progView.index('end')
         for row in range(0, selRow):
-            self.tabs["Main Controls"].progView.itemconfig(
+            tabs["Main Controls"].progView.itemconfig(
                 row, {'fg': 'dodger blue'})
-        self.tabs["Main Controls"].progView.itemconfig(selRow, {'fg': 'blue2'})
+        tabs["Main Controls"].progView.itemconfig(selRow, {'fg': 'blue2'})
         for row in range(selRow + 1, last):
-            self.tabs["Main Controls"].progView.itemconfig(
+            tabs["Main Controls"].progView.itemconfig(
                 row, {'fg': 'black'})
-        self.tabs["Main Controls"].progView.selection_clear(0, END)
+        tabs["Main Controls"].progView.selection_clear(0, END)
         selRow += 1
-        self.tabs["Main Controls"].progView.select_set(selRow)
+        tabs["Main Controls"].progView.select_set(selRow)
         try:
-            selRow = self.tabs["Main Controls"].progView.curselection()[0]
-            self.curRowEntryField.delete(0, 'end')
-            self.curRowEntryField.insert(0, selRow)
+            selRow = tabs["Main Controls"].progView.curselection()[0]
+            curRowEntryField.delete(0, 'end')
+            curRowEntryField.insert(0, selRow)
         except:
-            self.curRowEntryField.delete(0, 'end')
-            self.curRowEntryField.insert(0, "---")
+            curRowEntryField.delete(0, 'end')
+            curRowEntryField.insert(0, "---")
 
-    def stepRev(self):
-        self.estopActive = False
-        self.posOutreach = False
-        self.almStatusLab.configure(text="SYSTEM READY", fg_color="green")
-        self.executeRow()
-        selRow = self.tabs["Main Controls"].progView.curselection()[0]
-        last = self.tabs["Main Controls"].progView.index('end')
+    def stepRev():
+        estopActive = False
+        posOutreach = False
+        almStatusLab.configure(text="SYSTEM READY", fg_color="green")
+        executeRow()
+        selRow = tabs["Main Controls"].progView.curselection()[0]
+        last = tabs["Main Controls"].progView.index('end')
         for row in range(0, selRow):
-            self.tabs["Main Controls"].progView.itemconfig(
+            tabs["Main Controls"].progView.itemconfig(
                 row, {'fg': 'black'})
-        self.tabs["Main Controls"].progView.itemconfig(selRow, {'fg': 'red'})
+        tabs["Main Controls"].progView.itemconfig(selRow, {'fg': 'red'})
         for row in range(selRow + 1, last):
-            self.tabs["Main Controls"].progView.itemconfig(
+            tabs["Main Controls"].progView.itemconfig(
                 row, {'fg': 'tomato2'})
-        self.tabs["Main Controls"].progView.selection_clear(0, END)
+        tabs["Main Controls"].progView.selection_clear(0, END)
         selRow -= 1
-        self.tabs["Main Controls"].progView.select_set(selRow)
+        tabs["Main Controls"].progView.select_set(selRow)
         try:
-            selRow = self.tabs["Main Controls"].progView.curselection()[0]
-            self.curRowEntryField.delete(0, 'end')
-            self.curRowEntryField.insert(0, selRow)
+            selRow = tabs["Main Controls"].progView.curselection()[0]
+            curRowEntryField.delete(0, 'end')
+            curRowEntryField.insert(0, selRow)
         except:
-            self.curRowEntryField.delete(0, 'end')
-            self.curRowEntryField.insert(0, "---")
+            curRowEntryField.delete(0, 'end')
+            curRowEntryField.insert(0, "---")
 
-    def stopProg(self):
-        self.runTrue = False
-        if self.estopActive:
-            self.almStatusLab.configure(
+    def stopProg():
+        runTrue = False
+        if estopActive:
+            almStatusLab.configure(
                 text="Estop Button was Pressed", fg_color="red")
-        elif self.posOutreach:
-            self.almStatusLab.configure(
+        elif posOutreach:
+            almStatusLab.configure(
                 text="Position Out of Reach", fg_color="red")
         else:
-            self.almStatusLab.configure(text="PROGRAM STOPPED", fg_color="red")
+            almStatusLab.configure(text="PROGRAM STOPPED", fg_color="red")
 
-    def executeRow(self):
-        selRow = self.tabs["Main Controls"].progView.curselection()[0]
-        self.tabs["Main Controls"].progView.see(selRow + 2)
-        command = self.tabs["Main Controls"].progView.get(selRow).strip()
+    def executeRow():
+        selRow = tabs["Main Controls"].progView.curselection()[0]
+        tabs["Main Controls"].progView.see(selRow + 2)
+        command = tabs["Main Controls"].progView.get(selRow).strip()
         cmdType = command[:6]
 
         # Dictionary mapping command types to methods
         command_map = {
-            "Call P": self.callProgram,
-            "Run Gc": self.runGcodeProgram,
-            "Return": self.returnProgram,
-            "Test L": self.testLimitSwitches,
-            "Set En": self.setEncoders,
-            "Read E": self.readEncoders,
-            "Servo ": self.sendServoCommand,
-            "If Inp": self.processIfInput,
-            "Read C": self.processReadCom,
-            "If Reg": self.processIfRegister,
-            "If COM": self.processIfCom,
-            "TifOn ": self.processInputOnJump,
-            "TifOff": self.processInputOffJump,
-            "Jump T": self.processJumpToRow,
-            "Out On": lambda cmd: self.processSetOutputOn(cmd, self.ser2),
-            "Out Of": lambda cmd: self.processSetOutputOff(cmd, self.ser2),
-            "ToutOn": lambda cmd: self.processSetOutputOn(cmd, self.ser),
-            "ToutOf": lambda cmd: self.processSetOutputOff(cmd, self.ser),
-            "Wait I": lambda cmd: self.processWaitInputOn(cmd, self.ser2),
-            "Wait O": lambda cmd: self.processWaitInputOff(cmd, self.ser2),
-            "TwaitI": lambda cmd: self.processWaitInputOn(cmd, self.ser),
-            "TwaitO": lambda cmd: self.processWaitInputOff(cmd, self.ser),
-            "Wait T": self.processWaitTime,
-            "Regist": self.processSetRegister,
-            "Positi": self.processSetPositionRegister,
-            "Calibr": self.processCalibrate,
-            "Tool S": self.processToolS,
-            "Move J": self.processMoveJ,
-            "OFF J": self.processOffJ,
-            "Move V": self.handleMoveVCommand,
-            "Move P": self.handleMovePCommand,
-            "OFF PR": self.handleOffsPRCommand,
-            "Move L": self.handleMoveL,
-            "Move R": self.handleMoveR,
-            "Move A": self.handleMoveA,
-            "Move C": self.handleMoveC,
-            "Start ": self.startSpline,
-            "End Sp": self.endSpline,
-            "Cam On": self.cameraOn,
-            "Cam Of": self.cameraOff,
-            "Vis Fi": self.visionFind,
+            "Call P": callProgram,
+            "Run Gc": runGcodeProgram,
+            "Return": returnProgram,
+            "Test L": testLimitSwitches,
+            "Set En": setEncoders,
+            "Read E": readEncoders,
+            "Servo ": sendServoCommand,
+            "If Inp": processIfInput,
+            "Read C": processReadCom,
+            "If Reg": processIfRegister,
+            "If COM": processIfCom,
+            "TifOn ": processInputOnJump,
+            "TifOff": processInputOffJump,
+            "Jump T": processJumpToRow,
+            "Out On": lambda cmd: processSetOutputOn(cmd, ser2),
+            "Out Of": lambda cmd: processSetOutputOff(cmd, ser2),
+            "ToutOn": lambda cmd: processSetOutputOn(cmd, ser),
+            "ToutOf": lambda cmd: processSetOutputOff(cmd, ser),
+            "Wait I": lambda cmd: processWaitInputOn(cmd, ser2),
+            "Wait O": lambda cmd: processWaitInputOff(cmd, ser2),
+            "TwaitI": lambda cmd: processWaitInputOn(cmd, ser),
+            "TwaitO": lambda cmd: processWaitInputOff(cmd, ser),
+            "Wait T": processWaitTime,
+            "Regist": processSetRegister,
+            "Positi": processSetPositionRegister,
+            "Calibr": processCalibrate,
+            "Tool S": processToolS,
+            "Move J": processMoveJ,
+            "OFF J": processOffJ,
+            "Move V": handleMoveVCommand,
+            "Move P": handleMovePCommand,
+            "OFF PR": handleOffsPRCommand,
+            "Move L": handleMoveL,
+            "Move R": handleMoveR,
+            "Move A": handleMoveA,
+            "Move C": handleMoveC,
+            "Start ": startSpline,
+            "End Sp": endSpline,
+            "Cam On": cameraOn,
+            "Cam Of": cameraOff,
+            "Vis Fi": visionFind,
         }
 
         # Call the appropriate command function if it exists in the map
@@ -410,115 +536,115 @@ class RobotArmApp:
         if command_func:
             command_func(command)
 
-    def callProgram(self, command):
-        if self.moveInProc:
-            self.moveInProc = 2
-        self.lastRow = self.tabs["Main Controls"].progView.curselection()[0]
-        self.lastProg = self.ProgEntryField.get()
+    def callProgram(command):
+        if moveInProc:
+            moveInProc = 2
+        lastRow = tabs["Main Controls"].progView.curselection()[0]
+        lastProg = ProgEntryField.get()
 
         # Extract the program number
         programIndex = command.find("Program -")
         progNum = command[programIndex + 10:].strip()
 
-        self.ProgEntryField.delete(0, 'end')
-        self.ProgEntryField.insert(0, progNum)
-        self.callProg(progNum)
+        ProgEntryField.delete(0, 'end')
+        ProgEntryField.insert(0, progNum)
+        callProg(progNum)
 
         time.sleep(0.4)
         # Reset the selection to the start
-        self.tabs["Main Controls"].progView.selection_clear(0, END)
-        self.tabs["Main Controls"].progView.select_set(0)
+        tabs["Main Controls"].progView.selection_clear(0, END)
+        tabs["Main Controls"].progView.select_set(0)
 
-    def runGcodeProgram(self, command):
-        if self.moveInProc:
-            self.moveInProc = 2
-        self.lastRow = self.tabs["Main Controls"].progView.curselection()[0]
-        self.lastProg = self.ProgEntryField.get()
+    def runGcodeProgram(command):
+        if moveInProc:
+            moveInProc = 2
+        lastRow = tabs["Main Controls"].progView.curselection()[0]
+        lastProg = ProgEntryField.get()
 
         # Extract the filename
         programIndex = command.find("Program -")
         filename = command[programIndex + 10:].strip()
 
-        self.manEntryField.delete(0, 'end')
-        self.manEntryField.insert(0, filename)
+        manEntryField.delete(0, 'end')
+        manEntryField.insert(0, filename)
         # Assuming GCplayProg is defined elsewhere in the class
-        self.GCplayProg(filename)
+        GCplayProg(filename)
 
         time.sleep(0.4)
         # Reset the selection to the start
-        self.tabs["Main Controls"].progView.selection_clear(0, END)
-        self.tabs["Main Controls"].progView.select_set(0)
+        tabs["Main Controls"].progView.selection_clear(0, END)
+        tabs["Main Controls"].progView.select_set(0)
 
-    def returnProgram(self):
-        if self.moveInProc:
-            self.moveInProc = 2
-        lastRow = self.lastRow
-        lastProg = self.lastProg
+    def returnProgram():
+        if moveInProc:
+            moveInProc = 2
+        lastRow = lastRow
+        lastProg = lastProg
 
-        self.ProgEntryField.delete(0, 'end')
-        self.ProgEntryField.insert(0, lastProg)
-        self.callProg(lastProg)
+        ProgEntryField.delete(0, 'end')
+        ProgEntryField.insert(0, lastProg)
+        callProg(lastProg)
 
         time.sleep(0.4)
         # Re-select the last row
-        self.tabs["Main Controls"].progView.selection_clear(0, END)
-        self.tabs["Main Controls"].progView.select_set(lastRow)
+        tabs["Main Controls"].progView.selection_clear(0, END)
+        tabs["Main Controls"].progView.select_set(lastRow)
 
-    def testLimitSwitches(self):
-        if self.moveInProc:
-            self.moveInProc = 2
+    def testLimitSwitches():
+        if moveInProc:
+            moveInProc = 2
         command = "TL\n"
-        self.cmdSentEntryField.delete(0, 'end')
-        self.cmdSentEntryField.insert(0, command)
-        self.ser.write(command.encode())
-        self.ser.flushInput()
+        cmdSentEntryField.delete(0, 'end')
+        cmdSentEntryField.insert(0, command)
+        ser.write(command.encode())
+        ser.flushInput()
         time.sleep(0.05)
-        response = str(self.ser.readline().strip(), 'utf-8')
-        self.manEntryField.delete(0, 'end')
-        self.manEntryField.insert(0, response)
+        response = str(ser.readline().strip(), 'utf-8')
+        manEntryField.delete(0, 'end')
+        manEntryField.insert(0, response)
 
-    def setEncoders(self):
-        if self.moveInProc:
-            self.moveInProc = 2
+    def setEncoders():
+        if moveInProc:
+            moveInProc = 2
         command = "SE\n"
-        self.cmdSentEntryField.delete(0, 'end')
-        self.cmdSentEntryField.insert(0, command)
-        self.ser.write(command.encode())
-        self.ser.flushInput()
+        cmdSentEntryField.delete(0, 'end')
+        cmdSentEntryField.insert(0, command)
+        ser.write(command.encode())
+        ser.flushInput()
         time.sleep(0.05)
-        self.ser.read()  # Clearing response from the encoder setting
+        ser.read()  # Clearing response from the encoder setting
 
-    def readEncoders(self):
-        if self.moveInProc:
-            self.moveInProc = 2
+    def readEncoders():
+        if moveInProc:
+            moveInProc = 2
         command = "RE\n"
-        self.cmdSentEntryField.delete(0, 'end')
-        self.cmdSentEntryField.insert(0, command)
-        self.ser.write(command.encode())
-        self.ser.flushInput()
+        cmdSentEntryField.delete(0, 'end')
+        cmdSentEntryField.insert(0, command)
+        ser.write(command.encode())
+        ser.flushInput()
         time.sleep(0.05)
-        response = str(self.ser.readline().strip(), 'utf-8')
-        self.manEntryField.delete(0, 'end')
-        self.manEntryField.insert(0, response)
+        response = str(ser.readline().strip(), 'utf-8')
+        manEntryField.delete(0, 'end')
+        manEntryField.insert(0, response)
 
-    def sendServoCommand(self, command):
-        if self.moveInProc:
-            self.moveInProc = 2
+    def sendServoCommand(command):
+        if moveInProc:
+            moveInProc = 2
         servoIndex = command.find("number ")
         posIndex = command.find("position: ")
         servoNum = command[servoIndex + 7: posIndex - 4].strip()
         servoPos = command[posIndex + 10:].strip()
         command = f"SV{servoNum}P{servoPos}\n"
-        self.cmdSentEntryField.delete(0, 'end')
-        self.cmdSentEntryField.insert(0, command)
-        self.ser2.write(command.encode())
-        self.ser2.flushInput()
+        cmdSentEntryField.delete(0, 'end')
+        cmdSentEntryField.insert(0, command)
+        ser2.write(command.encode())
+        ser2.flushInput()
         time.sleep(0.1)
-        self.ser2.read()  # Clearing response from the servo command
+        ser2.read()  # Clearing response from the servo command
 
-    def processIfInput(self, command):
-        if self.moveInProc:
-            self.moveInProc = 2
+    def processIfInput(command):
+        if moveInProc:
+            moveInProc = 2
 
         # Parsing command
         args = ("# ", "= ", ": ")
@@ -528,37 +654,37 @@ class RobotArmApp:
 
         # Send query command
         query_cmd = f"JFX{input_num}\n"
-        self.cmdSentEntryField.delete(0, 'end')
-        self.cmdSentEntryField.insert(0, query_cmd)
-        self.ser2.write(query_cmd.encode())
-        self.ser2.flushInput()
+        cmdSentEntryField.delete(0, 'end')
+        cmdSentEntryField.insert(0, query_cmd)
+        ser2.write(query_cmd.encode())
+        ser2.flushInput()
         time.sleep(0.1)
 
         # Read and evaluate serial response
-        response = str(self.ser2.readline().strip(), 'utf-8')
+        response = str(ser2.readline().strip(), 'utf-8')
         query = 1 if response == "T" else 0
         if query == val_num:
             if action == "Call":
                 # Handle "Call" action
-                self.tabs["Main Controls"].lastRow = self.tabs["Main Controls"].progView.curselection()[0]
-                self.tabs["Main Controls"].lastProg = self.ProgEntryField.get()
+                tabs["Main Controls"].lastRow = tabs["Main Controls"].progView.curselection()[0]
+                tabs["Main Controls"].lastProg = ProgEntryField.get()
                 prog_name = command[command.find("Prog") + 5:] + ".ar"
                 callProg(prog_name)
 
                 # Reset selection in progView
                 index = 0
-                self.tabs["Main Controls"].progView.selection_clear(0, "end")
-                self.tabs["Main Controls"].progView.select_set(index)
+                tabs["Main Controls"].progView.selection_clear(0, "end")
+                tabs["Main Controls"].progView.select_set(index)
 
             elif action == "Jump":
                 # Handle "Jump" action directly
                 tab_num = command[command.find("Tab") + 4:]
                 encoded_tab = ("Tab Number " + tab_num + "\r\n").encode('utf-8')
-                index = self.tabs["Main Controls"].progView.get(0, "end").index(encoded_tab) - 1
-                self.tabs["Main Controls"].progView.selection_clear(0, "end")
-                self.tabs["Main Controls"].progView.select_set(index)
+                index = tabs["Main Controls"].progView.get(0, "end").index(encoded_tab) - 1
+                tabs["Main Controls"].progView.selection_clear(0, "end")
+                tabs["Main Controls"].progView.select_set(index)
 
-    def processReadCom(self, command):
+    def processReadCom(command):
         # Parsing command arguments
         args = ("# ", "Char: ", ": ")
         com_num, char_num = [
@@ -567,31 +693,31 @@ class RobotArmApp:
 
         # Attempt to establish serial communication
         try:
-            self.ser3 = serial.Serial(f"COM{com_num}", 115200, timeout=10)
+            ser3 = serial.Serial(f"COM{com_num}", 115200, timeout=10)
         except:
             # Log error if connection fails
             timestamp = datetime.datetime.now().strftime("%B %d %Y - %I:%M%p")
             error_message = f"{timestamp} - UNABLE TO ESTABLISH COMMUNICATIONS WITH SERIAL DEVICE"
-            self.tabs["Error Logs"].ElogView.insert(END, error_message)
-            error_log = self.tabs["Error Logs"].ElogView.get(0, END)
+            tabs["Error Logs"].ElogView.insert(END, error_message)
+            error_log = tabs["Error Logs"].ElogView.get(0, END)
             pickle.dump(error_log, open("ErrorLog", "wb"))
             return
 
         # Read the serial response
         response = (
-            str(self.ser3.read(int(char_num)).strip(), 'utf-8')
+            str(ser3.read(int(char_num)).strip(), 'utf-8')
             if char_num.isdigit()
-            else str(self.ser3.readline().strip(), 'utf-8')
+            else str(ser3.readline().strip(), 'utf-8')
         )
 
         # Update entry fields with the response
-        for field in [self.com3outPortEntryField, self.manEntryField]:
+        for field in [com3outPortEntryField, manEntryField]:
             field.delete(0, 'end')
             field.insert(0, response)
 
-    def processIfRegister(self, command):
-        if self.moveInProc:
-            self.moveInProc = 2
+    def processIfRegister(command):
+        if moveInProc:
+            moveInProc = 2
 
         # Parse command to get input number, value number, and action
         args = ("# ", "= ", ": ")
@@ -606,27 +732,27 @@ class RobotArmApp:
         if reg_value == val_num:
             if action == "Call":
                 # Handle "Call" action
-                self.tabs["Main Controls"].lastRow = self.tabs["Main Controls"].progView.curselection()[0]
-                self.tabs["Main Controls"].lastProg = self.ProgEntryField.get()
+                tabs["Main Controls"].lastRow = tabs["Main Controls"].progView.curselection()[0]
+                tabs["Main Controls"].lastProg = ProgEntryField.get()
                 prog_name = command[command.find("Prog") + 5:] + ".ar"
                 callProg(prog_name)
                 
                 # Reset selection in progView
                 index = 0
-                self.tabs["Main Controls"].progView.selection_clear(0, "end")
-                self.tabs["Main Controls"].progView.select_set(index)
+                tabs["Main Controls"].progView.selection_clear(0, "end")
+                tabs["Main Controls"].progView.select_set(index)
 
             elif action == "Jump":
                 # Handle "Jump" action within this method
                 tab_num = command[command.find("Tab") + 4:]
                 encoded_tab = ("Tab Number " + tab_num + "\r\n").encode('utf-8')
-                index = self.tabs["Main Controls"].progView.get(0, "end").index(encoded_tab) - 1
-                self.tabs["Main Controls"].progView.selection_clear(0, "end")
-                self.tabs["Main Controls"].progView.select_set(index)
+                index = tabs["Main Controls"].progView.get(0, "end").index(encoded_tab) - 1
+                tabs["Main Controls"].progView.selection_clear(0, "end")
+                tabs["Main Controls"].progView.select_set(index)
 
-    def processIfCom(self, command):
-        if self.moveInProc:
-            self.moveInProc = 2
+    def processIfCom(command):
+        if moveInProc:
+            moveInProc = 2
 
         # Parse command to get input number, value number, and action
         args = ("# ", "= ", ": ")
@@ -635,21 +761,21 @@ class RobotArmApp:
         ]
 
         # Get current COM port value
-        cur_com_val = self.com3outPortEntryField.get()
+        cur_com_val = com3outPortEntryField.get()
 
         # Check if COM port value matches
         if cur_com_val == val_num:
             if action == "Call":
                 # Handle "Call" action
-                self.tabs["Main Controls"].lastRow = self.tabs["Main Controls"].progView.curselection()[0]
-                self.tabs["Main Controls"].lastProg = self.ProgEntryField.get()
+                tabs["Main Controls"].lastRow = tabs["Main Controls"].progView.curselection()[0]
+                tabs["Main Controls"].lastProg = ProgEntryField.get()
                 prog_name = command[command.find("Prog") + 5:] + ".ar"
                 callProg(prog_name)
                 
                 # Reset selection in progView
                 index = 0
-                self.tabs["Main Controls"].progView.selection_clear(0, END)
-                self.tabs["Main Controls"].progView.select_set(index)
+                tabs["Main Controls"].progView.selection_clear(0, END)
+                tabs["Main Controls"].progView.select_set(index)
                 
             elif action == "Jump":
                 # Handle "Jump" action
@@ -657,13 +783,13 @@ class RobotArmApp:
                 encoded_tab = ("Tab Number " + tab_num + "\r\n").encode('utf-8')
                 
                 # Find and select the tab by index in progView
-                index = self.tabs["Main Controls"].progView.get(0, "end").index(encoded_tab) - 1
-                self.tabs["Main Controls"].progView.selection_clear(0, END)
-                self.tabs["Main Controls"].progView.select_set(index)
+                index = tabs["Main Controls"].progView.get(0, "end").index(encoded_tab) - 1
+                tabs["Main Controls"].progView.selection_clear(0, END)
+                tabs["Main Controls"].progView.select_set(index)
 
-    def processInputOnJump(self, command):
-        if self.moveInProc:
-            self.moveInProc = 2
+    def processInputOnJump(command):
+        if moveInProc:
+            moveInProc = 2
 
         # Parse command to get input number and tab number
         args = ("Input-", "Tab-", "")
@@ -673,25 +799,25 @@ class RobotArmApp:
 
         # Construct and send jump command
         jump_command = f"JFX{input_num}T{tab_num}\n"
-        self.cmdSentEntryField.delete(0, 'end')
-        self.cmdSentEntryField.insert(0, jump_command)
-        self.ser.write(jump_command.encode())
-        self.ser.flushInput()
+        cmdSentEntryField.delete(0, 'end')
+        cmdSentEntryField.insert(0, jump_command)
+        ser.write(jump_command.encode())
+        ser.flushInput()
         time.sleep(0.1)
 
         # Read serial response
-        response = str(self.ser.readline().strip(), 'utf-8')
+        response = str(ser.readline().strip(), 'utf-8')
         
         # If response is "T", proceed to jump to the specified tab
         if response == "T":
             encoded_tab = ("Tab Number " + tab_num + "\r\n").encode('utf-8')
-            index = self.tabs["Main Controls"].progView.get(0, "end").index(encoded_tab) - 1
-            self.tabs["Main Controls"].progView.selection_clear(0, END)
-            self.tabs["Main Controls"].progView.select_set(index)
+            index = tabs["Main Controls"].progView.get(0, "end").index(encoded_tab) - 1
+            tabs["Main Controls"].progView.selection_clear(0, END)
+            tabs["Main Controls"].progView.select_set(index)
 
-    def processInputOffJump(self, command):
-        if self.moveInProc:
-            self.moveInProc = 2
+    def processInputOffJump(command):
+        if moveInProc:
+            moveInProc = 2
 
         # Parse command to get input number and tab number
         args = ("Input-", "Tab-", "")
@@ -701,25 +827,25 @@ class RobotArmApp:
 
         # Construct and send jump command
         jump_command = f"JFX{input_num}T{tab_num}\n"
-        self.cmdSentEntryField.delete(0, 'end')
-        self.cmdSentEntryField.insert(0, jump_command)
-        self.ser.write(jump_command.encode())
-        self.ser.flushInput()
+        cmdSentEntryField.delete(0, 'end')
+        cmdSentEntryField.insert(0, jump_command)
+        ser.write(jump_command.encode())
+        ser.flushInput()
         time.sleep(0.1)
 
         # Read serial response
-        response = str(self.ser.readline().strip(), 'utf-8')
+        response = str(ser.readline().strip(), 'utf-8')
         
         # If response is "F", proceed to jump to the specified tab
         if response == "F":
             encoded_tab = ("Tab Number " + tab_num + "\r\n").encode('utf-8')
-            index = self.tabs["Main Controls"].progView.get(0, "end").index(encoded_tab) - 1
-            self.tabs["Main Controls"].progView.selection_clear(0, END)
-            self.tabs["Main Controls"].progView.select_set(index)
+            index = tabs["Main Controls"].progView.get(0, "end").index(encoded_tab) - 1
+            tabs["Main Controls"].progView.selection_clear(0, END)
+            tabs["Main Controls"].progView.select_set(index)
 
-    def processJumpToRow(self, command):
-        if self.moveInProc:
-            self.moveInProc = 2
+    def processJumpToRow(command):
+        if moveInProc:
+            moveInProc = 2
 
         # Extract tab number directly
         start_str = "Tab-"
@@ -728,13 +854,13 @@ class RobotArmApp:
 
         # Locate and select the tab in progView
         encoded_tab = ("Tab Number " + tab_num + "\r\n").encode('utf-8')
-        index = self.tabs["Main Controls"].progView.get(0, "end").index(encoded_tab)
-        self.tabs["Main Controls"].progView.selection_clear(0, END)
-        self.tabs["Main Controls"].progView.select_set(index)
+        index = tabs["Main Controls"].progView.get(0, "end").index(encoded_tab)
+        tabs["Main Controls"].progView.selection_clear(0, END)
+        tabs["Main Controls"].progView.select_set(index)
 
-    def processSetOutputOn(self, command, ser):
-        if self.moveInProc:
-            self.moveInProc = 2
+    def processSetOutputOn(command, ser):
+        if moveInProc:
+            moveInProc = 2
 
         # Extract output number directly
         start_str = "Out On = "
@@ -743,16 +869,16 @@ class RobotArmApp:
 
         # Send I/O command
         io_command = f"ONX{output_num}\n"
-        self.cmdSentEntryField.delete(0, 'end')
-        self.cmdSentEntryField.insert(0, io_command)
+        cmdSentEntryField.delete(0, 'end')
+        cmdSentEntryField.insert(0, io_command)
         ser.write(io_command.encode())
         ser.flushInput()
         time.sleep(0.1)
         ser.read()
 
-    def processSetOutputOff(self, command, ser):
-        if self.moveInProc:
-            self.moveInProc = 2
+    def processSetOutputOff(command, ser):
+        if moveInProc:
+            moveInProc = 2
 
         # Extract output number directly
         start_str = "Out Off = "
@@ -761,17 +887,17 @@ class RobotArmApp:
 
         # Send I/O command
         io_command = f"OFX{output_num}\n"
-        self.cmdSentEntryField.delete(0, 'end')
-        self.cmdSentEntryField.insert(0, io_command)
+        cmdSentEntryField.delete(0, 'end')
+        cmdSentEntryField.insert(0, io_command)
         ser.write(io_command.encode())
         ser.flushInput()
         time.sleep(0.1)
         ser.read()
 
     # Handle 'Wait Input ON' command for the given serial connection.
-    def processWaitInputOn(self, command, ser):
-        if self.moveInProc:
-            self.moveInProc = 2
+    def processWaitInputOn(command, ser):
+        if moveInProc:
+            moveInProc = 2
 
         # Extract input number directly
         start_str = "Wait Input On = "
@@ -780,17 +906,17 @@ class RobotArmApp:
 
         # Send wait command
         wait_command = f"WIN{input_num}\n"
-        self.cmdSentEntryField.delete(0, 'end')
-        self.cmdSentEntryField.insert(0, wait_command)
+        cmdSentEntryField.delete(0, 'end')
+        cmdSentEntryField.insert(0, wait_command)
         ser.write(wait_command.encode())
         ser.flushInput()
         time.sleep(0.1)
         ser.read()
 
     # Handle 'Wait Input OFF' command for the given serial connection.
-    def processWaitInputOff(self, command, ser):
-        if self.moveInProc:
-            self.moveInProc = 2
+    def processWaitInputOff(command, ser):
+        if moveInProc:
+            moveInProc = 2
 
         # Extract input number directly
         start_str = "Wait Off Input = "
@@ -799,17 +925,17 @@ class RobotArmApp:
 
         # Send wait command
         wait_command = f"WON{input_num}\n"
-        self.cmdSentEntryField.delete(0, 'end')
-        self.cmdSentEntryField.insert(0, wait_command)
+        cmdSentEntryField.delete(0, 'end')
+        cmdSentEntryField.insert(0, wait_command)
         ser.write(wait_command.encode())
         ser.flushInput()
         time.sleep(0.1)
         ser.read()
 
     # Handle 'Wait Time' command.
-    def processWaitTime(self, command):
-        if self.moveInProc:
-            self.moveInProc = 2
+    def processWaitTime(command):
+        if moveInProc:
+            moveInProc = 2
 
         # Extract wait time in seconds
         start_str = "Wait Time = "
@@ -818,17 +944,17 @@ class RobotArmApp:
 
         # Send wait command
         wait_command = f"WTS{time_seconds}\n"
-        self.cmdSentEntryField.delete(0, 'end')
-        self.cmdSentEntryField.insert(0, wait_command)
-        self.ser.write(wait_command.encode())
-        self.ser.flushInput()
+        cmdSentEntryField.delete(0, 'end')
+        cmdSentEntryField.insert(0, wait_command)
+        ser.write(wait_command.encode())
+        ser.flushInput()
         time.sleep(0.1)
-        self.ser.read()
+        ser.read()
 
     # Handles the 'Set Register' command.
-    def processSetRegister(self, command):
-        if self.moveInProc:
-            self.moveInProc = 2
+    def processSetRegister(command):
+        if moveInProc:
+            moveInProc = 2
 
         # Extract register number
         start_str = "Register "
@@ -858,9 +984,9 @@ class RobotArmApp:
         entry_field.insert(0, str(reg_new_val))
 
     # Handles the 'Set Position Register' command.
-    def processSetPositionRegister(self, command):
-        if self.moveInProc:
-            self.moveInProc = 2
+    def processSetPositionRegister(command):
+        if moveInProc:
+            moveInProc = 2
 
         # Extract position register number and element
         start_str = "Position Register "
@@ -897,22 +1023,22 @@ class RobotArmApp:
         entry_field.insert(0, str(reg_new_val))
 
     # Handles the 'Calibrate' command.
-    def processCalibrate(self):
-        if self.moveInProc:
-            self.moveInProc = 2
+    def processCalibrate():
+        if moveInProc:
+            moveInProc = 2
         calRobotAll()
         if calStat == 0:
             stopProg()
 
     # Process the Tool S command, send it to the device, handle errors, and display position data.
-    def processToolS(self, command):
+    def processToolS(command):
 
         # Set move process state and system status
-        if self.moveInProc == 1:
-            self.moveInProc = 2
+        if moveInProc == 1:
+            moveInProc = 2
         statusText = "SYSTEM READY"
-        self.almStatusLab.config(text=statusText, style="OK.TLabel")
-        self.almStatusLab2.config(text=statusText, style="OK.TLabel")
+        almStatusLab.config(text=statusText, style="OK.TLabel")
+        almStatusLab2.config(text=statusText, style="OK.TLabel")
 
         # Extract coordinates for Tool S
         xIndex = command.find(" X ")
@@ -930,35 +1056,35 @@ class RobotArmApp:
 
         # Populate entry fields with extracted values
         for field, value in zip(
-                [self.TFxEntryField, self.TFyEntryField, self.TFzEntryField, 
-                self.TFrzEntryField, self.TFryEntryField, self.TFrxEntryField],
+                [TFxEntryField, TFyEntryField, TFzEntryField, 
+                TFrzEntryField, TFryEntryField, TFrxEntryField],
                 [xVal, yVal, zVal, rzVal, ryVal, rxVal]):
             field.delete(0, 'end')
             field.insert(0, value)
 
         # Format and send the command
         formattedCommand = f"TF A{xVal} B{yVal} C{zVal} D{rzVal} E{ryVal} F{rxVal}\n"
-        self.cmdSentEntryField.delete(0, 'end')
-        self.cmdSentEntryField.insert(0, formattedCommand)
-        self.ser.write(formattedCommand.encode())
-        self.ser.flushInput()
+        cmdSentEntryField.delete(0, 'end')
+        cmdSentEntryField.insert(0, formattedCommand)
+        ser.write(formattedCommand.encode())
+        ser.flushInput()
         time.sleep(0.1)
-        self.ser.write(formattedCommand.encode())
-        self.ser.flushInput()
+        ser.write(formattedCommand.encode())
+        ser.flushInput()
         time.sleep(0.1)
 
         # Read the response
-        response = str(self.ser.readline().strip(), 'utf-8')
+        response = str(ser.readline().strip(), 'utf-8')
         if response.startswith('E'):
             # Display error message
-            self.errorStatusLabel.config(text=response, style="Error.TLabel")
+            errorStatusLabel.config(text=response, style="Error.TLabel")
             print(f"Error: {response}")
         else:
             # Display position data from the response
             try:
                 position_fields = {
-                    "X": self.PositionXField, "Y": self.PositionYField, "Z": self.PositionZField,
-                    "Rz": self.PositionRzField, "Ry": self.PositionRyField, "Rx": self.PositionRxField
+                    "X": PositionXField, "Y": PositionYField, "Z": PositionZField,
+                    "Rz": PositionRzField, "Ry": PositionRyField, "Rx": PositionRxField
                 }
                 for key, field in position_fields.items():
                     # Extract value for each position key
@@ -975,12 +1101,12 @@ class RobotArmApp:
 
             except Exception as e:
                 errorMsg = f"Failed to display position: {str(e)}"
-                self.errorStatusLabel.config(text=errorMsg, style="Error.TLabel")
+                errorStatusLabel.config(text=errorMsg, style="Error.TLabel")
                 print(f"Error: {errorMsg}")
 
     def processMoveJ(self, command):
-        if self.moveInProc == 0:
-            self.moveInProc = 1
+        if moveInProc == 0:
+            moveInProc = 1
 
         # Extract coordinates and settings specific to Move J
         xIndex = command.find(" X ")
@@ -1014,27 +1140,27 @@ class RobotArmApp:
         ACCramp = command[ACCrampIndex+4:WristConfIndex]
         WC = command[WristConfIndex+3:]
         LoopMode = (str(self.J1OpenLoopStat.get()) + str(self.J2OpenLoopStat.get()) +
-                    str(self.J3OpenLoopStat.get()) + str(self.J4OpenLoopStat.get()) +
+                    str(self.J3OpenLoopStat.get()) + str(self.self.J4OpenLoopStat.get()) +
                     str(self.J5OpenLoopStat.get()) + str(self.J6OpenLoopStat.get()))
 
         # Format and send command
         formattedCommand = (f"MJ X{xVal} Y{yVal} Z{zVal} Rz{rzVal} Ry{ryVal} Rx{rxVal} "
                             f"J7{J7Val} J8{J8Val} J9{J9Val} {speedPrefix}{speed} "
                             f"Ac{ACCspd} Dc{DECspd} Rm{ACCramp} W{WC} Lm{LoopMode}\n")
-        self.cmdSentEntryField.delete(0, 'end')
-        self.cmdSentEntryField.insert(0, formattedCommand)
-        self.ser.write(formattedCommand.encode())
-        self.ser.flushInput()
+        cmdSentEntryField.delete(0, 'end')
+        cmdSentEntryField.insert(0, formattedCommand)
+        ser.write(formattedCommand.encode())
+        ser.flushInput()
         time.sleep(0.1)
-        self.ser.write(formattedCommand.encode())
-        self.ser.flushInput()
+        ser.write(formattedCommand.encode())
+        ser.flushInput()
         time.sleep(0.1)
 
         # Read and handle response
-        response = str(self.ser.readline().strip(), 'utf-8')
+        response = str(ser.readline().strip(), 'utf-8')
         if response.startswith('E'):
             # Handle errors by displaying the error message
-            self.errorStatusLabel.config(text=response, style="Error.TLabel")
+            errorStatusLabel.config(text=response, style="Error.TLabel")
             print(f"Error: {response}")
         else:
             # Display position data based on response received from the device
@@ -1059,19 +1185,19 @@ class RobotArmApp:
                 # Populate the position fields
                 for key, field in zip(
                         ["X", "Y", "Z", "Rz", "Ry", "Rx"],
-                        [self.PositionXField, self.PositionYField, self.PositionZField, 
-                        self.PositionRzField, self.PositionRyField, self.PositionRxField]):
+                        [PositionXField, PositionYField, PositionZField, 
+                        PositionRzField, PositionRyField, PositionRxField]):
                     field.delete(0, 'end')
                     field.insert(0, position_values[key])
 
             except Exception as e:
                 errorMsg = f"Failed to display position: {str(e)}"
-                self.errorStatusLabel.config(text=errorMsg, style="Error.TLabel")
+                errorStatusLabel.config(text=errorMsg, style="Error.TLabel")
                 print(f"Error: {errorMsg}")
 
     def processOffJ(self, command):
-        if self.moveInProc == 0:
-            self.moveInProc = 1
+        if moveInProc == 0:
+            moveInProc = 1
 
         # Extract SP and command data for Off J
         SPnewIndex = command.find("[ PR: ")
@@ -1080,7 +1206,7 @@ class RobotArmApp:
 
         # Helper function to retrieve offsets
         def get_offset(fieldName):
-            field = getattr(self, fieldName, None)
+            field = getattr(fieldName, None)
             if field:
                 return field.get()
             else:
@@ -1095,7 +1221,7 @@ class RobotArmApp:
         crx = get_offset(f"SP_{SP}_E6_EntryField")
 
         # Extract movement data
-        def extract_move_j_data(command):
+        def extract_move_j_data(self, command):
             xIndex = command.find(" X ")
             yIndex = command.find(" Y ")
             zIndex = command.find(" Z ")
@@ -1127,7 +1253,7 @@ class RobotArmApp:
             ACCramp = command[ACCrampIndex+4:WristConfIndex]
             WC = command[WristConfIndex+3:]
             LoopMode = (str(self.J1OpenLoopStat.get()) + str(self.J2OpenLoopStat.get()) +
-                        str(self.J3OpenLoopStat.get()) + str(self.J4OpenLoopStat.get()) +
+                        str(self.J3OpenLoopStat.get()) + str(self.self.J4OpenLoopStat.get()) +
                         str(self.J5OpenLoopStat.get()) + str(self.J6OpenLoopStat.get()))
 
             return xVal, yVal, zVal, rzVal, ryVal, rxVal, J7Val, J8Val, J9Val, speedPrefix, speed, ACCspd, DECspd, ACCramp, WC, LoopMode
@@ -1147,20 +1273,20 @@ class RobotArmApp:
         formattedCommand = (f"MJ X{xVal} Y{yVal} Z{zVal} Rz{rzVal} Ry{ryVal} Rx{rxVal} "
                             f"J7{J7Val} J8{J8Val} J9{J9Val} {speedPrefix}{speed} "
                             f"Ac{ACCspd} Dc{DECspd} Rm{ACCramp} W{WC} Lm{LoopMode}\n")
-        self.cmdSentEntryField.delete(0, 'end')
-        self.cmdSentEntryField.insert(0, formattedCommand)
-        self.ser.write(formattedCommand.encode())
-        self.ser.flushInput()
+        cmdSentEntryField.delete(0, 'end')
+        cmdSentEntryField.insert(0, formattedCommand)
+        ser.write(formattedCommand.encode())
+        ser.flushInput()
         time.sleep(0.1)
-        self.ser.write(formattedCommand.encode())
-        self.ser.flushInput()
+        ser.write(formattedCommand.encode())
+        ser.flushInput()
         time.sleep(0.1)
 
         # Read and handle response
-        response = str(self.ser.readline().strip(), 'utf-8')
+        response = str(ser.readline().strip(), 'utf-8')
         if response.startswith('E'):
             # Handle errors by displaying the error message
-            self.errorStatusLabel.config(text=response, style="Error.TLabel")
+            errorStatusLabel.config(text=response, style="Error.TLabel")
             print(f"Error: {response}")
         else:
             # Extract position values from response and update fields
@@ -1185,22 +1311,22 @@ class RobotArmApp:
                 # Populate the position fields
                 for key, field in zip(
                         ["X", "Y", "Z", "Rz", "Ry", "Rx"],
-                        [self.PositionXField, self.PositionYField, self.PositionZField, 
-                        self.PositionRzField, self.PositionRyField, self.PositionRxField]):
+                        [PositionXField, PositionYField, PositionZField, 
+                        PositionRzField, PositionRyField, PositionRxField]):
                     field.delete(0, 'end')
                     field.insert(0, position_values[key])
 
             except Exception as e:
                 errorMsg = f"Failed to display position: {str(e)}"
-                self.errorStatusLabel.config(text=errorMsg, style="Error.TLabel")
+                errorStatusLabel.config(text=errorMsg, style="Error.TLabel")
                 print(f"Error: {errorMsg}")
 
     # Process the Move V command, send it to the device, handle errors, and display position.
-    def handleMoveVCommand(self, command):
+    def handleMoveVCommand(command):
 
         # Ensure movement is in progress
-        if self.moveInProc == 0:
-            self.moveInProc = 1
+        if moveInProc == 0:
+            moveInProc = 1
 
         # Extract SP and index positions in the command string
         SPnewIndex = command.find("[ PR: ")
@@ -1214,7 +1340,7 @@ class RobotArmApp:
 
         # Define an internal helper to retrieve the offset
         def get_offset(field_name):
-            field = getattr(self, field_name, None)
+            field = getattr(field_name, None)
             if field:
                 return field.get()
             else:
@@ -1225,8 +1351,8 @@ class RobotArmApp:
         cx, cy, cz = get_offset(f"SP_{SP}_E1_EntryField"), get_offset(f"SP_{SP}_E2_EntryField"), get_offset(f"SP_{SP}_E3_EntryField")
         crz, cry, crx = get_offset(f"SP_{SP}_E4_EntryField"), get_offset(f"SP_{SP}_E5_EntryField"), get_offset(f"SP_{SP}_E6_EntryField")
 
-        xVal = str(float(cx) + float(self.VisRetXrobEntryField.get()))
-        yVal = str(float(cy) + float(self.VisRetYrobEntryField.get()))
+        xVal = str(float(cx) + float(VisRetXrobEntryField.get()))
+        yVal = str(float(cy) + float(VisRetYrobEntryField.get()))
         zVal = str(float(cz) + float(command[zIndex + 3:rzIndex]))
         rzVal = str(float(crz) + float(command[rzIndex + 4:ryIndex]))
         ryVal = str(float(cry) + float(command[ryIndex + 4:rxIndex]))
@@ -1235,8 +1361,8 @@ class RobotArmApp:
         speedPrefix, Speed = command[SpeedIndex + 1:SpeedIndex + 3], command[SpeedIndex + 4:ACCspdIndex]
         ACCspd, DECspd = command[ACCspdIndex + 4:DECspdIndex], command[DECspdIndex + 4:ACCrampIndex]
         ACCramp, WC = command[ACCrampIndex + 4:WristConfIndex], command[WristConfIndex + 3:]
-        visRot = self.VisRetAngleEntryField.get()
-        LoopMode = ''.join(str(getattr(self, f'J{i}OpenLoopStat').get()) for i in range(1, 7))
+        visRot = VisRetAngleEntryField.get()
+        LoopMode = ''.join(str(getattr(f'J{i}OpenLoopStat').get()) for i in range(1, 7))
 
         # Format command
         formatted_command = (
@@ -1246,19 +1372,19 @@ class RobotArmApp:
         )
 
         # Send command and handle response
-        self.cmdSentEntryField.delete(0, 'end')
-        self.cmdSentEntryField.insert(0, formatted_command)
-        self.ser.write(formatted_command.encode())
-        self.ser.flushInput()
+        cmdSentEntryField.delete(0, 'end')
+        cmdSentEntryField.insert(0, formatted_command)
+        ser.write(formatted_command.encode())
+        ser.flushInput()
         time.sleep(0.1)
 
         # Read and handle response
-        response = str(self.ser.readline().strip(), 'utf-8')
+        response = str(ser.readline().strip(), 'utf-8')
         if response.startswith('E'):
             # Handle errors
             error_msg = f"Error: {response}"
             print(error_msg)
-            self.errorStatusLabel.config(text=response, style="Error.TLabel")
+            errorStatusLabel.config(text=response, style="Error.TLabel")
         else:
             # Display position
             try:
@@ -1272,12 +1398,12 @@ class RobotArmApp:
                     return response[start:end] if end != -1 else response[start:]
 
                 position_fields = {
-                    "X": self.PositionXField,
-                    "Y": self.PositionYField,
-                    "Z": self.PositionZField,
-                    "Rz": self.PositionRzField,
-                    "Ry": self.PositionRyField,
-                    "Rx": self.PositionRxField,
+                    "X": PositionXField,
+                    "Y": PositionYField,
+                    "Z": PositionZField,
+                    "Rz": PositionRzField,
+                    "Ry": PositionRyField,
+                    "Rx": PositionRxField,
                 }
                 for label, field in position_fields.items():
                     field.delete(0, 'end')
@@ -1286,14 +1412,14 @@ class RobotArmApp:
             except Exception as e:
                 error_msg = f"Failed to display position: {str(e)}"
                 print(error_msg)
-                self.errorStatusLabel.config(text=error_msg, style="Error.TLabel")
+                errorStatusLabel.config(text=error_msg, style="Error.TLabel")
 
     # Process the MoveP command, send it to the device, handle errors, and display position data.
-    def handleMovePCommand(self, command):
+    def handleMovePCommand(command):
 
         # Begin processing MoveP command
-        if self.moveInProc == 0:
-            self.moveInProc = 1
+        if moveInProc == 0:
+            moveInProc = 1
 
         # Parse command components
         SPnewIndex = command.find("[ PR: ")
@@ -1334,31 +1460,31 @@ class RobotArmApp:
         WC = command[WristConfIndex + 3:]
 
         LoopMode = ''.join(
-            str(getattr(self, f'J{i}OpenLoopStat').get()) for i in range(1, 7))
+            str(getattr(f'J{i}OpenLoopStat').get()) for i in range(1, 7))
 
         # Construct and send the final command
         final_command = f"MJX{xVal}Y{yVal}Z{zVal}Rz{rzVal}Ry{ryVal}Rx{rxVal}J7{J7Val}J8{J8Val}J9{J9Val}{speedPrefix}{Speed}Ac{ACCspd}Dc{DECspd}Rm{ACCramp}W{WC}Lm{LoopMode}\n"
         
         # Send the command to the device
-        self.cmdSentEntryField.delete(0, 'end')
-        self.cmdSentEntryField.insert(0, final_command)
-        self.ser.write(final_command.encode())
-        self.ser.flushInput()
+        cmdSentEntryField.delete(0, 'end')
+        cmdSentEntryField.insert(0, final_command)
+        ser.write(final_command.encode())
+        ser.flushInput()
         time.sleep(0.1)
         
         # Read the response
-        response = str(self.ser.readline().strip(), 'utf-8')
+        response = str(ser.readline().strip(), 'utf-8')
         
         # Check for errors in the response
         if response.startswith('E'):
             print(f"Error: {response}")  # Log the error for debugging
-            self.errorStatusLabel.config(text=response, style="Error.TLabel")  # Display error in UI
+            errorStatusLabel.config(text=response, style="Error.TLabel")  # Display error in UI
             return  # Exit if there's an error
 
         # Process and display position data if no errors
         position_fields = {
-            "X": self.PositionXField, "Y": self.PositionYField, "Z": self.PositionZField,
-            "Rz": self.PositionRzField, "Ry": self.PositionRyField, "Rx": self.PositionRxField
+            "X": PositionXField, "Y": PositionYField, "Z": PositionZField,
+            "Rz": PositionRzField, "Ry": PositionRyField, "Rx": PositionRxField
         }
         
         try:
@@ -1377,14 +1503,14 @@ class RobotArmApp:
             # Handle any issues during the display update
             errorMsg = f"Failed to display position: {str(e)}"
             print(f"Error: {errorMsg}")
-            self.errorStatusLabel.config(text=errorMsg, style="Error.TLabel")
+            errorStatusLabel.config(text=errorMsg, style="Error.TLabel")
 
     # Process the OffsPR command, construct the command string, send it to the device, and handle response errors.
-    def handleOffsPRCommand(self, command):
+    def handleOffsPRCommand(command):
         
         # Set move process state
-        if self.moveInProc == 0:
-            self.moveInProc = 1
+        if moveInProc == 0:
+            moveInProc = 1
 
         # Extract position and configuration data from the command
         SPnewIndex = command.find("[ PR: ")
@@ -1423,31 +1549,31 @@ class RobotArmApp:
         WC = command[WristConfIndex + 3:]
 
         # Loop mode configuration
-        LoopMode = ''.join(str(getattr(self, f'J{i}OpenLoopStat').get()) for i in range(1, 7))
+        LoopMode = ''.join(str(getattr(f'J{i}OpenLoopStat').get()) for i in range(1, 7))
 
         # Construct the full command
         full_command = f"MJX{xVal}Y{yVal}Z{zVal}Rz{rzVal}Ry{ryVal}Rx{rxVal}J7{J7Val}J8{J8Val}J9{J9Val}{speedPrefix}{Speed}Ac{ACCspd}Dc{DECspd}Rm{ACCramp}W{WC}Lm{LoopMode}\n"
 
         # Send command
-        self.cmdSentEntryField.delete(0, 'end')
-        self.cmdSentEntryField.insert(0, full_command)
-        self.ser.write(full_command.encode())
-        self.ser.flushInput()
+        cmdSentEntryField.delete(0, 'end')
+        cmdSentEntryField.insert(0, full_command)
+        ser.write(full_command.encode())
+        ser.flushInput()
         time.sleep(0.1)
 
         # Read the response
-        response = str(self.ser.readline().strip(), 'utf-8')
+        response = str(ser.readline().strip(), 'utf-8')
 
         # Error handling
         if response.startswith('E'):
             print(f"Error: {response}")
-            self.errorStatusLabel.config(text=response, style="Error.TLabel")
+            errorStatusLabel.config(text=response, style="Error.TLabel")
             return
 
         # Update position fields if no error
         position_fields = {
-            "X": self.PositionXField, "Y": self.PositionYField, "Z": self.PositionZField,
-            "Rz": self.PositionRzField, "Ry": self.PositionRyField, "Rx": self.PositionRxField
+            "X": PositionXField, "Y": PositionYField, "Z": PositionZField,
+            "Rz": PositionRzField, "Ry": PositionRyField, "Rx": PositionRxField
         }
 
         try:
@@ -1467,12 +1593,12 @@ class RobotArmApp:
         except Exception as e:
             errorMsg = f"Failed to display position: {str(e)}"
             print(f"Error: {errorMsg}")
-            self.errorStatusLabel.config(text=errorMsg, style="Error.TLabel")
+            errorStatusLabel.config(text=errorMsg, style="Error.TLabel")
 
     def handleMoveL(self, command):
         # Check and start move if not already in process
-        if self.moveInProc == 0:
-            self.moveInProc = 1
+        if moveInProc == 0:
+            moveInProc = 1
 
         # Extract move values from command
         def extractMoveSegment(start, end):
@@ -1511,11 +1637,11 @@ class RobotArmApp:
         WC = command[WristConfIndex + 3:].strip()
 
         # Adjust rzVal if necessary
-        if np.sign(float(rzVal)) != np.sign(float(self.RzcurPos)):
+        if np.sign(float(rzVal)) != np.sign(float(RzcurPos)):
             rzVal = str(float(rzVal) * -1)
 
         # Retrieve loop mode and disable wrist rotation flag
-        LoopMode = ''.join(str(getattr(self, f'J{i}OpenLoopStat.get()')) for i in range(1, 7))
+        LoopMode = ''.join(str(getattr(f'J{i}OpenLoopStat.get()')) for i in range(1, 7))
         DisWrist = str(self.DisableWristRot.get())
 
         # Construct and send the command
@@ -1526,24 +1652,24 @@ class RobotArmApp:
         
         # Send the command and handle response
         start = time.time()
-        self.cmdSentEntryField.delete(0, 'end')
-        self.cmdSentEntryField.insert(0, full_command)
+        cmdSentEntryField.delete(0, 'end')
+        cmdSentEntryField.insert(0, full_command)
 
-        self.ser.write(full_command.encode())
-        self.ser.flushInput()
+        ser.write(full_command.encode())
+        ser.flushInput()
         time.sleep(0.1)
-        response = str(self.ser.readline().strip(), 'utf-8')
+        response = str(ser.readline().strip(), 'utf-8')
 
         # Optional timing display
         end = time.time()
-        # self.manEntryField.delete(0, 'end')
-        # self.manEntryField.insert(0, end - start)
+        # manEntryField.delete(0, 'end')
+        # manEntryField.insert(0, end - start)
 
         # Handle the response
         if response.startswith('E'):
             # Display error message
             print(f"Error: {response}")
-            self.errorStatusLabel.config(text=response, style="Error.TLabel")
+            errorStatusLabel.config(text=response, style="Error.TLabel")
         else:
             # Display position data with inline extraction function
             def extractValue(response, label):
@@ -1555,27 +1681,27 @@ class RobotArmApp:
                 return response[start:end] if end != -1 else response[start:]
 
             try:
-                self.PositionXField.delete(0, 'end')
-                self.PositionXField.insert(0, extractValue(response, "X"))
-                self.PositionYField.delete(0, 'end')
-                self.PositionYField.insert(0, extractValue(response, "Y"))
-                self.PositionZField.delete(0, 'end')
-                self.PositionZField.insert(0, extractValue(response, "Z"))
-                self.PositionRzField.delete(0, 'end')
-                self.PositionRzField.insert(0, extractValue(response, "Rz"))
-                self.PositionRyField.delete(0, 'end')
-                self.PositionRyField.insert(0, extractValue(response, "Ry"))
-                self.PositionRxField.delete(0, 'end')
-                self.PositionRxField.insert(0, extractValue(response, "Rx"))
+                PositionXField.delete(0, 'end')
+                PositionXField.insert(0, extractValue(response, "X"))
+                PositionYField.delete(0, 'end')
+                PositionYField.insert(0, extractValue(response, "Y"))
+                PositionZField.delete(0, 'end')
+                PositionZField.insert(0, extractValue(response, "Z"))
+                PositionRzField.delete(0, 'end')
+                PositionRzField.insert(0, extractValue(response, "Rz"))
+                PositionRyField.delete(0, 'end')
+                PositionRyField.insert(0, extractValue(response, "Ry"))
+                PositionRxField.delete(0, 'end')
+                PositionRxField.insert(0, extractValue(response, "Rx"))
             except Exception as e:
                 # Error handling if display fails
                 print(f"Failed to display position: {str(e)}")
-                self.errorStatusLabel.config(text=f"Display Error: {str(e)}", style="Error.TLabel")
+                errorStatusLabel.config(text=f"Display Error: {str(e)}", style="Error.TLabel")
 
-    def handleMoveR(self, command):
+    def handleMoveR(command):
         # Start move if not already in process
-        if self.moveInProc == 0:
-            self.moveInProc = 1
+        if moveInProc == 0:
+            moveInProc = 1
 
         # Extract move values from command
         def extractMoveSegment(start, end):
@@ -1612,7 +1738,7 @@ class RobotArmApp:
         WC = command[WristConfIndex + 3:].strip()
 
         # Retrieve loop mode
-        LoopMode = ''.join(str(getattr(self, f'J{i}OpenLoopStat.get()')) for i in range(1, 7))
+        LoopMode = ''.join(str(getattr(f'J{i}OpenLoopStat.get()')) for i in range(1, 7))
 
         # Construct command
         full_command = (
@@ -1622,24 +1748,24 @@ class RobotArmApp:
 
         # Send command and handle response
         start = time.time()
-        self.cmdSentEntryField.delete(0, 'end')
-        self.cmdSentEntryField.insert(0, full_command)
+        cmdSentEntryField.delete(0, 'end')
+        cmdSentEntryField.insert(0, full_command)
 
-        self.ser.write(full_command.encode())
-        self.ser.flushInput()
+        ser.write(full_command.encode())
+        ser.flushInput()
         time.sleep(0.1)
-        response = str(self.ser.readline().strip(), 'utf-8')
+        response = str(ser.readline().strip(), 'utf-8')
 
         # Optional timing display
         end = time.time()
-        # self.manEntryField.delete(0, 'end')
-        # self.manEntryField.insert(0, end - start)
+        # manEntryField.delete(0, 'end')
+        # manEntryField.insert(0, end - start)
 
         # Handle response
         if response.startswith('E'):
             # Error handling: Display error message
             print(f"Error: {response}")
-            self.errorStatusLabel.config(text=response, style="Error.TLabel")
+            errorStatusLabel.config(text=response, style="Error.TLabel")
         else:
             # Display position data with inline extraction function
             def extractValue(response, label):
@@ -1651,32 +1777,32 @@ class RobotArmApp:
                 return response[start:end] if end != -1 else response[start:]
 
             try:
-                self.PositionXField.delete(0, 'end')
-                self.PositionXField.insert(0, extractValue(response, "X"))
-                self.PositionYField.delete(0, 'end')
-                self.PositionYField.insert(0, extractValue(response, "Y"))
-                self.PositionZField.delete(0, 'end')
-                self.PositionZField.insert(0, extractValue(response, "Z"))
-                self.PositionRzField.delete(0, 'end')
-                self.PositionRzField.insert(0, extractValue(response, "Rz"))
-                self.PositionRyField.delete(0, 'end')
-                self.PositionRyField.insert(0, extractValue(response, "Ry"))
-                self.PositionRxField.delete(0, 'end')
-                self.PositionRxField.insert(0, extractValue(response, "Rx"))
+                PositionXField.delete(0, 'end')
+                PositionXField.insert(0, extractValue(response, "X"))
+                PositionYField.delete(0, 'end')
+                PositionYField.insert(0, extractValue(response, "Y"))
+                PositionZField.delete(0, 'end')
+                PositionZField.insert(0, extractValue(response, "Z"))
+                PositionRzField.delete(0, 'end')
+                PositionRzField.insert(0, extractValue(response, "Rz"))
+                PositionRyField.delete(0, 'end')
+                PositionRyField.insert(0, extractValue(response, "Ry"))
+                PositionRxField.delete(0, 'end')
+                PositionRxField.insert(0, extractValue(response, "Rx"))
             except Exception as e:
                 # Error handling if display fails
                 print(f"Failed to display position: {str(e)}")
-                self.errorStatusLabel.config(text=f"Display Error: {str(e)}", style="Error.TLabel")
+                errorStatusLabel.config(text=f"Display Error: {str(e)}", style="Error.TLabel")
 
     def handleMoveA(self, command):
         # Start move if not already in process
-        if self.moveInProc == 0:
-            self.moveInProc = 1
+        if moveInProc == 0:
+            moveInProc = 1
 
         # Check command validity
         if command.startswith("Move A End"):
-            self.almStatusLab.config(text="Move A must start with a Mid followed by End", style="Alarm.TLabel")
-            self.almStatusLab2.config(text="Move A must start with a Mid followed by End", style="Alarm.TLabel")
+            almStatusLab.config(text="Move A must start with a Mid followed by End", style="Alarm.TLabel")
+            almStatusLab2.config(text="Move A must start with a Mid followed by End", style="Alarm.TLabel")
             return
 
         # Extract move values from command
@@ -1740,7 +1866,7 @@ class RobotArmApp:
         Xend, Yend, Zend = end_command[:3]  # Extracted Xend, Yend, Zend from end position command
 
         # Retrieve loop mode
-        LoopMode = ''.join(str(getattr(self, f'J{i}OpenLoopStat.get()')) for i in range(1, 7))
+        LoopMode = ''.join(str(getattr(f'J{i}OpenLoopStat.get()')) for i in range(1, 7))
 
         # Construct command
         full_command = (
@@ -1750,24 +1876,24 @@ class RobotArmApp:
 
         # Send command and handle response
         start = time.time()
-        self.cmdSentEntryField.delete(0, 'end')
-        self.cmdSentEntryField.insert(0, full_command)
+        cmdSentEntryField.delete(0, 'end')
+        cmdSentEntryField.insert(0, full_command)
 
-        self.ser.write(full_command.encode())
-        self.ser.flushInput()
+        ser.write(full_command.encode())
+        ser.flushInput()
         time.sleep(0.1)
-        response = str(self.ser.readline().strip(), 'utf-8')
+        response = str(ser.readline().strip(), 'utf-8')
 
         # Optional timing display
         end = time.time()
-        # self.manEntryField.delete(0, 'end')
-        # self.manEntryField.insert(0, end - start)
+        # manEntryField.delete(0, 'end')
+        # manEntryField.insert(0, end - start)
 
         # Handle response
         if response.startswith('E'):
             # Error handling: Display error message
             print(f"Error: {response}")
-            self.errorStatusLabel.config(text=response, style="Error.TLabel")
+            errorStatusLabel.config(text=response, style="Error.TLabel")
         else:
             # Display position data with inline extraction function
             def extractValue(response, label):
@@ -1779,34 +1905,34 @@ class RobotArmApp:
                 return response[start:end] if end != -1 else response[start:]
 
             try:
-                self.PositionXField.delete(0, 'end')
-                self.PositionXField.insert(0, extractValue(response, "X"))
-                self.PositionYField.delete(0, 'end')
-                self.PositionYField.insert(0, extractValue(response, "Y"))
-                self.PositionZField.delete(0, 'end')
-                self.PositionZField.insert(0, extractValue(response, "Z"))
-                self.PositionRzField.delete(0, 'end')
-                self.PositionRzField.insert(0, extractValue(response, "Rz"))
-                self.PositionRyField.delete(0, 'end')
-                self.PositionRyField.insert(0, extractValue(response, "Ry"))
-                self.PositionRxField.delete(0, 'end')
-                self.PositionRxField.insert(0, extractValue(response, "Rx"))
+                PositionXField.delete(0, 'end')
+                PositionXField.insert(0, extractValue(response, "X"))
+                PositionYField.delete(0, 'end')
+                PositionYField.insert(0, extractValue(response, "Y"))
+                PositionZField.delete(0, 'end')
+                PositionZField.insert(0, extractValue(response, "Z"))
+                PositionRzField.delete(0, 'end')
+                PositionRzField.insert(0, extractValue(response, "Rz"))
+                PositionRyField.delete(0, 'end')
+                PositionRyField.insert(0, extractValue(response, "Ry"))
+                PositionRxField.delete(0, 'end')
+                PositionRxField.insert(0, extractValue(response, "Rx"))
             except Exception as e:
                 # Error handling if display fails
                 print(f"Failed to display position: {str(e)}")
-                self.errorStatusLabel.config(text=f"Display Error: {str(e)}", style="Error.TLabel")
+                errorStatusLabel.config(text=f"Display Error: {str(e)}", style="Error.TLabel")
 
     def handleMoveC(self, command):
-        if self.moveInProc == 0:
-            self.moveInProc = 1
+        if moveInProc == 0:
+            moveInProc = 1
 
         # Check command format
         subCmd = command[:10]
         if subCmd in ["Move C Sta", "Move C Pla"]:
             # Inline showError logic
             message = "Move C must start with a Center followed by Start & Plane"
-            self.almStatusLab.config(text=message, style="Alarm.TLabel")
-            self.almStatusLab2.config(text=message, style="Alarm.TLabel")
+            almStatusLab.config(text=message, style="Alarm.TLabel")
+            almStatusLab2.config(text=message, style="Alarm.TLabel")
             return
 
         # Inline extractMoveCValues logic to extract command values
@@ -1880,105 +2006,105 @@ class RobotArmApp:
 
         # Inline sendMJCommand logic
         mj_command = f"MJX{Xmid}Y{Ymid}Z{Zmid}Rz{rzVal}Ry{ryVal}Rx{rxVal}Tr{trVal}S{Speed}Ac{ACCspd}Dc{DECspd}Rm{ACCramp}W{WC}\n"
-        self.cmdSentEntryField.delete(0, 'end')
-        self.cmdSentEntryField.insert(0, mj_command)
-        self.ser.write(mj_command.encode())
-        self.ser.flushInput()
+        cmdSentEntryField.delete(0, 'end')
+        cmdSentEntryField.insert(0, mj_command)
+        ser.write(mj_command.encode())
+        ser.flushInput()
         time.sleep(0.1)
-        self.ser.readline().strip()
+        ser.readline().strip()
 
         # Inline sendMCCommand logic
         mc_command = f"MC Cx{xVal}Cy{yVal}Cz{zVal}Rz{rzVal}Ry{ryVal}Rx{rxVal}Bx{Xmid}By{Ymid}Bz{Zmid}Px{Xend}Py{Yend}Pz{Zend}Tr{trVal}S{Speed}Ac{ACCspd}Dc{DECspd}Rm{ACCramp}W{WC}\n"
-        self.cmdSentEntryField.delete(0, 'end')
-        self.cmdSentEntryField.insert(0, mc_command)
-        self.ser.write(mc_command.encode())
-        self.ser.flushInput()
+        cmdSentEntryField.delete(0, 'end')
+        cmdSentEntryField.insert(0, mc_command)
+        ser.write(mc_command.encode())
+        ser.flushInput()
         time.sleep(0.1)
-        self.ser.readline().strip()
+        ser.readline().strip()
 
-    def startSpline(self):
+    def startSpline():
         # Set spline active and update moveInProc status
-        self.splineActive = "1"
-        if self.moveInProc == 1:
-            self.moveInProc = 2
+        splineActive = "1"
+        if moveInProc == 1:
+            moveInProc = 2
 
         # Define and send command
         command = "SL\n"
-        self.cmdSentEntryField.delete(0, 'end')
-        self.cmdSentEntryField.insert(0, command)
-        self.ser.write(command.encode())
-        self.ser.flushInput()
+        cmdSentEntryField.delete(0, 'end')
+        cmdSentEntryField.insert(0, command)
+        ser.write(command.encode())
+        ser.flushInput()
         
         # Delay and return the response
         time.sleep(0.1)
-        return str(self.ser.readline().strip(), 'utf-8')
+        return str(ser.readline().strip(), 'utf-8')
 
-    def endSpline(self):
+    def endSpline():
         # Set spline inactive and handle queue stop condition
-        self.splineActive = "0"
-        if self.stopQueue == "1":
-            self.stopQueue = "0"
-            self.stop()
+        splineActive = "0"
+        if stopQueue == "1":
+            stopQueue = "0"
+            stop()
 
-        if self.moveInProc == 1:
-            self.moveInProc = 2
+        if moveInProc == 1:
+            moveInProc = 2
 
         # Define and send command
         command = "SS\n"
-        self.cmdSentEntryField.delete(0, 'end')
-        self.cmdSentEntryField.insert(0, command)
-        self.ser.write(command.encode())
-        self.ser.flushInput()
+        cmdSentEntryField.delete(0, 'end')
+        cmdSentEntryField.insert(0, command)
+        ser.write(command.encode())
+        ser.flushInput()
         time.sleep(0.1)
         
         # Read and process response
-        response = str(self.ser.readline().strip(), 'utf-8')
+        response = str(ser.readline().strip(), 'utf-8')
         
         # Check for error in response and handle accordingly
         if response[:1] == 'E':
             # Handle error by displaying the error message
             print(f"Error: {response}")  # Log the error
-            self.errorStatusLabel.config(text=response, style="Error.TLabel")
+            errorStatusLabel.config(text=response, style="Error.TLabel")
         else:
             # Display position data based on response received from the device
             try:
                 # Extract values from response
-                xVal = self.extractValue(response, "X")
-                yVal = self.extractValue(response, "Y")
-                zVal = self.extractValue(response, "Z")
-                rzVal = self.extractValue(response, "Rz")
-                ryVal = self.extractValue(response, "Ry")
-                rxVal = self.extractValue(response, "Rx")
+                xVal = extractValue(response, "X")
+                yVal = extractValue(response, "Y")
+                zVal = extractValue(response, "Z")
+                rzVal = extractValue(response, "Rz")
+                ryVal = extractValue(response, "Ry")
+                rxVal = extractValue(response, "Rx")
 
                 # Update the UI fields
-                self.PositionXField.delete(0, 'end')
-                self.PositionXField.insert(0, xVal)
-                self.PositionYField.delete(0, 'end')
-                self.PositionYField.insert(0, yVal)
-                self.PositionZField.delete(0, 'end')
-                self.PositionZField.insert(0, zVal)
-                self.PositionRzField.delete(0, 'end')
-                self.PositionRzField.insert(0, rzVal)
-                self.PositionRyField.delete(0, 'end')
-                self.PositionRyField.insert(0, ryVal)
-                self.PositionRxField.delete(0, 'end')
-                self.PositionRxField.insert(0, rxVal)
+                PositionXField.delete(0, 'end')
+                PositionXField.insert(0, xVal)
+                PositionYField.delete(0, 'end')
+                PositionYField.insert(0, yVal)
+                PositionZField.delete(0, 'end')
+                PositionZField.insert(0, zVal)
+                PositionRzField.delete(0, 'end')
+                PositionRzField.insert(0, rzVal)
+                PositionRyField.delete(0, 'end')
+                PositionRyField.insert(0, ryVal)
+                PositionRxField.delete(0, 'end')
+                PositionRxField.insert(0, rxVal)
 
             except Exception as e:
                 # Handle display error
                 errorMsg = f"Failed to display position: {str(e)}"
                 print(f"Error: {errorMsg}")  # Log the error
-                self.errorStatusLabel.config(text=errorMsg, style="Error.TLabel")
+                errorStatusLabel.config(text=errorMsg, style="Error.TLabel")
 
-    def cameraOn(self):
-        if self.moveInProc == 1:
-            self.moveInProc = 2
-        self.start_vid()
+    def cameraOn():
+        if moveInProc == 1:
+            moveInProc = 2
+        start_vid()
 
-    def cameraOff(self):
-        if self.moveInProc == 1:
-            self.moveInProc = 2
-        self.stop_vid()
+    def cameraOff():
+        if moveInProc == 1:
+            moveInProc = 2
+        stop_vid()
 
     def visionFind(self, command):
         # Extract necessary values from the command
@@ -1999,8 +2125,8 @@ class RobotArmApp:
         min_score = float(command[scoreIndex + 7:passIndex]) * 0.01
 
         # Take a picture and find vision status
-        self.take_pic()
-        status = self.visFind(template, min_score, background)
+        take_pic()
+        status = visFind(template, min_score, background)
 
         # Handle pass/fail outcomes
         if status == "pass":
@@ -2207,7 +2333,7 @@ class RobotArmApp:
         speedEntryField.delete(0, 'end')
         speedEntryField.insert(0, str(cur_spd))
 
-    def jog_joint(joint_index, value, direction):
+    def jog_joint(self, joint_index, value, direction):
 
         # Helper function to jog a joint in a specific direction.
 
@@ -2245,7 +2371,7 @@ class RobotArmApp:
         ACCspd = ACCspeedField.get()
         DECspd = DECspeedField.get()
         ACCramp = ACCrampField.get()
-        LoopMode = "".join(str(stat.get()) for stat in [J1OpenLoopStat, J2OpenLoopStat, J3OpenLoopStat, J4OpenLoopStat, J5OpenLoopStat, J6OpenLoopStat])
+        LoopMode = "".join(str(stat.get()) for stat in [self.J1OpenLoopStat, self.J2OpenLoopStat, self.J3OpenLoopStat, self.self.J4OpenLoopStat, self.J5OpenLoopStat, self.J6OpenLoopStat])
 
         # Construct the command string
         command = f"RJ" + "".join(f"{axis}{angle}" for axis, angle in zip("ABCDEF", joint_values[:6])) + \
@@ -2285,7 +2411,7 @@ class RobotArmApp:
     def J9jogNeg(value): jog_joint(9, value, "neg")
     def J9jogPos(value): jog_joint(9, value, "pos")
 
-    def LiveJointJog(value):
+    def LiveJointJog(self, value):
         global xboxUse
 
         # Update status labels
@@ -2309,8 +2435,8 @@ class RobotArmApp:
         DECspd = DECspeedField.get()
         ACCramp = ACCrampField.get()
         LoopMode = "".join(str(joint.get()) for joint in [
-            J1OpenLoopStat, J2OpenLoopStat, J3OpenLoopStat,
-            J4OpenLoopStat, J5OpenLoopStat, J6OpenLoopStat
+            self.J1OpenLoopStat, self.J2OpenLoopStat, self.J3OpenLoopStat,
+            self.self.J4OpenLoopStat, self.J5OpenLoopStat, self.J6OpenLoopStat
         ])
 
         # Construct and send command
@@ -2324,7 +2450,7 @@ class RobotArmApp:
         time.sleep(0.1)
         ser.read()
 
-    def LiveCarJog(value):
+    def LiveCarJog(self, value):
         global xboxUse
 
         # Update status labels
@@ -2348,8 +2474,8 @@ class RobotArmApp:
         DECspd = DECspeedField.get()
         ACCramp = ACCrampField.get()
         LoopMode = "".join(str(joint.get()) for joint in [
-            J1OpenLoopStat, J2OpenLoopStat, J3OpenLoopStat,
-            J4OpenLoopStat, J5OpenLoopStat, J6OpenLoopStat
+            self.J1OpenLoopStat, self.J2OpenLoopStat, self.J3OpenLoopStat,
+            self.self.J4OpenLoopStat, self.J5OpenLoopStat, self.J6OpenLoopStat
         ])
 
         # Construct and send command
@@ -2363,7 +2489,7 @@ class RobotArmApp:
         time.sleep(0.1)
         ser.read()
 
-    def LiveToolJog(value):
+    def LiveToolJog(self, value):
         global xboxUse
 
         # Update status labels
@@ -2387,8 +2513,8 @@ class RobotArmApp:
         DECspd = DECspeedField.get()
         ACCramp = ACCrampField.get()
         LoopMode = "".join(str(joint.get()) for joint in [
-            J1OpenLoopStat, J2OpenLoopStat, J3OpenLoopStat,
-            J4OpenLoopStat, J5OpenLoopStat, J6OpenLoopStat
+            self.J1OpenLoopStat, self.J2OpenLoopStat, self.J3OpenLoopStat,
+            self.self.J4OpenLoopStat, self.J5OpenLoopStat, self.J6OpenLoopStat
         ])
 
         # Construct and send command
@@ -2402,7 +2528,7 @@ class RobotArmApp:
         time.sleep(0.1)
         ser.read()
 
-    def StopJog():
+    def StopJog(self):
         command = "S\n"
         if int(IncJogStat.get()) == 0:
             ser.write(command.encode())
@@ -2416,7 +2542,7 @@ class RobotArmApp:
             else:
                 displayPosition(response)
 
-    def jog_joint_command(joint_index, value, direction):
+    def jog_joint_command(self, joint_index, value, direction):
 
         # Helper function to handle jogging for a specific joint in a given direction.
         
@@ -2448,7 +2574,7 @@ class RobotArmApp:
         ACCspd = ACCspeedField.get()
         DECspd = DECspeedField.get()
         ACCramp = ACCrampField.get()
-        LoopMode = "".join(str(stat.get()) for stat in [J1OpenLoopStat, J2OpenLoopStat, J3OpenLoopStat, J4OpenLoopStat, J5OpenLoopStat, J6OpenLoopStat])
+        LoopMode = "".join(str(stat.get()) for stat in [self.J1OpenLoopStat, self.J2OpenLoopStat, self.J3OpenLoopStat, self.self.J4OpenLoopStat, self.J5OpenLoopStat, self.J6OpenLoopStat])
 
         # Adjust joint position based on direction
         joint_positions = [J1AngCur, J2AngCur, J3AngCur, J4AngCur, J5AngCur, J6AngCur, J7PosCur, J8PosCur, J9PosCur]
@@ -2484,7 +2610,7 @@ class RobotArmApp:
     def J9jogNeg(value): jog_joint_command(9, value, "neg")
     def J9jogPos(value): jog_joint_command(9, value, "pos")
 
-    def jog_neg_with_command(axis, value):
+    def jog_neg_with_command(self, axis, value):
         # Get speed prefix based on speed option
         speedtype = speedOption.get()
         speedPrefix = ""
@@ -2506,8 +2632,8 @@ class RobotArmApp:
         
         # Compile loop mode status for each joint
         LoopMode = ''.join([
-            str(J1OpenLoopStat.get()), str(J2OpenLoopStat.get()), str(J3OpenLoopStat.get()),
-            str(J4OpenLoopStat.get()), str(J5OpenLoopStat.get()), str(J6OpenLoopStat.get())
+            str(self.J1OpenLoopStat.get()), str(self.J2OpenLoopStat.get()), str(self.J3OpenLoopStat.get()),
+            str(self.self.J4OpenLoopStat.get()), str(self.J5OpenLoopStat.get()), str(self.J6OpenLoopStat.get())
         ])
         
         # Check if Xbox controller is in use
@@ -2557,7 +2683,7 @@ class RobotArmApp:
     def RzjogNeg(value):
         jog_neg_with_command('Rz', value)
 
-    def jog_pos_with_command(axis, value):
+    def jog_pos_with_command(self, axis, value):
         # Get speed prefix based on speed option
         speedtype = speedOption.get()
         speedPrefix = ""
@@ -2579,8 +2705,8 @@ class RobotArmApp:
         
         # Compile loop mode status for each joint
         LoopMode = ''.join([
-            str(J1OpenLoopStat.get()), str(J2OpenLoopStat.get()), str(J3OpenLoopStat.get()),
-            str(J4OpenLoopStat.get()), str(J5OpenLoopStat.get()), str(J6OpenLoopStat.get())
+            str(self.J1OpenLoopStat.get()), str(self.J2OpenLoopStat.get()), str(self.J3OpenLoopStat.get()),
+            str(self.self.J4OpenLoopStat.get()), str(self.J5OpenLoopStat.get()), str(self.J6OpenLoopStat.get())
         ])
         
         # Check if Xbox controller is in use
@@ -2630,7 +2756,7 @@ class RobotArmApp:
     def RzjogPos(value):
         jog_pos_with_command('Rz', value)
 
-    def execute_t_jog_neg(axis_prefix, value):
+    def execute_t_jog_neg(self, axis_prefix, value):
         # Check and set system readiness
         global xboxUse
         checkSpeedVals()
@@ -2641,7 +2767,7 @@ class RobotArmApp:
         # Handle speed settings, restricting "mm per Sec" if needed
         speedtype = speedOption.get()
         if speedtype == "mm per Sec":
-            speedMenu = OptionMenu(tab1, speedOption, "Percent", "Percent", "Seconds", "mm per Sec")
+            speedMenu = OptionMenu(self.tab1, speedOption, "Percent", "Percent", "Seconds", "mm per Sec")
             speedPrefix = "Ss"
             speedEntryField.delete(0, 'end')
             speedEntryField.insert(0, "50")
@@ -2660,8 +2786,8 @@ class RobotArmApp:
 
         # Compile loop mode
         LoopMode = ''.join([
-            str(J1OpenLoopStat.get()), str(J2OpenLoopStat.get()), str(J3OpenLoopStat.get()),
-            str(J4OpenLoopStat.get()), str(J5OpenLoopStat.get()), str(J6OpenLoopStat.get())
+            str(self.J1OpenLoopStat.get()), str(self.J2OpenLoopStat.get()), str(self.J3OpenLoopStat.get()),
+            str(self.self.J4OpenLoopStat.get()), str(self.J5OpenLoopStat.get()), str(self.J6OpenLoopStat.get())
         ])
 
         # Construct the command for the specific T-axis jog
@@ -2696,7 +2822,7 @@ class RobotArmApp:
     def TRzjogNeg(value):
         execute_t_jog_neg('R', value)
 
-    def execute_t_jog_pos(axis_prefix, value):
+    def execute_t_jog_pos(self, axis_prefix, value):
         # Check and set system readiness
         global xboxUse
         checkSpeedVals()
@@ -2707,7 +2833,7 @@ class RobotArmApp:
         # Handle speed settings, restricting "mm per Sec" if needed
         speedtype = speedOption.get()
         if speedtype == "mm per Sec":
-            speedMenu = OptionMenu(tab1, speedOption, "Percent", "Percent", "Seconds", "mm per Sec")
+            speedMenu = OptionMenu(self.tab1, speedOption, "Percent", "Percent", "Seconds", "mm per Sec")
             speedPrefix = "Ss"
             speedEntryField.delete(0, 'end')
             speedEntryField.insert(0, "50")
@@ -2726,8 +2852,8 @@ class RobotArmApp:
 
         # Compile loop mode
         LoopMode = ''.join([
-            str(J1OpenLoopStat.get()), str(J2OpenLoopStat.get()), str(J3OpenLoopStat.get()),
-            str(J4OpenLoopStat.get()), str(J5OpenLoopStat.get()), str(J6OpenLoopStat.get())
+            str(self.J1OpenLoopStat.get()), str(self.J2OpenLoopStat.get()), str(self.J3OpenLoopStat.get()),
+            str(self.self.J4OpenLoopStat.get()), str(self.J5OpenLoopStat.get()), str(self.J6OpenLoopStat.get())
         ])
 
         # Construct the command for the specific T-axis positive jog
@@ -2764,16 +2890,16 @@ class RobotArmApp:
 
     # Teach defs #
 
-    def teachInsertBelSelected():
+    def teachInsertBelSelected(self):
         global XcurPos, YcurPos, ZcurPos, RxcurPos, RycurPos, RzcurPos, WC, J7PosCur
 
-        def get_selected_row():
+        def get_selected_row(self):
             try:
-                sel_row = tab1.progView.curselection()[0] + 1
+                sel_row = self.tab1.progView.curselection()[0] + 1
             except:
-                last = tab1.progView.index('end')
+                last = self.tab1.progView.index('end')
                 sel_row = last
-                tab1.progView.select_set(sel_row)
+                self.tab1.progView.select_set(sel_row)
             return sel_row
 
         def determine_speed_prefix(speed_type):
@@ -2785,11 +2911,11 @@ class RobotArmApp:
                 return "Sp"
             return ""
 
-        def insert_to_view_and_save(new_position, sel_row):
-            tab1.progView.insert(sel_row, bytes(new_position + '\n', 'utf-8'))
-            tab1.progView.selection_clear(0, 'end')
-            tab1.progView.select_set(sel_row)
-            items = tab1.progView.get(0, 'end')
+        def insert_to_view_and_save(self, new_position, sel_row):
+            self.tab1.progView.insert(sel_row, bytes(new_position + '\n', 'utf-8'))
+            self.tab1.progView.selection_clear(0, 'end')
+            self.tab1.progView.select_set(sel_row)
+            items = self.tab1.progView.get(0, 'end')
             file_path = path.relpath(ProgEntryField.get())
             with open(file_path, 'w', encoding='utf-8') as f:
                 for item in items:
@@ -2849,37 +2975,37 @@ class RobotArmApp:
                 f"Position Register {PR} Element 1 = {XcurPos}"
             ]
             for element in elements:
-                tab1.progView.insert(sel_row, bytes(element + '\n', 'utf-8'))
+                self.tab1.progView.insert(sel_row, bytes(element + '\n', 'utf-8'))
                 sel_row += 1
             insert_to_view_and_save("", sel_row)
     
-    def teachReplaceSelected():
+    def teachReplaceSelected(self):
         try:
             deleteitem()
-            selRow = tab1.progView.curselection()[0]
-            tab1.progView.select_set(selRow - 1)
+            selRow = self.tab1.progView.curselection()[0]
+            self.tab1.progView.select_set(selRow - 1)
         except IndexError:
-            selRow = tab1.progView.index('end')
-            tab1.progView.select_set(selRow)
+            selRow = self.tab1.progView.index('end')
+            self.tab1.progView.select_set(selRow)
 
         teachInsertBelSelected()
 
     # Program function defs #
 
-    def deleteitem():
+    def deleteitem(self):
         try:
             # Get the currently selected row index
-            selRow = tab1.progView.curselection()[0]
+            selRow = self.tab1.progView.curselection()[0]
             
             # Delete the selected item and clear any selection
-            tab1.progView.delete(selRow)
-            tab1.progView.selection_clear(0, END)
+            self.tab1.progView.delete(selRow)
+            self.tab1.progView.selection_clear(0, END)
             
             # Re-select the current row if possible
-            tab1.progView.select_set(min(selRow, tab1.progView.index('end') - 1))
+            self.tab1.progView.select_set(min(selRow, self.tab1.progView.index('end') - 1))
 
             # Save the updated list of items back to the file
-            items = tab1.progView.get(0, END)
+            items = self.tab1.progView.get(0, END)
             file_path = path.relpath(ProgEntryField.get())
             with open(file_path, 'w', encoding='utf-8') as f:
                 for item in items:
@@ -2888,263 +3014,263 @@ class RobotArmApp:
             # Handle the case when no selection is available
             pass
 
-    def manInsItem():
+    def manInsItem(self):
         try:
-            sel_row = tab1.prog_view.curselection()[0]
+            sel_row = self.tab1.prog_view.curselection()[0]
             sel_row += 1
         except IndexError:  # handle specific exception for no selection
-            last = tab1.prog_view.size() - 1
+            last = self.tab1.prog_view.size() - 1
             sel_row = last
-            tab1.prog_view.select_set(sel_row)
+            self.tab1.prog_view.select_set(sel_row)
         
         # Insert the item and clear previous selections
-        tab1.prog_view.insert(sel_row, bytes(man_entry_field.get() + '\n', 'utf-8'))
-        tab1.prog_view.selection_clear(0, ctk.END)
-        tab1.prog_view.select_set(sel_row)
+        self.tab1.prog_view.insert(sel_row, bytes(man_entry_field.get() + '\n', 'utf-8'))
+        self.tab1.prog_view.selection_clear(0, ctk.END)
+        self.tab1.prog_view.select_set(sel_row)
         
         # Update current row entry
         cur_row_entry_field.delete(0, 'end')
         cur_row_entry_field.insert(0, sel_row)
         
         # Set item color (in CTk, you may need to manage text color in other ways)
-        tab1.prog_view.itemconfig(sel_row, {'foreground': 'darkgreen'})
+        self.tab1.prog_view.itemconfig(sel_row, {'foreground': 'darkgreen'})
         
         # Write updated list to file
-        items = tab1.prog_view.get(0, ctk.END)
+        items = self.tab1.prog_view.get(0, ctk.END)
         file_path = os.path.relpath(prog_entry_field.get())
         with open(file_path, 'w', encoding='utf-8') as file:
             for item in items:
                 file.write(item.decode('utf-8').strip() + '\n')
 
-    def manReplItem():
+    def manReplItem(self):
         # Get the selected row
         try:
-            sel_row = tab1.prog_view.curselection()[0]
+            sel_row = self.tab1.prog_view.curselection()[0]
         except IndexError:  # Handle case where no row is selected
             return
         
         # Delete and replace the item at selected row
-        tab1.prog_view.delete(sel_row)
-        tab1.prog_view.insert(sel_row, bytes(man_entry_field.get() + '\n', 'utf-8'))
+        self.tab1.prog_view.delete(sel_row)
+        self.tab1.prog_view.insert(sel_row, bytes(man_entry_field.get() + '\n', 'utf-8'))
         
         # Update selection and clear previous selections
-        tab1.prog_view.selection_clear(0, ctk.END)
-        tab1.prog_view.select_set(sel_row)
+        self.tab1.prog_view.selection_clear(0, ctk.END)
+        self.tab1.prog_view.select_set(sel_row)
         
         # Update item color (CTk might need alternative styling if not directly supported)
-        tab1.prog_view.itemconfig(sel_row, {'foreground': 'darkgreen'})
+        self.tab1.prog_view.itemconfig(sel_row, {'foreground': 'darkgreen'})
         
         # Write updated list to file
-        items = tab1.prog_view.get(0, ctk.END)
+        items = self.tab1.prog_view.get(0, ctk.END)
         file_path = os.path.relpath(prog_entry_field.get())
         with open(file_path, 'w', encoding='utf-8') as file:
             for item in items:
                 file.write(item.decode('utf-8').strip() + '\n')
 
-    def waitTime():
+    def waitTime(self):
         try:
             # Get the selected row and increment by 1 to insert below the current selection
-            sel_row = tab1.prog_view.curselection()[0] + 1
+            sel_row = self.tab1.prog_view.curselection()[0] + 1
         except IndexError:
             # If no selection, set sel_row to the last position
-            sel_row = tab1.prog_view.size()
+            sel_row = self.tab1.prog_view.size()
         
         # Prepare the new "Wait Time" text
         seconds = wait_time_entry_field.get()
         new_time = f"Wait Time = {seconds}"
         
         # Insert new item in the list
-        tab1.prog_view.insert(sel_row, bytes(new_time + '\n', 'utf-8'))
-        tab1.prog_view.selection_clear(0, ctk.END)
-        tab1.prog_view.select_set(sel_row)
+        self.tab1.prog_view.insert(sel_row, bytes(new_time + '\n', 'utf-8'))
+        self.tab1.prog_view.selection_clear(0, ctk.END)
+        self.tab1.prog_view.select_set(sel_row)
         
         # Write the updated list to the file
-        items = tab1.prog_view.get(0, ctk.END)
+        items = self.tab1.prog_view.get(0, ctk.END)
         file_path = os.path.relpath(prog_entry_field.get())
         with open(file_path, 'w', encoding='utf-8') as file:
             for item in items:
                 file.write(item.decode('utf-8').strip() + '\n')
 
-    def waitInputOn():
+    def waitInputOn(self):
         try:
             # Get the selected row and increment by 1 to insert below the current selection
-            sel_row = tab1.prog_view.curselection()[0] + 1
+            sel_row = self.tab1.prog_view.curselection()[0] + 1
         except IndexError:
             # If no selection, set sel_row to the last position
-            sel_row = tab1.prog_view.size()
+            sel_row = self.tab1.prog_view.size()
         
         # Prepare the "Wait Input On" text
         input_value = wait_input_entry_field.get()
         new_input = f"Wait Input On = {input_value}"
         
         # Insert new item in the list
-        tab1.prog_view.insert(sel_row, bytes(new_input + '\n', 'utf-8'))
-        tab1.prog_view.selection_clear(0, ctk.END)
-        tab1.prog_view.select_set(sel_row)
+        self.tab1.prog_view.insert(sel_row, bytes(new_input + '\n', 'utf-8'))
+        self.tab1.prog_view.selection_clear(0, ctk.END)
+        self.tab1.prog_view.select_set(sel_row)
         
         # Write the updated list to the file
-        items = tab1.prog_view.get(0, ctk.END)
+        items = self.tab1.prog_view.get(0, ctk.END)
         file_path = os.path.relpath(prog_entry_field.get())
         with open(file_path, 'w', encoding='utf-8') as file:
             for item in items:
                 file.write(item.decode('utf-8').strip() + '\n')
 
-    def waitInputOff():
+    def waitInputOff(self):
         try:
             # Get the selected row and increment by 1 to insert below the current selection
-            sel_row = tab1.prog_view.curselection()[0] + 1
+            sel_row = self.tab1.prog_view.curselection()[0] + 1
         except IndexError:
             # If no selection, set sel_row to the last position
-            sel_row = tab1.prog_view.size()
+            sel_row = self.tab1.prog_view.size()
         
         # Prepare the "Wait Off Input" text
         input_value = wait_input_off_entry_field.get()
         new_input = f"Wait Off Input = {input_value}"
         
         # Insert new item in the list
-        tab1.prog_view.insert(sel_row, bytes(new_input + '\n', 'utf-8'))
-        tab1.prog_view.selection_clear(0, ctk.END)
-        tab1.prog_view.select_set(sel_row)
+        self.tab1.prog_view.insert(sel_row, bytes(new_input + '\n', 'utf-8'))
+        self.tab1.prog_view.selection_clear(0, ctk.END)
+        self.tab1.prog_view.select_set(sel_row)
         
         # Write the updated list to the file
-        items = tab1.prog_view.get(0, ctk.END)
+        items = self.tab1.prog_view.get(0, ctk.END)
         file_path = os.path.relpath(prog_entry_field.get())
         with open(file_path, 'w', encoding='utf-8') as file:
             for item in items:
                 file.write(item.decode('utf-8').strip() + '\n')
 
-    def setOutputOn():
+    def setOutputOn(self):
         try:
             # Get the selected row and increment by 1 to insert below the current selection
-            sel_row = tab1.prog_view.curselection()[0] + 1
+            sel_row = self.tab1.prog_view.curselection()[0] + 1
         except IndexError:
             # If no selection, set sel_row to the last position
-            sel_row = tab1.prog_view.size()
+            sel_row = self.tab1.prog_view.size()
         
         # Prepare the "Out On" text
         output_value = output_on_entry_field.get()
         new_output = f"Out On = {output_value}"
         
         # Insert new item in the list
-        tab1.prog_view.insert(sel_row, bytes(new_output + '\n', 'utf-8'))
-        tab1.prog_view.selection_clear(0, ctk.END)
-        tab1.prog_view.select_set(sel_row)
+        self.tab1.prog_view.insert(sel_row, bytes(new_output + '\n', 'utf-8'))
+        self.tab1.prog_view.selection_clear(0, ctk.END)
+        self.tab1.prog_view.select_set(sel_row)
         
         # Write the updated list to the file
-        items = tab1.prog_view.get(0, ctk.END)
+        items = self.tab1.prog_view.get(0, ctk.END)
         file_path = os.path.relpath(prog_entry_field.get())
         with open(file_path, 'w', encoding='utf-8') as file:
             for item in items:
                 file.write(item.decode('utf-8').strip() + '\n')
 
-    def setOutputOff():
+    def setOutputOff(self):
         try:
             # Get the selected row and increment by 1 to insert below the current selection
-            sel_row = tab1.prog_view.curselection()[0] + 1
+            sel_row = self.tab1.prog_view.curselection()[0] + 1
         except IndexError:
             # If no selection, set sel_row to the last position
-            sel_row = tab1.prog_view.size()
+            sel_row = self.tab1.prog_view.size()
         
         # Prepare the "Out Off" text
         output_value = output_off_entry_field.get()
         new_output = f"Out Off = {output_value}"
         
         # Insert new item in the list
-        tab1.prog_view.insert(sel_row, bytes(new_output + '\n', 'utf-8'))
-        tab1.prog_view.selection_clear(0, ctk.END)
-        tab1.prog_view.select_set(sel_row)
+        self.tab1.prog_view.insert(sel_row, bytes(new_output + '\n', 'utf-8'))
+        self.tab1.prog_view.selection_clear(0, ctk.END)
+        self.tab1.prog_view.select_set(sel_row)
         
         # Write the updated list to the file
-        items = tab1.prog_view.get(0, ctk.END)
+        items = self.tab1.prog_view.get(0, ctk.END)
         file_path = os.path.relpath(prog_entry_field.get())
         with open(file_path, 'w', encoding='utf-8') as file:
             for item in items:
                 file.write(item.decode('utf-8').strip() + '\n')
 
-    def tabNumber():
+    def tabNumber(self):
         try:
             # Get the selected row and increment by 1 to insert below the current selection
-            sel_row = tab1.prog_view.curselection()[0] + 1
+            sel_row = self.tab1.prog_view.curselection()[0] + 1
         except IndexError:
             # If no selection, set sel_row to the last position
-            sel_row = tab1.prog_view.size()
+            sel_row = self.tab1.prog_view.size()
         
         # Prepare the "Tab Number" text
         tab_num = tab_num_entry_field.get()
         tab_insert = f"Tab Number {tab_num}"
         
         # Insert new item in the list
-        tab1.prog_view.insert(sel_row, bytes(tab_insert + '\n', 'utf-8'))
-        tab1.prog_view.selection_clear(0, ctk.END)
-        tab1.prog_view.select_set(sel_row)
+        self.tab1.prog_view.insert(sel_row, bytes(tab_insert + '\n', 'utf-8'))
+        self.tab1.prog_view.selection_clear(0, ctk.END)
+        self.tab1.prog_view.select_set(sel_row)
         
         # Write the updated list to the file
-        items = tab1.prog_view.get(0, ctk.END)
+        items = self.tab1.prog_view.get(0, ctk.END)
         file_path = os.path.relpath(prog_entry_field.get())
         with open(file_path, 'w', encoding='utf-8') as file:
             for item in items:
                 file.write(item.decode('utf-8').strip() + '\n')
 
-    def jumpTab():
+    def jumpTab(self):
         try:
             # Get the selected row and increment by 1 to insert below the current selection
-            sel_row = tab1.prog_view.curselection()[0] + 1
+            sel_row = self.tab1.prog_view.curselection()[0] + 1
         except IndexError:
             # If no selection, set sel_row to the last position
-            sel_row = tab1.prog_view.size()
+            sel_row = self.tab1.prog_view.size()
         
         # Prepare the "Jump Tab" text
         tab_num = jump_tab_entry_field.get()
         tab_jump_text = f"Jump Tab-{tab_num}"
         
         # Insert new item in the list
-        tab1.prog_view.insert(sel_row, bytes(tab_jump_text + '\n', 'utf-8'))
-        tab1.prog_view.selection_clear(0, ctk.END)
-        tab1.prog_view.select_set(sel_row)
+        self.tab1.prog_view.insert(sel_row, bytes(tab_jump_text + '\n', 'utf-8'))
+        self.tab1.prog_view.selection_clear(0, ctk.END)
+        self.tab1.prog_view.select_set(sel_row)
         
         # Write the updated list to the file
-        items = tab1.prog_view.get(0, ctk.END)
+        items = self.tab1.prog_view.get(0, ctk.END)
         file_path = os.path.relpath(prog_entry_field.get())
         with open(file_path, 'w', encoding='utf-8') as file:
             for item in items:
                 file.write(item.decode('utf-8').strip() + '\n')
 
-    def cameraOn():
+    def cameraOn(self):
         try:
             # Get the selected row and increment by 1 to insert below the current selection
-            selRow = tab1.progView.curselection()[0] + 1
+            selRow = self.tab1.progView.curselection()[0] + 1
         except IndexError:
             # If no selection, set selRow to the last position
-            selRow = tab1.progView.size()
+            selRow = self.tab1.progView.size()
         
         # Insert "Cam On" text into the list
         value = "Cam On"
-        tab1.progView.insert(selRow, bytes(value + '\n', 'utf-8'))
-        tab1.progView.selection_clear(0, ctk.END)
-        tab1.progView.select_set(selRow)
+        self.tab1.progView.insert(selRow, bytes(value + '\n', 'utf-8'))
+        self.tab1.progView.selection_clear(0, ctk.END)
+        self.tab1.progView.select_set(selRow)
         
         # Write the updated list to the file
-        items = tab1.progView.get(0, ctk.END)
+        items = self.tab1.progView.get(0, ctk.END)
         file_path = os.path.relpath(ProgEntryField.get())
         with open(file_path, 'w', encoding='utf-8') as f:
             for item in items:
                 f.write(item.decode('utf-8').strip() + '\n')
 
-    def cameraOff():
+    def cameraOff(self):
         try:
-            selRow = tab1.progView.curselection()[0]
+            selRow = self.tab1.progView.curselection()[0]
             selRow += 1
         except IndexError:
-            last = tab1.progView.size() - 1
+            last = self.tab1.progView.size() - 1
             selRow = last
-            tab1.progView.select_set(selRow)
+            self.tab1.progView.select_set(selRow)
         
         value = "Cam Off"
-        tab1.progView.insert(selRow, bytes(value + '\n', 'utf-8'))
-        tab1.progView.selection_clear(0, ctk.END)
-        tab1.progView.select_set(selRow)
+        self.tab1.progView.insert(selRow, bytes(value + '\n', 'utf-8'))
+        self.tab1.progView.selection_clear(0, ctk.END)
+        self.tab1.progView.select_set(selRow)
         
-        items = tab1.progView.get(0, ctk.END)
+        items = self.tab1.progView.get(0, ctk.END)
         file_path = os.path.relpath(ProgEntryField.get())
         
         with open(file_path, 'w', encoding='utf-8') as f:
@@ -3153,15 +3279,15 @@ class RobotArmApp:
                 f.write(item.strip().decode('utf-8'))
                 f.write('\n')
 
-    def IfCMDInsert():
+    def IfCMDInsert(self):
         localErrorFlag = False
         try:
-            selRow = tab1.progView.curselection()[0]
+            selRow = self.tab1.progView.curselection()[0]
             selRow += 1
         except IndexError:
-            last = tab1.progView.size() - 1
+            last = self.tab1.progView.size() - 1
             selRow = last
-            tab1.progView.select_set(selRow)
+            self.tab1.progView.select_set(selRow)
 
         option = iFoption.get()
         selection = iFselection.get()
@@ -3207,11 +3333,11 @@ class RobotArmApp:
             value = f"{prefix} Jump to Tab {destVal}"
         
         if not localErrorFlag:
-            tab1.progView.insert(selRow, bytes(value + '\n', 'utf-8'))
-            tab1.progView.selection_clear(0, ctk.END)
-            tab1.progView.select_set(selRow)
+            self.tab1.progView.insert(selRow, bytes(value + '\n', 'utf-8'))
+            self.tab1.progView.selection_clear(0, ctk.END)
+            self.tab1.progView.select_set(selRow)
             
-            items = tab1.progView.get(0, ctk.END)
+            items = self.tab1.progView.get(0, ctk.END)
             file_path = os.path.relpath(ProgEntryField.get())
             
             with open(file_path, 'w', encoding='utf-8') as f:
@@ -3219,24 +3345,24 @@ class RobotArmApp:
                     f.write(item.strip().decode('utf-8'))
                     f.write('\n')
 
-    def ReadAuxCom():
+    def ReadAuxCom(self):
         try:
-            selRow = tab1.progView.curselection()[0]
+            selRow = self.tab1.progView.curselection()[0]
             selRow += 1
         except IndexError:
-            last = tab1.progView.size() - 1
+            last = self.tab1.progView.size() - 1
             selRow = last
-            tab1.progView.select_set(selRow)
+            self.tab1.progView.select_set(selRow)
 
         comNum = auxPortEntryField.get()
         comChar = auxCharEntryField.get()
         servoins = f"Read COM # {comNum} Char: {comChar}"
         
-        tab1.progView.insert(selRow, bytes(servoins + '\n', 'utf-8'))
-        tab1.progView.selection_clear(0, ctk.END)
-        tab1.progView.select_set(selRow)
+        self.tab1.progView.insert(selRow, bytes(servoins + '\n', 'utf-8'))
+        self.tab1.progView.selection_clear(0, ctk.END)
+        self.tab1.progView.select_set(selRow)
         
-        items = tab1.progView.get(0, ctk.END)
+        items = self.tab1.progView.get(0, ctk.END)
         file_path = os.path.relpath(ProgEntryField.get())
         
         with open(file_path, 'w', encoding='utf-8') as f:
@@ -3254,10 +3380,10 @@ class RobotArmApp:
         except serial.SerialException:
             Curtime = datetime.datetime.now().strftime("%B %d %Y - %I:%M%p")
             error_message = f"{Curtime} - UNABLE TO ESTABLISH COMMUNICATIONS WITH SERIAL DEVICE"
-            tab8.ElogView.insert(ctk.END, error_message)
+            self.tab8.ElogView.insert(ctk.END, error_message)
             
             # Save error log
-            value = tab8.ElogView.get(0, ctk.END)
+            value = self.tab8.ElogView.get(0, ctk.END)
             with open("ErrorLog", "wb") as f:
                 pickle.dump(value, f)
             return  # Exit if connection fails
@@ -3269,24 +3395,24 @@ class RobotArmApp:
         com3outPortEntryField.delete(0, ctk.END)
         com3outPortEntryField.insert(0, response)
 
-    def Servo():
+    def Servo(self):
         try:
-            selRow = tab1.progView.curselection()[0]
+            selRow = self.tab1.progView.curselection()[0]
             selRow += 1
         except IndexError:
-            last = tab1.progView.size() - 1
+            last = self.tab1.progView.size() - 1
             selRow = last
-            tab1.progView.select_set(selRow)
+            self.tab1.progView.select_set(selRow)
 
         servoNum = servoNumEntryField.get()
         servoPos = servoPosEntryField.get()
         servoins = f"Servo number {servoNum} to position: {servoPos}"
         
-        tab1.progView.insert(selRow, bytes(servoins + '\n', 'utf-8'))
-        tab1.progView.selection_clear(0, ctk.END)
-        tab1.progView.select_set(selRow)
+        self.tab1.progView.insert(selRow, bytes(servoins + '\n', 'utf-8'))
+        self.tab1.progView.selection_clear(0, ctk.END)
+        self.tab1.progView.select_set(selRow)
         
-        items = tab1.progView.get(0, ctk.END)
+        items = self.tab1.progView.get(0, ctk.END)
         file_path = os.path.relpath(ProgEntryField.get())
         
         with open(file_path, 'w', encoding='utf-8') as f:
@@ -3294,7 +3420,7 @@ class RobotArmApp:
                 f.write(item.strip().decode('utf-8'))
                 f.write('\n')
 
-    def loadProg():
+    def loadProg(self):
         # Determine the folder based on whether the app is frozen (e.g., compiled with PyInstaller) or running as a script
         if getattr(sys, 'frozen', False):
             folder = os.path.dirname(sys.executable)
@@ -3310,35 +3436,35 @@ class RobotArmApp:
             ProgEntryField.insert(0, name)
             
             # Clear the current content in progView and load the selected file
-            tab1.progView.delete(0, ctk.END)
+            self.tab1.progView.delete(0, ctk.END)
             
             with open(filename, "rb") as Prog:
                 time.sleep(0.1)  # Optional sleep
                 for item in Prog:
-                    tab1.progView.insert(ctk.END, item)
+                    self.tab1.progView.insert(ctk.END, item)
             
-            tab1.progView.pack()
-            scrollbar.config(command=tab1.progView.yview)
+            self.tab1.progView.pack()
+            scrollbar.config(command=self.tab1.progView.yview)
             savePosData()
 
-    def callProg(name):
+    def callProg(self, name):
         # Update the program entry field with the provided name
         ProgEntryField.delete(0, ctk.END)
         ProgEntryField.insert(0, name)
         
         # Clear the current content in progView
-        tab1.progView.delete(0, ctk.END)
+        self.tab1.progView.delete(0, ctk.END)
         
         # Open the file in binary mode and insert each line into progView
         with open(name, "rb") as Prog:
             time.sleep(0.1)  # Optional delay
             for item in Prog:
-                tab1.progView.insert(ctk.END, item)
+                self.tab1.progView.insert(ctk.END, item)
         
-        tab1.progView.pack()
-        scrollbar.config(command=tab1.progView.yview)
+        self.tab1.progView.pack()
+        scrollbar.config(command=self.tab1.progView.yview)
 
-    def CreateProg():
+    def CreateProg(self):
         # Prompt user for a new program name
         user_input = simpledialog.askstring(title="New Program", prompt="New Program Name:")
         if not user_input:
@@ -3355,25 +3481,25 @@ class RobotArmApp:
         ProgEntryField.insert(0, file_path)
         
         # Clear the current content in progView and load the newly created file
-        tab1.progView.delete(0, ctk.END)
+        self.tab1.progView.delete(0, ctk.END)
         
         with open(file_path, "rb") as Prog:
             time.sleep(0.1)  # Optional delay
             for item in Prog:
-                tab1.progView.insert(ctk.END, item)
+                self.tab1.progView.insert(ctk.END, item)
         
-        tab1.progView.pack()
-        scrollbar.config(command=tab1.progView.yview)
+        self.tab1.progView.pack()
+        scrollbar.config(command=self.tab1.progView.yview)
         savePosData()
 
-    def insertCallProg():
+    def insertCallProg(self):
         try:
-            selRow = tab1.progView.curselection()[0]
+            selRow = self.tab1.progView.curselection()[0]
             selRow += 1
         except IndexError:
-            last = tab1.progView.size() - 1
+            last = self.tab1.progView.size() - 1
             selRow = last
-            tab1.progView.select_set(selRow)
+            self.tab1.progView.select_set(selRow)
 
         newProg = changeProgEntryField.get()
         changeProg = f"Call Program - {newProg}"
@@ -3383,12 +3509,12 @@ class RobotArmApp:
             changeProg += ".ar"
         
         # Insert the call program instruction
-        tab1.progView.insert(selRow, bytes(changeProg + '\n', 'utf-8'))
-        tab1.progView.selection_clear(0, ctk.END)
-        tab1.progView.select_set(selRow)
+        self.tab1.progView.insert(selRow, bytes(changeProg + '\n', 'utf-8'))
+        self.tab1.progView.selection_clear(0, ctk.END)
+        self.tab1.progView.select_set(selRow)
 
         # Retrieve all items and save to file
-        items = tab1.progView.get(0, ctk.END)
+        items = self.tab1.progView.get(0, ctk.END)
         file_path = os.path.relpath(ProgEntryField.get())
         
         with open(file_path, 'w', encoding='utf-8') as f:
@@ -3396,25 +3522,25 @@ class RobotArmApp:
                 f.write(item.strip().decode('utf-8'))
                 f.write('\n')
 
-    def insertGCprog():
+    def insertGCprog(self):
         try:
-            selRow = tab1.progView.curselection()[0]
+            selRow = self.tab1.progView.curselection()[0]
             selRow += 1
         except IndexError:
-            last = tab1.progView.size() - 1
+            last = self.tab1.progView.size() - 1
             selRow = last
-            tab1.progView.select_set(selRow)
+            self.tab1.progView.select_set(selRow)
 
         newProg = PlayGCEntryField.get()
         GCProg = f"Run Gcode Program - {newProg}"
         
         # Insert the Gcode program instruction
-        tab1.progView.insert(selRow, bytes(GCProg + '\n', 'utf-8'))
-        tab1.progView.selection_clear(0, ctk.END)
-        tab1.progView.select_set(selRow)
+        self.tab1.progView.insert(selRow, bytes(GCProg + '\n', 'utf-8'))
+        self.tab1.progView.selection_clear(0, ctk.END)
+        self.tab1.progView.select_set(selRow)
 
         # Retrieve all items and save to file
-        items = tab1.progView.get(0, ctk.END)
+        items = self.tab1.progView.get(0, ctk.END)
         file_path = os.path.relpath(ProgEntryField.get())
         
         with open(file_path, 'w', encoding='utf-8') as f:
@@ -3422,24 +3548,24 @@ class RobotArmApp:
                 f.write(item.strip().decode('utf-8'))
                 f.write('\n')
 
-    def insertReturn():
+    def insertReturn(self):
         try:
-            selRow = tab1.progView.curselection()[0]
+            selRow = self.tab1.progView.curselection()[0]
             selRow += 1
         except IndexError:
-            last = tab1.progView.size() - 1
+            last = self.tab1.progView.size() - 1
             selRow = last
-            tab1.progView.select_set(selRow)
+            self.tab1.progView.select_set(selRow)
 
         value = "Return"
         
         # Insert the return instruction
-        tab1.progView.insert(selRow, bytes(value + '\n', 'utf-8'))
-        tab1.progView.selection_clear(0, ctk.END)
-        tab1.progView.select_set(selRow)
+        self.tab1.progView.insert(selRow, bytes(value + '\n', 'utf-8'))
+        self.tab1.progView.selection_clear(0, ctk.END)
+        self.tab1.progView.select_set(selRow)
 
         # Retrieve all items and save to file
-        items = tab1.progView.get(0, ctk.END)
+        items = self.tab1.progView.get(0, ctk.END)
         file_path = os.path.relpath(ProgEntryField.get())
         
         with open(file_path, 'w', encoding='utf-8') as f:
@@ -3456,7 +3582,7 @@ class RobotArmApp:
         else:
             print(f"File not found: {file_path}")
 
-    def reloadProg():
+    def reloadProg(self):
         file_path = os.path.relpath(ProgEntryField.get())
         
         # Update the program entry field with the reloaded file path
@@ -3464,27 +3590,27 @@ class RobotArmApp:
         ProgEntryField.insert(0, file_path)
         
         # Clear the current content in progView and load the file
-        tab1.progView.delete(0, ctk.END)
+        self.tab1.progView.delete(0, ctk.END)
         
         with open(file_path, "rb") as Prog:
             time.sleep(0.1)  # Optional delay for smoother loading
             for item in Prog:
-                tab1.progView.insert(ctk.END, item)
+                self.tab1.progView.insert(ctk.END, item)
         
         # Refresh the view
-        tab1.progView.pack()
-        scrollbar.config(command=tab1.progView.yview)
+        self.tab1.progView.pack()
+        scrollbar.config(command=self.tab1.progView.yview)
         savePosData()
 
-    def insertvisFind():
+    def insertvisFind(self):
         global ZcurPos, RxcurPos, RycurPos, RzcurPos
         
         try:
-            selRow = tab1.progView.curselection()[0]
+            selRow = self.tab1.progView.curselection()[0]
             selRow += 1
         except IndexError:
-            selRow = tab1.progView.size() - 1
-            tab1.progView.select_set(selRow)
+            selRow = self.tab1.progView.size() - 1
+            self.tab1.progView.select_set(selRow)
 
         # Get template and background color settings
         template = selectedTemplate.get() or "None_Selected.jpg"
@@ -3500,12 +3626,12 @@ class RobotArmApp:
         value = f"Vis Find - {template} - BGcolor {BGcolor} Score {score} Pass {passTab} Fail {failTab}"
         
         # Insert the command and update selection
-        tab1.progView.insert(selRow, bytes(value + '\n', 'utf-8'))
-        tab1.progView.selection_clear(0, ctk.END)
-        tab1.progView.select_set(selRow)
+        self.tab1.progView.insert(selRow, bytes(value + '\n', 'utf-8'))
+        self.tab1.progView.selection_clear(0, ctk.END)
+        self.tab1.progView.select_set(selRow)
         
         # Save all items to file
-        items = tab1.progView.get(0, ctk.END)
+        items = self.tab1.progView.get(0, ctk.END)
         file_path = os.path.relpath(ProgEntryField.get())
         
         with open(file_path, 'w', encoding='utf-8') as f:
@@ -3513,14 +3639,14 @@ class RobotArmApp:
                 f.write(item.strip().decode('utf-8'))
                 f.write('\n')
 
-    def IfRegjumpTab():
+    def IfRegjumpTab(self):
         try:
             # Attempt to get the current selection and set the insertion row
-            selRow = tab1.progView.curselection()[0]
+            selRow = self.tab1.progView.curselection()[0]
             selRow += 1
         except IndexError:
-            selRow = tab1.progView.size() - 1
-            tab1.progView.select_set(selRow)
+            selRow = self.tab1.progView.size() - 1
+            self.tab1.progView.select_set(selRow)
         
         # Get the register number, comparison value, and target tab
         regNum = regNumJmpEntryField.get()
@@ -3531,12 +3657,12 @@ class RobotArmApp:
         tabjmp = f"If Register {regNum} = {regEqNum} Jump to Tab {tabNum}"
         
         # Insert command into progView
-        tab1.progView.insert(selRow, bytes(tabjmp + '\n', 'utf-8'))
-        tab1.progView.selection_clear(0, ctk.END)
-        tab1.progView.select_set(selRow)
+        self.tab1.progView.insert(selRow, bytes(tabjmp + '\n', 'utf-8'))
+        self.tab1.progView.selection_clear(0, ctk.END)
+        self.tab1.progView.select_set(selRow)
         
         # Save all items in progView to file
-        items = tab1.progView.get(0, ctk.END)
+        items = self.tab1.progView.get(0, ctk.END)
         file_path = os.path.relpath(ProgEntryField.get())
         
         with open(file_path, 'w', encoding='utf-8') as f:
@@ -3544,14 +3670,14 @@ class RobotArmApp:
                 f.write(item.strip().decode('utf-8'))
                 f.write('\n')
 
-    def insertRegister():
+    def insertRegister(self):
         try:
             # Attempt to get the current selection and set the insertion row
-            selRow = tab1.progView.curselection()[0]
+            selRow = self.tab1.progView.curselection()[0]
             selRow += 1
         except IndexError:
-            selRow = tab1.progView.size() - 1
-            tab1.progView.select_set(selRow)
+            selRow = self.tab1.progView.size() - 1
+            self.tab1.progView.select_set(selRow)
         
         # Get register number and command
         regNum = regNumEntryField.get()
@@ -3561,12 +3687,12 @@ class RobotArmApp:
         regIns = f"Register {regNum} = {regCmd}"
         
         # Insert command into progView
-        tab1.progView.insert(selRow, bytes(regIns + '\n', 'utf-8'))
-        tab1.progView.selection_clear(0, ctk.END)
-        tab1.progView.select_set(selRow)
+        self.tab1.progView.insert(selRow, bytes(regIns + '\n', 'utf-8'))
+        self.tab1.progView.selection_clear(0, ctk.END)
+        self.tab1.progView.select_set(selRow)
         
         # Save all items in progView to file
-        items = tab1.progView.get(0, ctk.END)
+        items = self.tab1.progView.get(0, ctk.END)
         file_path = os.path.relpath(ProgEntryField.get())
         
         with open(file_path, 'w', encoding='utf-8') as f:
@@ -3574,14 +3700,14 @@ class RobotArmApp:
                 f.write(item.strip().decode('utf-8'))
                 f.write('\n')
 
-    def storPos():
+    def storPos(self):
         try:
             # Attempt to get the current selection and set the insertion row
-            selRow = tab1.progView.curselection()[0]
+            selRow = self.tab1.progView.curselection()[0]
             selRow += 1
         except IndexError:
-            selRow = tab1.progView.size() - 1
-            tab1.progView.select_set(selRow)
+            selRow = self.tab1.progView.size() - 1
+            self.tab1.progView.select_set(selRow)
         
         # Retrieve values from entry fields
         regNum = storPosNumEntryField.get()
@@ -3592,12 +3718,12 @@ class RobotArmApp:
         regIns = f"Position Register {regNum} Element {regElmnt} = {regCmd}"
         
         # Insert the command into progView
-        tab1.progView.insert(selRow, bytes(regIns + '\n', 'utf-8'))
-        tab1.progView.selection_clear(0, ctk.END)
-        tab1.progView.select_set(selRow)
+        self.tab1.progView.insert(selRow, bytes(regIns + '\n', 'utf-8'))
+        self.tab1.progView.selection_clear(0, ctk.END)
+        self.tab1.progView.select_set(selRow)
         
         # Save all items in progView to file
-        items = tab1.progView.get(0, ctk.END)
+        items = self.tab1.progView.get(0, ctk.END)
         file_path = os.path.relpath(ProgEntryField.get())
         
         with open(file_path, 'w', encoding='utf-8') as f:
@@ -3605,25 +3731,25 @@ class RobotArmApp:
                 f.write(item.strip().decode('utf-8'))
                 f.write('\n')
 
-    def insCalibrate():
+    def insCalibrate(self):
         try:
             # Attempt to get the current selection and set the insertion row
-            selRow = tab1.progView.curselection()[0] + 1
+            selRow = self.tab1.progView.curselection()[0] + 1
         except IndexError:
             # Default to the end if there is no selection
-            selRow = tab1.progView.size() - 1
-            tab1.progView.select_set(selRow)
+            selRow = self.tab1.progView.size() - 1
+            self.tab1.progView.select_set(selRow)
         
         # Define the calibration command
         insCal = "Calibrate Robot"
         
         # Insert the command into progView
-        tab1.progView.insert(selRow, bytes(insCal + '\n', 'utf-8'))
-        tab1.progView.selection_clear(0, ctk.END)
-        tab1.progView.select_set(selRow)
+        self.tab1.progView.insert(selRow, bytes(insCal + '\n', 'utf-8'))
+        self.tab1.progView.selection_clear(0, ctk.END)
+        self.tab1.progView.select_set(selRow)
         
         # Save all items in progView to file
-        items = tab1.progView.get(0, ctk.END)
+        items = self.tab1.progView.get(0, ctk.END)
         file_path = os.path.relpath(ProgEntryField.get())
         
         with open(file_path, 'w', encoding='utf-8') as f:
@@ -3631,10 +3757,10 @@ class RobotArmApp:
                 f.write(item.strip().decode('utf-8'))
                 f.write('\n')
 
-    def progViewselect(event):
+    def progViewselect(self, event):
         try:
             # Get the selected row index in progView
-            selRow = tab1.progView.curselection()[0]
+            selRow = self.tab1.progView.curselection()[0]
             
             # Update curRowEntryField with the selected row index
             curRowEntryField.delete(0, ctk.END)
@@ -3643,16 +3769,16 @@ class RobotArmApp:
             # Handle case where no item is selected
             curRowEntryField.delete(0, ctk.END)
 
-    def getSel():
+    def getSel(self):
         try:
             # Get the selected row index in progView
-            selRow = tab1.progView.curselection()[0]
+            selRow = self.tab1.progView.curselection()[0]
             
             # Scroll the view to make the selected row visible
-            tab1.progView.see(selRow + 2)
+            self.tab1.progView.see(selRow + 2)
             
-            data = list(map(int, tab1.progView.curselection()))
-            command = tab1.progView.get(data[0]).decode()
+            data = list(map(int, self.tab1.progView.curselection()))
+            command = self.tab1.progView.get(data[0]).decode()
 
             manEntryField.delete(0, ctk.END)
             manEntryField.insert(0, command)
@@ -3785,8 +3911,8 @@ class RobotArmApp:
 
         def update_log(message):
             Curtime = datetime.datetime.now().strftime("%B %d %Y - %I:%M%p")
-            tab8.ElogView.insert(END, f"{Curtime} - {message}")
-            pickle.dump(tab8.ElogView.get(0, END), open("ErrorLog", "wb"))
+            self.tab8.ElogView.insert(END, f"{Curtime} - {message}")
+            pickle.dump(self.tab8.ElogView.get(0, END), open("ErrorLog", "wb"))
 
         # Stage 1 Calibration
         stage1_values = [
@@ -3838,8 +3964,8 @@ class RobotArmApp:
             ErrorHandler(response)
         
         Curtime = datetime.datetime.now().strftime("%B %d %Y - %I:%M%p")
-        tab8.ElogView.insert(END, Curtime + " - " + message)
-        value = tab8.ElogView.get(0, END)
+        self.tab8.ElogView.insert(END, Curtime + " - " + message)
+        value = self.tab8.ElogView.get(0, END)
         pickle.dump(value, open("ErrorLog", "wb"))
 
     # Refactored calibration functions for each joint
@@ -4007,8 +4133,8 @@ class RobotArmApp:
         almStatusLab2.config(text=status_text, style="Warn.TLabel")
         message = f"{axis_name} Calibration Forced to Zero - this is for commissioning and testing - be careful!"
         curtime = datetime.datetime.now().strftime("%B %d %Y - %I:%M%p")
-        tab8.ElogView.insert(END, f"{curtime} - {message}")
-        value = tab8.ElogView.get(0, END)
+        self.tab8.ElogView.insert(END, f"{curtime} - {message}")
+        value = self.tab8.ElogView.get(0, END)
         pickle.dump(value, open("ErrorLog", "wb"))
         response = str(ser.readline().strip(), 'utf-8')
         displayPosition(response)
@@ -4054,8 +4180,8 @@ class RobotArmApp:
 
         # Log the calibration event
         log_message = f"{current_time} - {status_message} - this is for commissioning and testing - be careful!"
-        tab8.ElogView.insert(END, log_message)
-        log_content = tab8.ElogView.get(0, END)
+        self.tab8.ElogView.insert(END, log_message)
+        log_content = self.tab8.ElogView.get(0, END)
         pickle.dump(log_content, open("ErrorLog", "wb"))
 
     def CalRestPos():
@@ -4077,8 +4203,8 @@ class RobotArmApp:
 
         # Log the calibration event
         log_message = f"{current_time} - Calibration Forced to Vertical - this is for commissioning and testing - be careful!"
-        tab8.ElogView.insert(END, log_message)
-        log_content = tab8.ElogView.get(0, END)
+        self.tab8.ElogView.insert(END, log_message)
+        log_content = self.tab8.ElogView.get(0, END)
         pickle.dump(log_content, open("ErrorLog", "wb"))
 
     def displayPosition(response):
@@ -4165,8 +4291,8 @@ class RobotArmApp:
         if parsed_data["SpeedVioation"] == '1':
             current_time = datetime.datetime.now().strftime("%B %d %Y - %I:%M%p")
             message = "Max Speed Violation - Reduce Speed Setpoint or Travel Distance"
-            tab8.ElogView.insert(END, f"{current_time} - {message}")
-            pickle.dump(tab8.ElogView.get(0, END), open("ErrorLog", "wb"))
+            self.tab8.ElogView.insert(END, f"{current_time} - {message}")
+            pickle.dump(self.tab8.ElogView.get(0, END), open("ErrorLog", "wb"))
             almStatusLab.config(text=message, style="Warn.TLabel")
             almStatusLab2.config(text=message, style="Warn.TLabel")
 
@@ -4291,7 +4417,7 @@ class RobotArmApp:
 
     ## Profiles defs ##
 
-    def SaveAndApplyCalibration():
+    def SaveAndApplyCalibration(self):
         global J1AngCur, J2AngCur, J3AngCur, J4AngCur, J5AngCur, J6AngCur
         global XcurPos, YcurPos, ZcurPos, RxcurPos, RycurPos, RzcurPos
         global J7PosCur, J8PosCur, J9PosCur, VisFileLoc, VisProg
@@ -4321,13 +4447,13 @@ class RobotArmApp:
         J7calOff = float(J7calOffEntryField.get())
         J8calOff = float(J8calOffEntryField.get())
         J9calOff = float(J9calOffEntryField.get())
-        J1OpenLoopVal = int(J1OpenLoopStat.get())
-        J2OpenLoopVal = int(J2OpenLoopStat.get())
-        J3OpenLoopVal = int(J3OpenLoopStat.get())
-        J4OpenLoopVal = int(J4OpenLoopStat.get())
-        J5OpenLoopVal = int(J5OpenLoopStat.get())
-        J6OpenLoopVal = int(J6OpenLoopStat.get())
-        DisableWristRotVal = int(DisableWristRot.get())
+        J1OpenLoopVal = int(self.J1OpenLoopStat.get())
+        J2OpenLoopVal = int(self.J2OpenLoopStat.get())
+        J3OpenLoopVal = int(self.J3OpenLoopStat.get())
+        J4OpenLoopVal = int(self.self.J4OpenLoopStat.get())
+        J5OpenLoopVal = int(self.J5OpenLoopStat.get())
+        J6OpenLoopVal = int(self.J6OpenLoopStat.get())
+        DisableWristRotVal = int(self.DisableWristRot.get())
         J1CalStatVal = int(J1CalStat.get())
         J2CalStatVal = int(J2CalStat.get())
         J3CalStatVal = int(J3CalStat.get())
@@ -4366,7 +4492,7 @@ class RobotArmApp:
 
         savePosData()
 
-    def savePosData():
+    def savePosData(self):
         global J1AngCur, J2AngCur, J3AngCur, J4AngCur, J5AngCur, J6AngCur
         global XcurPos, YcurPos, ZcurPos, RxcurPos, RycurPos, RzcurPos, curTheme
         global J7PosLim, J7rotation, J7steps
@@ -4627,8 +4753,8 @@ class RobotArmApp:
         
         # Log error message to ElogView and save to a file.
         def log_error(message):
-            tab8.ElogView.insert(END, f"{Curtime} - {message}")
-            pickle.dump(tab8.ElogView.get(0, END), open("ErrorLog", "wb"))
+            self.tab8.ElogView.insert(END, f"{Curtime} - {message}")
+            pickle.dump(self.tab8.ElogView.get(0, END), open("ErrorLog", "wb"))
 
         # Update alarm labels with a specific message and style.
         def update_alarm_status(message):
@@ -5331,7 +5457,7 @@ class RobotArmApp:
         else:
             return process_match_success(score, angle, loc, dims)
     
-    def updateVisOp():
+    def updateVisOp(self):
         global selectedTemplate
         selectedTemplate = StringVar()
 
@@ -5341,7 +5467,7 @@ class RobotArmApp:
 
         # Create and place the dropdown menu with file options
         Visoptmenu = ttk.Combobox(
-            tab6, textvariable=selectedTemplate, values=filelist, state='readonly')
+            self.tab6, textvariable=selectedTemplate, values=filelist, state='readonly')
         Visoptmenu.place(x=390, y=52)
 
         # Bind the selection event to update functionality
@@ -5407,9 +5533,9 @@ class RobotArmApp:
 
     # GCODE defs #
 
-    def gcodeFrame():
+    def gcodeFrame(self):
         # Create and place the CTkFrame
-        gcodeframe = ctk.CTkFrame(tab7)
+        gcodeframe = ctk.CTkFrame(self.tab7)
         gcodeframe.place(x=300, y=10)
 
         # Set up the CTkScrollbar
@@ -5417,25 +5543,25 @@ class RobotArmApp:
         scrollbar.pack(side=ctk.RIGHT, fill=ctk.Y)
 
         # Configure the CTkListbox (if `customtkinter` lacks a CTkListbox, you may have to fall back to Listbox)
-        tab7.gcodeView = ctk.CTkTextbox(gcodeframe, width=105, height=46, yscrollcommand=scrollbar.set)
-        tab7.gcodeView.bind('<<ListboxSelect>>', gcodeViewselect)
-        tab7.gcodeView.pack()
+        self.tab7.gcodeView = ctk.CTkTextbox(gcodeframe, width=105, height=46, yscrollcommand=scrollbar.set)
+        self.tab7.gcodeView.bind('<<ListboxSelect>>', gcodeViewselect)
+        self.tab7.gcodeView.pack()
         
         # Configure the scrollbar to scroll the Listbox
-        scrollbar.configure(command=tab7.gcodeView.yview)
+        scrollbar.configure(command=self.tab7.gcodeView.yview)
 
         # Brief delay to allow the interface to update
         time.sleep(0.1)
 
-    def gcodeViewselect(e):
+    def gcodeViewselect(self, e):
         # Get the selected row in the gcodeView Listbox
-        gcodeRow = tab7.gcodeView.curselection()[0]
+        gcodeRow = self.tab7.gcodeView.curselection()[0]
         
         # Update the GcodCurRowEntryField with the selected row index
         GcodCurRowEntryField.delete(0, 'end')
         GcodCurRowEntryField.insert(0, gcodeRow)
 
-    def loadGcodeProg():
+    def loadGcodeProg(self):
         # Set file types for the file dialog
         filetypes = (('G-code files', '*.gcode *.nc *.ngc *.cnc *.tap'),
                     ('Text files', '*.txt'))
@@ -5450,7 +5576,7 @@ class RobotArmApp:
         GcodeProgEntryField.insert(0, filename)
 
         # Clear the current contents of gcodeView
-        tab7.gcodeView.delete(0, END)
+        self.tab7.gcodeView.delete(0, END)
         
         # Open and read the G-code file
         with open(filename, "rb") as gcodeProg:
@@ -5462,11 +5588,11 @@ class RobotArmApp:
 
                 # Insert only unique lines
                 if item != previtem:
-                    tab7.gcodeView.insert(END, item)
+                    self.tab7.gcodeView.insert(END, item)
                 previtem = item
 
         # Configure scrollbar for gcodeView
-        gcodescrollbar.config(command=tab7.gcodeView.yview)
+        gcodescrollbar.config(command=self.tab7.gcodeView.yview)
 
     def SetGcodeStartPos():
         # List of entry fields and corresponding position variables
@@ -5485,7 +5611,7 @@ class RobotArmApp:
             entry_field.delete(0, 'end')
             entry_field.insert(0, str(pos_value))
 
-    def MoveGcodeStartPos():
+    def MoveGcodeStartPos(self):
         # Calculate positions
         positions = {
             "X": float(GC_ST_E1_EntryField.get()) + float(GC_SToff_E1_EntryField.get()),
@@ -5512,7 +5638,7 @@ class RobotArmApp:
         # Loop mode
         loop_mode = "".join(
             str(stat.get())
-            for stat in [J1OpenLoopStat, J2OpenLoopStat, J3OpenLoopStat, J4OpenLoopStat, J5OpenLoopStat, J6OpenLoopStat]
+            for stat in [self.J1OpenLoopStat, self.J2OpenLoopStat, self.J3OpenLoopStat, self.self.J4OpenLoopStat, self.J5OpenLoopStat, self.J6OpenLoopStat]
         )
 
         # Construct command string
@@ -5538,26 +5664,26 @@ class RobotArmApp:
         else:
             displayPosition(response)
 
-    def GCstepFwd():
+    def GCstepFwd(self):
         # Update G-Code status
         GCalmStatusLab.config(text="GCODE READY", style="OK.TLabel")
         GCexecuteRow()
 
         # Get the currently selected row and total rows
-        selected_row = tab7.gcodeView.curselection()[0]
-        total_rows = tab7.gcodeView.index('end')
+        selected_row = self.tab7.gcodeView.curselection()[0]
+        total_rows = self.tab7.gcodeView.index('end')
 
         # Update colors for executed, current, and pending rows
         for row in range(0, selected_row):
-            tab7.gcodeView.itemconfig(row, {'fg': 'dodger blue'})
-        tab7.gcodeView.itemconfig(selected_row, {'fg': 'blue2'})
+            self.tab7.gcodeView.itemconfig(row, {'fg': 'dodger blue'})
+        self.tab7.gcodeView.itemconfig(selected_row, {'fg': 'blue2'})
         for row in range(selected_row + 1, total_rows):
-            tab7.gcodeView.itemconfig(row, {'fg': 'black'})
+            self.tab7.gcodeView.itemconfig(row, {'fg': 'black'})
 
         # Update selection for the next row
-        tab7.gcodeView.selection_clear(0, END)
+        self.tab7.gcodeView.selection_clear(0, END)
         next_row = selected_row + 1
-        tab7.gcodeView.select_set(next_row)
+        self.tab7.gcodeView.select_set(next_row)
 
         # Update the current row display field
         try:
@@ -5599,7 +5725,7 @@ class RobotArmApp:
             GCalmStatusLab.config(
                 text=f"{full_filename} was not found", style="Alarm.TLabel")
 
-    def GCread(status):
+    def GCread(self, status):
         # Prepare and send the command
         command = "RG\n"
         cmdSentEntryField.delete(0, 'end')
@@ -5620,11 +5746,11 @@ class RobotArmApp:
 
         # Update the G-code program view
         GcodeProgEntryField.delete(0, 'end')
-        tab7.gcodeView.delete(0, ctk.END)
+        self.tab7.gcodeView.delete(0, ctk.END)
         for value in response.split(","):
-            tab7.gcodeView.insert(ctk.END, value)
-        tab7.gcodeView.pack()
-        gcodescrollbar.configure(command=tab7.gcodeView.yview)
+            self.tab7.gcodeView.insert(ctk.END, value)
+        self.tab7.gcodeView.pack()
+        gcodescrollbar.configure(command=self.tab7.gcodeView.yview)
 
     def GCplay():
         filename = GcodeFilenameField.get().strip()
@@ -5678,7 +5804,7 @@ class RobotArmApp:
         GCplay = threading.Thread(target=GCthreadPlay)
         GCplay.start()
 
-    def GCconvertProg():
+    def GCconvertProg(self):
         if GcodeProgEntryField.get() == "":
             messagebox.showwarning("warning", "Please Load a Gcode Program")
             return
@@ -5695,9 +5821,9 @@ class RobotArmApp:
         ser.flushInput()
         time.sleep(.1)
         response = str(ser.readline().strip(), 'utf-8')
-        last = tab7.gcodeView.index('end')
+        last = self.tab7.gcodeView.index('end')
         for row in range(0, last):
-            tab7.gcodeView.itemconfig(row, {'fg': 'black'})
+            self.tab7.gcodeView.itemconfig(row, {'fg': 'black'})
 
         def GCthreadProg():
             global GCrowinproc, GCstopQueue, splineActive, prevxVal, prevyVal, prevzVal
@@ -5705,18 +5831,18 @@ class RobotArmApp:
             GCstopQueue, splineActive = "0", "0"
 
             try:
-                GCselRow = tab7.gcodeView.curselection()[0]
+                GCselRow = self.tab7.gcodeView.curselection()[0]
                 if GCselRow == 0:
                     GCselRow = 1
             except:
                 GCselRow = 1
-                tab7.gcodeView.selection_clear(0, END)
-                tab7.gcodeView.select_set(GCselRow)
+                self.tab7.gcodeView.selection_clear(0, END)
+                self.tab7.gcodeView.select_set(GCselRow)
 
-            tab7.GCrunTrue = 1
+            self.tab7.GCrunTrue = 1
 
-            while tab7.GCrunTrue == 1:
-                if tab7.GCrunTrue == 0:
+            while self.tab7.GCrunTrue == 1:
+                if self.tab7.GCrunTrue == 0:
                     GCalmStatusLab.config(
                         text="GCODE CONVERSION STOPPED", style="Alarm.TLabel")
                     break
@@ -5731,26 +5857,26 @@ class RobotArmApp:
                     time.sleep(.1)
 
                 try:
-                    GCselRow = tab7.gcodeView.curselection()[0]
-                    tab7.gcodeView.itemconfig(GCselRow, {'fg': 'blue2'})
-                    tab7.gcodeView.selection_clear(0, END)
+                    GCselRow = self.tab7.gcodeView.curselection()[0]
+                    self.tab7.gcodeView.itemconfig(GCselRow, {'fg': 'blue2'})
+                    self.tab7.gcodeView.selection_clear(0, END)
                     GCselRow += 1
-                    tab7.gcodeView.select_set(GCselRow)
+                    self.tab7.gcodeView.select_set(GCselRow)
                     GcodCurRowEntryField.delete(0, 'end')
                     GcodCurRowEntryField.insert(0, GCselRow)
                 except:
                     GcodCurRowEntryField.delete(0, 'end')
                     GcodCurRowEntryField.insert(0, "---")
-                    tab7.GCrunTrue = 0
+                    self.tab7.GCrunTrue = 0
                     GCalmStatusLab.config(
                         text="GCODE CONVERSION STOPPED", style="Alarm.TLabel")
 
         GCt = threading.Thread(target=GCthreadProg)
         GCt.start()
 
-    def GCstopProg():
+    def GCstopProg(self):
         global cmdType, splineActive, GCstopQueue, moveInProc
-        tab7.GCrunTrue = 0
+        self.tab7.GCrunTrue = 0
         GCalmStatusLab.config(text="GCODE CONVERSION STOPPED", style="Alarm.TLabel")
 
         if splineActive == 1:
@@ -5774,7 +5900,7 @@ class RobotArmApp:
             else:
                 displayPosition(response)
 
-    def GCexecuteRow():
+    def GCexecuteRow(self):
         # Current position variables
         global J1AngCur, J2AngCur, J3AngCur, J4AngCur, J5AngCur, J6AngCur
 
@@ -5813,9 +5939,9 @@ class RobotArmApp:
             )
 
         GCstartTime = time.time()
-        GCselRow = tab7.gcodeView.curselection()[0]
-        tab7.gcodeView.see(GCselRow + 2)
-        command = tab7.gcodeView.get(tab7.gcodeView.curselection()[0]).decode()
+        GCselRow = self.tab7.gcodeView.curselection()[0]
+        self.tab7.gcodeView.see(GCselRow + 2)
+        command = self.tab7.gcodeView.get(self.tab7.gcodeView.curselection()[0]).decode()
         cmdType, subCmd = command[:1], command[1:command.find(" ")].rstrip()
 
         if cmdType == "F":
@@ -5844,7 +5970,7 @@ class RobotArmApp:
                 if response.startswith('E'):
                     ErrorHandler(response)
                     GCstopProg()
-                    tab7.GCrunTrue = 0
+                    self.tab7.GCrunTrue = 0
                     GCalmStatusLab.config(text="UNABLE TO WRITE TO SD CARD", style="Alarm.TLabel")
                 else:
                     displayPosition(response)
@@ -5871,53 +5997,14 @@ class RobotArmApp:
                 response = str(ser.readline().strip(), 'utf-8')
                 if response.startswith('E'):
                     ErrorHandler(response)
-                    tab7.GCrunTrue = 0
+                    self.tab7.GCrunTrue = 0
                     GCalmStatusLab.config(text="UNABLE TO WRITE TO SD CARD", style="Alarm.TLabel")
                 else:
                     displayPosition(response)
 
         GCrowinproc = 0
 
-    # Application styling defs #
-
-    ## TAB 1 ##
-
-    ## TAB 2 ##
-
-    ## TAB 3 ##
-
-    ## TAB 4 ##
-
-    ## TAB 5 ##
-
-    ## TAB 6 ##
-
-    ## TAB 7 ##
-
-    ## TAB 8 ##
-
-    # Program Exit #
-
-    def on_closing(self):
-        # Handle program exit with cleanup
-        if messagebox.askokcancel("Close Program", "Do you want to quit?"):
-            try:
-                command = "CL"
-                if self.ser:
-                    self.ser.write(command.encode())
-            except Exception as e:
-                print("Error in closing command:", e)
-            finally:
-                if self.ser:
-                    self.ser.close()
-                self.root.destroy()
-
-    def run(self):
-        # Start the main loop
-        self.root.mainloop()
-
-
 ## Run the application ##
 if __name__ == "__main__":
     app = RobotArmApp()
-    app.run()
+    app.root.mainloop()
