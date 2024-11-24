@@ -244,7 +244,639 @@ class RobotArmApp:
 
         """ J1 Joint Controls """
 
-        
+        self.J1jogFrame = ctk.CTkFrame(self.tab1, width=340, height=40)
+        self.J1jogFrame.place(x=810, y=10)
+
+        self.J1Lab = ctk.CTkLabel(self.J1jogFrame, font=("Arial", 18), text="J1")
+        self.J1Lab.place(x=5, y=5)
+
+        self.J1curAngEntryField = ctk.CTkEntry(self.J1jogFrame, width=50, justify="center")
+        self.J1curAngEntryField.place(x=35, y=9)
+
+        def SelJ1jogNeg(event):
+            IncJogStatVal = int(self.IncJogStat.get())
+            if IncJogStatVal == 1:
+                self.J1jogNeg(float(self.incrementEntryField.get()))
+            else:
+                self.LiveJointJog(10)
+
+        self.J1jogNegBut = ctk.CTkButton(self.J1jogFrame, text="-", width=30, height=25)
+        self.J1jogNegBut.bind("<ButtonPress>", SelJ1jogNeg)
+        self.J1jogNegBut.bind("<ButtonRelease>", self.StopJog)
+        self.J1jogNegBut.place(x=77, y=7)
+
+        def SelJ1jogPos(event):
+            IncJogStatVal = int(self.IncJogStat.get())
+            if IncJogStatVal == 1:
+                self.J1jogPos(float(self.incrementEntryField.get()))
+            else:
+                self.LiveJointJog(11)
+
+        self.J1jogPosBut = ctk.CTkButton(self.J1jogFrame, text="+", width=30, height=25)
+        self.J1jogPosBut.bind("<ButtonPress>", SelJ1jogPos)
+        self.J1jogPosBut.bind("<ButtonRelease>", self.StopJog)
+        self.J1jogPosBut.place(x=300, y=7)
+
+        self.J1negLimLab = ctk.CTkLabel(self.J1jogFrame, font=("Arial", 8), text=str(-self.J1NegLim))
+        self.J1negLimLab.place(x=115, y=25)
+
+        self.J1posLimLab = ctk.CTkLabel(self.J1jogFrame, font=("Arial", 8), text=str(self.J1PosLim))
+        self.J1posLimLab.place(x=270, y=25)
+
+        self.J1slidelabel = ctk.CTkLabel(self.J1jogFrame)
+        self.J1slidelabel.place(x=190, y=25)
+
+        def J1sliderUpdate(value):
+            self.J1slidelabel.configure(text=round(float(self.J1jogslide.get()), 2))
+
+        def J1sliderExecute(event):
+            J1delta = float(self.J1jogslide.get()) - float(self.J1curAngEntryField.get())
+            if J1delta < 0:
+                self.J1jogNeg(abs(J1delta))
+            else:
+                self.J1jogPos(abs(J1delta))
+
+        self.J1jogslide = ctk.CTkSlider(
+            self.J1jogFrame, from_=-self.J1NegLim, to=self.J1PosLim, orientation="horizontal", command=J1sliderUpdate, width=180
+        )
+        self.J1jogslide.bind("<ButtonRelease-1>", J1sliderExecute)
+        self.J1jogslide.place(x=115, y=7)
+
+        """ J2 Joint Controls """
+
+        self.J2jogFrame = ctk.CTkFrame(self.tab1, width=340, height=40)
+        self.J2jogFrame.place(x=810, y=55)
+
+        self.J2Lab = ctk.CTkLabel(self.J2jogFrame, font=("Arial", 18), text="J2")
+        self.J2Lab.place(x=5, y=5)
+
+        self.J2curAngEntryField = ctk.CTkEntry(self.J2jogFrame, width=50, justify="center")
+        self.J2curAngEntryField.place(x=35, y=9)
+
+        def SelJ2jogNeg(event):
+            IncJogStatVal = int(self.IncJogStat.get())
+            if IncJogStatVal == 1:
+                self.J2jogNeg(float(self.incrementEntryField.get()))
+            else:
+                self.LiveJointJog(20)
+
+        self.J2jogNegBut = ctk.CTkButton(self.J2jogFrame, text="-", width=30, height=25)
+        self.J2jogNegBut.bind("<ButtonPress>", SelJ2jogNeg)
+        self.J2jogNegBut.bind("<ButtonRelease>", self.StopJog)
+        self.J2jogNegBut.place(x=77, y=7)
+
+        def SelJ2jogPos(event):
+            IncJogStatVal = int(self.IncJogStat.get())
+            if IncJogStatVal == 1:
+                self.J2jogPos(float(self.incrementEntryField.get()))
+            else:
+                self.LiveJointJog(21)
+
+        self.J2jogPosBut = ctk.CTkButton(self.J2jogFrame, text="+", width=30, height=25)
+        self.J2jogPosBut.bind("<ButtonPress>", SelJ2jogPos)
+        self.J2jogPosBut.bind("<ButtonRelease>", self.StopJog)
+        self.J2jogPosBut.place(x=300, y=7)
+
+        self.J2negLimLab = ctk.CTkLabel(self.J2jogFrame, font=("Arial", 8), text=str(-self.J2NegLim))
+        self.J2negLimLab.place(x=115, y=25)
+
+        self.J2posLimLab = ctk.CTkLabel(self.J2jogFrame, font=("Arial", 8), text=str(self.J2PosLim))
+        self.J2posLimLab.place(x=270, y=25)
+
+        self.J2slidelabel = ctk.CTkLabel(self.J2jogFrame)
+        self.J2slidelabel.place(x=190, y=25)
+
+        def J2sliderUpdate(value):
+            self.J2slidelabel.configure(text=round(float(self.J2jogslide.get()), 2))
+
+        def J2sliderExecute(event):
+            J2delta = float(self.J2jogslide.get()) - float(self.J2curAngEntryField.get())
+            if J2delta < 0:
+                self.J2jogNeg(abs(J2delta))
+            else:
+                self.J2jogPos(abs(J2delta))
+
+        self.J2jogslide = ctk.CTkSlider(
+            self.J2jogFrame, from_=-self.J2NegLim, to=self.J2PosLim, orientation='horizontal', command=J2sliderUpdate, width=180
+        )
+        self.J2jogslide.bind("<ButtonRelease-1>", J2sliderExecute)
+        self.J2jogslide.place(x=115, y=7)
+
+        """ J3 Joint Controls """
+
+        self.J3jogFrame = ctk.CTkFrame(self.tab1, width=340, height=40)
+        self.J3jogFrame.place(x=810, y=100)
+
+        self.J3Lab = ctk.CTkLabel(self.J3jogFrame, font=("Arial", 18), text="J3")
+        self.J3Lab.place(x=5, y=5)
+
+        self.J3curAngEntryField = ctk.CTkEntry(self.J3jogFrame, width=50, justify="center")
+        self.J3curAngEntryField.place(x=35, y=9)
+
+        def SelJ3jogNeg(event):
+            IncJogStatVal = int(self.IncJogStat.get())
+            if IncJogStatVal == 1:
+                self.J3jogNeg(float(self.incrementEntryField.get()))
+            else:
+                self.LiveJointJog(30)
+
+        self.J3jogNegBut = ctk.CTkButton(self.J3jogFrame, text="-", width=30, height=25)
+        self.J3jogNegBut.bind("<ButtonPress>", SelJ3jogNeg)
+        self.J3jogNegBut.bind("<ButtonRelease>", self.StopJog)
+        self.J3jogNegBut.place(x=77, y=7)
+
+        def SelJ3jogPos(event):
+            IncJogStatVal = int(self.IncJogStat.get())
+            if IncJogStatVal == 1:
+                self.J3jogPos(float(self.incrementEntryField.get()))
+            else:
+                self.LiveJointJog(31)
+
+        self.J3jogPosBut = ctk.CTkButton(self.J3jogFrame, text="+", width=30, height=25)
+        self.J3jogPosBut.bind("<ButtonPress>", SelJ3jogPos)
+        self.J3jogPosBut.bind("<ButtonRelease>", self.StopJog)
+        self.J3jogPosBut.place(x=300, y=7)
+
+        self.J3negLimLab = ctk.CTkLabel(self.J3jogFrame, font=("Arial", 8), text=str(-self.J3NegLim))
+        self.J3negLimLab.place(x=115, y=25)
+
+        self.J3posLimLab = ctk.CTkLabel(self.J3jogFrame, font=("Arial", 8), text=str(self.J3PosLim))
+        self.J3posLimLab.place(x=270, y=25)
+
+        self.J3slidelabel = ctk.CTkLabel(self.J3jogFrame)
+        self.J3slidelabel.place(x=190, y=25)
+
+        def J3sliderUpdate(value):
+            self.J3slidelabel.configure(text=round(float(self.J3jogslide.get()), 2))
+
+        def J3sliderExecute(event):
+            J3delta = float(self.J3jogslide.get()) - float(self.J3curAngEntryField.get())
+            if J3delta < 0:
+                self.J3jogNeg(abs(J3delta))
+            else:
+                self.J3jogPos(abs(J3delta))
+
+        self.J3jogslide = ctk.CTkSlider(
+            self.J3jogFrame, from_=-self.J3NegLim, to=self.J3PosLim, orientation="horizontal", command=J3sliderUpdate, width=180
+        )
+        self.J3jogslide.bind("<ButtonRelease-1>", J3sliderExecute)
+        self.J3jogslide.place(x=115, y=7)
+
+        """ J4 Joint Controls """
+
+        self.J4jogFrame = ctk.CTkFrame(self.tab1, width=340, height=40)
+        self.J4jogFrame.place(x=1160, y=10)
+
+        self.J4Lab = ctk.CTkLabel(self.J4jogFrame, font=("Arial", 18), text="J4")
+        self.J4Lab.place(x=5, y=5)
+
+        self.J4curAngEntryField = ctk.CTkEntry(self.J4jogFrame, width=50, justify="center")
+        self.J4curAngEntryField.place(x=35, y=9)
+
+        # Jog Negative Button
+        def SelJ4jogNeg(event):
+            IncJogStatVal = int(self.IncJogStat.get())
+            if IncJogStatVal == 1:
+                self.J4jogNeg(float(self.incrementEntryField.get()))
+            else:
+                self.LiveJointJog(40)
+
+        self.J4jogNegBut = ctk.CTkButton(self.J4jogFrame, text="-", width=30, height=25)
+        self.J4jogNegBut.bind("<ButtonPress>", SelJ4jogNeg)
+        self.J4jogNegBut.bind("<ButtonRelease>", self.StopJog)
+        self.J4jogNegBut.place(x=77, y=7)
+
+        # Jog Positive Button
+        def SelJ4jogPos(event):
+            IncJogStatVal = int(self.IncJogStat.get())
+            if IncJogStatVal == 1:
+                self.J4jogPos(float(self.incrementEntryField.get()))
+            else:
+                self.LiveJointJog(41)
+
+        self.J4jogPosBut = ctk.CTkButton(self.J4jogFrame, text="+", width=30, height=25)
+        self.J4jogPosBut.bind("<ButtonPress>", SelJ4jogPos)
+        self.J4jogPosBut.bind("<ButtonRelease>", self.StopJog)
+        self.J4jogPosBut.place(x=300, y=7)
+
+        self.J4negLimLab = ctk.CTkLabel(self.J4jogFrame, font=("Arial", 8), text=str(-self.J4NegLim))
+        self.J4negLimLab.place(x=115, y=25)
+
+        self.J4posLimLab = ctk.CTkLabel(self.J4jogFrame, font=("Arial", 8), text=str(self.J4PosLim))
+        self.J4posLimLab.place(x=270, y=25)
+
+        self.J4slidelabel = ctk.CTkLabel(self.J4jogFrame)
+        self.J4slidelabel.place(x=190, y=25)
+
+        # Slider Update Function
+        def J4sliderUpdate(value):
+            self.J4slidelabel.configure(text=round(float(self.J4jogslide.get()), 2))
+
+        # Slider Execute Function
+        def J4sliderExecute(event):
+            J4delta = float(self.J4jogslide.get()) - float(self.J4curAngEntryField.get())
+            if J4delta < 0:
+                self.J4jogNeg(abs(J4delta))
+            else:
+                self.J4jogPos(abs(J4delta))
+
+        self.J4jogslide = ctk.CTkSlider(
+            self.J4jogFrame, from_=-self.J4NegLim, to=self.J4PosLim, orientation="horizontal", command=J4sliderUpdate, width=180
+        )
+        self.J4jogslide.bind("<ButtonRelease-1>", J4sliderExecute)
+        self.J4jogslide.place(x=115, y=7)
+
+        """ J5 Joint Controls """
+
+        self.J5jogFrame = ctk.CTkFrame(self.tab1, width=340, height=40)
+        self.J5jogFrame.place(x=1160, y=55)
+
+        self.J5Lab = ctk.CTkLabel(self.J5jogFrame, font=("Arial", 18), text="J5")
+        self.J5Lab.place(x=5, y=5)
+
+        self.J5curAngEntryField = ctk.CTkEntry(self.J5jogFrame, width=50, justify="center")
+        self.J5curAngEntryField.place(x=35, y=9)
+
+        # Jog Negative Button
+        def SelJ5jogNeg(event):
+            IncJogStatVal = int(self.IncJogStat.get())
+            if IncJogStatVal == 1:
+                self.J5jogNeg(float(self.incrementEntryField.get()))
+            else:
+                self.LiveJointJog(50)
+
+        self.J5jogNegBut = ctk.CTkButton(self.J5jogFrame, text="-", width=30, height=25)
+        self.J5jogNegBut.bind("<ButtonPress>", SelJ5jogNeg)
+        self.J5jogNegBut.bind("<ButtonRelease>", self.StopJog)
+        self.J5jogNegBut.place(x=77, y=7)
+
+        # Jog Positive Button
+        def SelJ5jogPos(event):
+            IncJogStatVal = int(self.IncJogStat.get())
+            if IncJogStatVal == 1:
+                self.J5jogPos(float(self.incrementEntryField.get()))
+            else:
+                self.LiveJointJog(51)
+
+        self.J5jogPosBut = ctk.CTkButton(self.J5jogFrame, text="+", width=30, height=25)
+        self.J5jogPosBut.bind("<ButtonPress>", SelJ5jogPos)
+        self.J5jogPosBut.bind("<ButtonRelease>", self.StopJog)
+        self.J5jogPosBut.place(x=300, y=7)
+
+        self.J5negLimLab = ctk.CTkLabel(self.J5jogFrame, font=("Arial", 8), text=str(-self.J5NegLim))
+        self.J5negLimLab.place(x=115, y=25)
+
+        self.J5posLimLab = ctk.CTkLabel(self.J5jogFrame, font=("Arial", 8), text=str(self.J5PosLim))
+        self.J5posLimLab.place(x=270, y=25)
+
+        self.J5slidelabel = ctk.CTkLabel(self.J5jogFrame)
+        self.J5slidelabel.place(x=190, y=25)
+
+        # Slider Update Function
+        def J5sliderUpdate(value):
+            self.J5slidelabel.configure(text=round(float(self.J5jogslide.get()), 2))
+
+        # Slider Execute Function
+        def J5sliderExecute(event):
+            J5delta = float(self.J5jogslide.get()) - float(self.J5curAngEntryField.get())
+            if J5delta < 0:
+                self.J5jogNeg(abs(J5delta))
+            else:
+                self.J5jogPos(abs(J5delta))
+
+        self.J5jogslide = ctk.CTkSlider(
+            self.J5jogFrame, from_=-self.J5NegLim, to=self.J5PosLim, orientation="horizontal", command=J5sliderUpdate, width=180
+        )
+        self.J5jogslide.bind("<ButtonRelease-1>", J5sliderExecute)
+        self.J5jogslide.place(x=115, y=7)
+
+        """ J6 Joint Controls """
+
+        self.J6jogFrame = ctk.CTkFrame(self.tab1, width=340, height=40)
+        self.J6jogFrame.place(x=1160, y=100)
+
+        self.J6Lab = ctk.CTkLabel(self.J6jogFrame, font=("Arial", 18), text="J6")
+        self.J6Lab.place(x=5, y=5)
+
+        self.J6curAngEntryField = ctk.CTkEntry(self.J6jogFrame, width=50, justify="center")
+        self.J6curAngEntryField.place(x=35, y=9)
+
+        # Jog Negative Button
+        def SelJ6jogNeg(event):
+            IncJogStatVal = int(self.IncJogStat.get())
+            if IncJogStatVal == 1:
+                self.J6jogNeg(float(self.incrementEntryField.get()))
+            else:
+                self.LiveJointJog(60)
+
+        self.J6jogNegBut = ctk.CTkButton(self.J6jogFrame, text="-", width=30, height=25)
+        self.J6jogNegBut.bind("<ButtonPress>", SelJ6jogNeg)
+        self.J6jogNegBut.bind("<ButtonRelease>", self.StopJog)
+        self.J6jogNegBut.place(x=77, y=7)
+
+        # Jog Positive Button
+        def SelJ6jogPos(event):
+            IncJogStatVal = int(self.IncJogStat.get())
+            if IncJogStatVal == 1:
+                self.J6jogPos(float(self.incrementEntryField.get()))
+            else:
+                self.LiveJointJog(61)
+
+        self.J6jogPosBut = ctk.CTkButton(self.J6jogFrame, text="+", width=30, height=25)
+        self.J6jogPosBut.bind("<ButtonPress>", SelJ6jogPos)
+        self.J6jogPosBut.bind("<ButtonRelease>", self.StopJog)
+        self.J6jogPosBut.place(x=300, y=7)
+
+        self.J6negLimLab = ctk.CTkLabel(self.J6jogFrame, font=("Arial", 8), text=str(-self.J6NegLim))
+        self.J6negLimLab.place(x=115, y=25)
+
+        self.J6posLimLab = ctk.CTkLabel(self.J6jogFrame, font=("Arial", 8), text=str(self.J6PosLim))
+        self.J6posLimLab.place(x=270, y=25)
+
+        self.J6slidelabel = ctk.CTkLabel(self.J6jogFrame)
+        self.J6slidelabel.place(x=190, y=25)
+
+        # Slider Update Function
+        def J6sliderUpdate(value):
+            self.J6slidelabel.configure(text=round(float(self.J6jogslide.get()), 2))
+
+        # Slider Execute Function
+        def J6sliderExecute(event):
+            J6delta = float(self.J6jogslide.get()) - float(self.J6curAngEntryField.get())
+            if J6delta < 0:
+                self.J6jogNeg(abs(J6delta))
+            else:
+                self.J6jogPos(abs(J6delta))
+
+        self.J6jogslide = ctk.CTkSlider(
+            self.J6jogFrame, from_=-self.J6NegLim, to=self.J6PosLim, orientation="horizontal", command=J6sliderUpdate, width=180
+        )
+        self.J6jogslide.bind("<ButtonRelease-1>", J6sliderExecute)
+        self.J6jogslide.place(x=115, y=7)
+
+        """ J7 Joint Controls """
+
+        self.J7jogFrame = ctk.CTkFrame(self.tab1, width=145, height=100, corner_radius=5)
+        self.J7jogFrame.place(x=1340, y=420)
+
+        self.J7Lab = ctk.CTkLabel(self.J7jogFrame, font=("Arial", 14), text="7th Axis")
+        self.J7Lab.place(x=15, y=5)
+
+        self.J7curAngEntryField = ctk.CTkEntry(self.J7jogFrame, width=50, justify="center")
+        self.J7curAngEntryField.place(x=75, y=9)
+
+        # Jog Negative Button
+        def SelJ7jogNeg(event):
+            IncJogStatVal = int(self.IncJogStat.get())
+            if IncJogStatVal == 1:
+                self.J7jogNeg(float(self.incrementEntryField.get()))
+            else:
+                self.LiveJointJog(70)
+
+        self.J7jogNegBut = ctk.CTkButton(self.J7jogFrame, text="-", width=30, height=25)
+        self.J7jogNegBut.bind("<ButtonPress>", SelJ7jogNeg)
+        self.J7jogNegBut.bind("<ButtonRelease>", self.StopJog)
+        self.J7jogNegBut.place(x=10, y=65)
+
+        # Jog Positive Button
+        def SelJ7jogPos(event):
+            IncJogStatVal = int(self.IncJogStat.get())
+            if IncJogStatVal == 1:
+                self.J7jogPos(float(self.incrementEntryField.get()))
+            else:
+                self.LiveJointJog(71)
+
+        self.J7jogPosBut = ctk.CTkButton(self.J7jogFrame, text="+", width=30, height=25)
+        self.J7jogPosBut.bind("<ButtonPress>", SelJ7jogPos)
+        self.J7jogPosBut.bind("<ButtonRelease>", self.StopJog)
+        self.J7jogPosBut.place(x=105, y=65)
+
+        self.J7negLimLab = ctk.CTkLabel(self.J7jogFrame, font=("Arial", 8), text=str(-self.J7NegLim))
+        self.J7negLimLab.place(x=10, y=30)
+
+        self.J7posLimLab = ctk.CTkLabel(self.J7jogFrame, font=("Arial", 8), text=str(self.J7PosLim))
+        self.J7posLimLab.place(x=110, y=30)
+
+        self.J7slideLimLab = ctk.CTkLabel(self.J7jogFrame)
+        self.J7slideLimLab.place(x=60, y=70)
+
+        # Slider Update Function
+        def J7sliderUpdate(value):
+            self.J7slideLimLab.configure(text=round(float(self.J7jogslide.get()), 2))
+
+        # Slider Execute Function
+        def J7sliderExecute(event):
+            J7delta = float(self.J7jogslide.get()) - float(self.J7curAngEntryField.get())
+            if J7delta < 0:
+                self.J7jogNeg(abs(J7delta))
+            else:
+                self.J7jogPos(abs(J7delta))
+
+        self.J7jogslide = ctk.CTkSlider(
+            self.J7jogFrame, from_=-self.J7NegLim, to=self.J7PosLim, orientation="horizontal", command=J7sliderUpdate, width=125
+        )
+        self.J7jogslide.bind("<ButtonRelease-1>", J7sliderExecute)
+        self.J7jogslide.place(x=10, y=43)
+
+        """ J8 Joint Controls """
+
+        self.J8jogFrame = ctk.CTkFrame(self.tab1, width=145, height=100, corner_radius=5)
+        self.J8jogFrame.place(x=1340, y=530)
+
+        self.J8Lab = ctk.CTkLabel(self.J8jogFrame, font=("Arial", 14), text="8th Axis")
+        self.J8Lab.place(x=15, y=5)
+
+        self.J8curAngEntryField = ctk.CTkEntry(self.J8jogFrame, width=50, justify="center")
+        self.J8curAngEntryField.place(x=75, y=9)
+
+        # Jog Negative Button
+        def SelJ8jogNeg(event):
+            IncJogStatVal = int(self.IncJogStat.get())
+            if IncJogStatVal == 1:
+                self.J8jogNeg(float(self.incrementEntryField.get()))
+            else:
+                self.LiveJointJog(80)
+
+        self.J8jogNegBut = ctk.CTkButton(self.J8jogFrame, text="-", width=30, height=25)
+        self.J8jogNegBut.bind("<ButtonPress>", SelJ8jogNeg)
+        self.J8jogNegBut.bind("<ButtonRelease>", self.StopJog)
+        self.J8jogNegBut.place(x=10, y=65)
+
+        # Jog Positive Button
+        def SelJ8jogPos(event):
+            IncJogStatVal = int(self.IncJogStat.get())
+            if IncJogStatVal == 1:
+                self.J8jogPos(float(self.incrementEntryField.get()))
+            else:
+                self.LiveJointJog(81)
+
+        self.J8jogPosBut = ctk.CTkButton(self.J8jogFrame, text="+", width=30, height=25)
+        self.J8jogPosBut.bind("<ButtonPress>", SelJ8jogPos)
+        self.J8jogPosBut.bind("<ButtonRelease>", self.StopJog)
+        self.J8jogPosBut.place(x=105, y=65)
+
+        self.J8negLimLab = ctk.CTkLabel(self.J8jogFrame, font=("Arial", 8), text=str(-self.J8NegLim))
+        self.J8negLimLab.place(x=10, y=30)
+
+        self.J8posLimLab = ctk.CTkLabel(self.J8jogFrame, font=("Arial", 8), text=str(self.J8PosLim))
+        self.J8posLimLab.place(x=110, y=30)
+
+        self.J8slideLimLab = ctk.CTkLabel(self.J8jogFrame)
+        self.J8slideLimLab.place(x=60, y=70)
+
+        # Slider Update Function
+        def J8sliderUpdate(value):
+            self.J8slideLimLab.configure(text=round(float(self.J8jogslide.get()), 2))
+
+        # Slider Execute Function
+        def J8sliderExecute(event):
+            J8delta = float(self.J8jogslide.get()) - float(self.J8curAngEntryField.get())
+            if J8delta < 0:
+                self.J8jogNeg(abs(J8delta))
+            else:
+                self.J8jogPos(abs(J8delta))
+
+        self.J8jogslide = ctk.CTkSlider(
+            self.J8jogFrame, from_=-self.J8NegLim, to=self.J8PosLim, orientation="horizontal", command=J8sliderUpdate, width=125
+        )
+        self.J8jogslide.bind("<ButtonRelease-1>", J8sliderExecute)
+        self.J8jogslide.place(x=10, y=43)
+
+        """ J9 Joint Controls """
+
+        self.J9jogFrame = ctk.CTkFrame(self.tab1, width=145, height=100, corner_radius=5)
+        self.J9jogFrame.place(x=1340, y=640)
+
+        self.J9Lab = ctk.CTkLabel(self.J9jogFrame, font=("Arial", 14), text="9th Axis")
+        self.J9Lab.place(x=15, y=5)
+
+        self.J9curAngEntryField = ctk.CTkEntry(self.J9jogFrame, width=50, justify="center")
+        self.J9curAngEntryField.place(x=75, y=9)
+
+        # Jog Negative Button
+        def SelJ9jogNeg(event):
+            IncJogStatVal = int(self.IncJogStat.get())
+            if IncJogStatVal == 1:
+                self.J9jogNeg(float(self.incrementEntryField.get()))
+            else:
+                self.LiveJointJog(90)
+
+        self.J9jogNegBut = ctk.CTkButton(self.J9jogFrame, text="-", width=30, height=25)
+        self.J9jogNegBut.bind("<ButtonPress>", SelJ9jogNeg)
+        self.J9jogNegBut.bind("<ButtonRelease>", self.StopJog)
+        self.J9jogNegBut.place(x=10, y=65)
+
+        # Jog Positive Button
+        def SelJ9jogPos(event):
+            IncJogStatVal = int(self.IncJogStat.get())
+            if IncJogStatVal == 1:
+                self.J9jogPos(float(self.incrementEntryField.get()))
+            else:
+                self.LiveJointJog(91)
+
+        self.J9jogPosBut = ctk.CTkButton(self.J9jogFrame, text="+", width=30, height=25)
+        self.J9jogPosBut.bind("<ButtonPress>", SelJ9jogPos)
+        self.J9jogPosBut.bind("<ButtonRelease>", self.StopJog)
+        self.J9jogPosBut.place(x=105, y=65)
+
+        self.J9negLimLab = ctk.CTkLabel(self.J9jogFrame, font=("Arial", 8), text=str(-self.J9NegLim))
+        self.J9negLimLab.place(x=10, y=30)
+
+        self.J9posLimLab = ctk.CTkLabel(self.J9jogFrame, font=("Arial", 8), text=str(self.J9PosLim))
+        self.J9posLimLab.place(x=110, y=30)
+
+        self.J9slideLimLab = ctk.CTkLabel(self.J9jogFrame)
+        self.J9slideLimLab.place(x=60, y=70)
+
+        # Slider Update Function
+        def J9sliderUpdate(value):
+            self.J9slideLimLab.configure(text=round(float(self.J9jogslide.get()), 2))
+
+        # Slider Execute Function
+        def J9sliderExecute(event):
+            J9delta = float(self.J9jogslide.get()) - float(self.J9curAngEntryField.get())
+            if J9delta < 0:
+                self.J9jogNeg(abs(J9delta))
+            else:
+                self.J9jogPos(abs(J9delta))
+
+        self.J9jogslide = ctk.CTkSlider(
+            self.J9jogFrame, from_=-self.J9NegLim, to=self.J9PosLim, orientation="horizontal", command=J9sliderUpdate, width=125
+        )
+        self.J9jogslide.bind("<ButtonRelease-1>", J9sliderExecute)
+        self.J9jogslide.place(x=10, y=43)
+
+        """ Entry Fields """
+
+        self.progframe = ctk.CTkFrame(self.tab1)
+        self.progframe.place(x=7, y=174)
+
+        # Scrollbar and Listbox
+        self.scrollbar = ctk.CTkScrollbar(self.progframe)
+        self.scrollbar.pack(side="right", fill="y")
+
+        self.progView = ctk.CTkTextbox(
+            self.progframe,
+            exportselection=0,
+            width=740,  # Approximation based on original width (105 chars * ~7px per char)
+            height=560,  # Approximation based on original height
+            yscrollcommand=self.scrollbar.set,
+        )
+        self.progView.bind("<<ListboxSelect>>", self.progViewselect)
+        self.progView.pack(side="left", fill="both", expand=True)
+        self.scrollbar.configure(command=self.progView.yview)
+
+        # Entry Fields
+        self.incrementEntryField = ctk.CTkEntry(self.tab1, width=40, justify="center", placeholder_text="Increment")
+        self.incrementEntryField.place(x=380, y=45)
+
+        self.curRowEntryField = ctk.CTkEntry(self.tab1, width=40, justify="center", placeholder_text="Current Row")
+        self.curRowEntryField.place(x=174, y=120)
+
+        self.manEntryField = ctk.CTkEntry(self.tab1, width=740, placeholder_text="Manual Entry")
+        self.manEntryField.place(x=10, y=700)
+
+        self.ProgEntryField = ctk.CTkEntry(self.tab1, width=150, justify="center", placeholder_text="Program")
+        self.ProgEntryField.place(x=70, y=45)
+
+        self.speedEntryField = ctk.CTkEntry(self.tab1, width=40, justify="center", placeholder_text="Speed")
+        self.speedEntryField.place(x=380, y=80)
+
+        self.ACCspeedField = ctk.CTkEntry(self.tab1, width=40, justify="center", placeholder_text="Accel Speed")
+        self.ACCspeedField.place(x=380, y=100)
+
+        self.DECspeedField = ctk.CTkEntry(self.tab1, width=40, justify="center", placeholder_text="Decel Speed")
+        self.DECspeedField.place(x=380, y=120)
+
+        self.ACCrampField = ctk.CTkEntry(self.tab1, width=40, justify="center", placeholder_text="Accel Ramp")
+        self.ACCrampField.place(x=380, y=140)
+
+        self.roundEntryField = ctk.CTkEntry(self.tab1, width=40, justify="center", placeholder_text="Round")
+        self.roundEntryField.place(x=590, y=80)
+
+        # X Entry Field
+        self.XcurEntryField = ctk.CTkEntry(self.CartjogFrame, width=40, justify="center")
+        self.XcurEntryField.place(x=660, y=195)
+
+        # Y Entry Field
+        self.YcurEntryField = ctk.CTkEntry(self.CartjogFrame, width=40, justify="center")
+        self.YcurEntryField.place(x=750, y=195)
+
+        # Z Entry Field
+        self.ZcurEntryField = ctk.CTkEntry(self.CartjogFrame, width=40, justify="center")
+        self.ZcurEntryField.place(x=840, y=195)
+
+        # Rz Entry Field
+        self.RzcurEntryField = ctk.CTkEntry(self.CartjogFrame, width=40, justify="center")
+        self.RzcurEntryField.place(x=930, y=195)
+
+        # Ry Entry Field
+        self.RycurEntryField = ctk.CTkEntry(self.CartjogFrame, width=40, justify="center")
+        self.RycurEntryField.place(x=1020, y=195)
+
+        # Rx Entry Field
+        self.RxcurEntryField = ctk.CTkEntry(self.CartjogFrame, width=40, justify="center")
+        self.RxcurEntryField.place(x=1110, y=195)
 
     # Startup defs #
 
