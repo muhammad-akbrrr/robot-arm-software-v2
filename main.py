@@ -1644,6 +1644,164 @@ class RobotArmApp:
         self.ThemeLab = ctk.CTkLabel(self.tab2, text="Theme")
         self.ThemeLab.place(x=925, y=60)
 
+        """ Tab 2 Buttons """
+
+        self.comPortBut = ctk.CTkButton(self.tab2, text="Set Com Teensy", command=self.setCom, width=120)
+        self.comPortBut.place(x=85, y=110)
+
+        self.comPortBut2 = ctk.CTkButton(self.tab2, text="Set Com IO Board", command=self.setCom2, width=120)
+        self.comPortBut2.place(x=85, y=180)
+
+        self.comPortBut3 = ctk.CTkButton(self.tab2, text="Test Aux COM Device", command=self.TestAuxCom, width=140)
+        self.comPortBut3.place(x=50, y=315)
+
+        self.lightBut = ctk.CTkButton(self.tab2, text="Light", command=self.lightTheme, width=60)
+        self.lightBut.place(x=890, y=90)
+
+        self.darkBut = ctk.CTkButton(self.tab2, text="Dark", command=self.darkTheme, width=60)
+        self.darkBut.place(x=950, y=90)
+
+        self.autoCalBut = ctk.CTkButton(self.tab2, text="Auto Calibrate", command=self.calRobotAll, width=120)
+        self.autoCalBut.place(x=285, y=90)
+
+        self.J1calCbut = ctk.CTkCheckBox(self.tab2, text="J1", variable=self.J1CalStat, width=40)
+        self.J1calCbut.place(x=285, y=125)
+
+        self.J2calCbut = ctk.CTkCheckBox(self.tab2, text="J2", variable=self.J2CalStat, width=40)
+        self.J2calCbut.place(x=320, y=125)
+
+        self.J3calCbut = ctk.CTkCheckBox(self.tab2, text="J3", variable=self.J3CalStat, width=40)
+        self.J3calCbut.place(x=355, y=125)
+
+        self.J7zerobut = ctk.CTkButton(self.tab2, text="Set Axis 7 Calibration to Zero", command=self.zeroAxis7, width=200)
+        self.J7zerobut.place(x=627, y=440)
+
+        self.J8zerobut = ctk.CTkButton(self.tab2, text="Set Axis 8 Calibration to Zero", command=self.zeroAxis8, width=200)
+        self.J8zerobut.place(x=827, y=440)
+
+        self.J9zerobut = ctk.CTkButton(self.tab2, text="Set Axis 9 Calibration to Zero", command=self.zeroAxis9, width=200)
+        self.J9zerobut.place(x=1027, y=440)
+
+        self.J7calbut = ctk.CTkButton(self.tab2, text="Autocalibrate Axis 7", command=self.calRobotJ7, width=200)
+        self.J7calbut.place(x=627, y=475)
+
+        self.J8calbut = ctk.CTkButton(self.tab2, text="Autocalibrate Axis 8", command=self.calRobotJ8, width=200)
+        self.J8calbut.place(x=827, y=475)
+
+        self.J9calbut = ctk.CTkButton(self.tab2, text="Autocalibrate Axis 9", command=self.calRobotJ9, width=200)
+        self.J9calbut.place(x=1027, y=475)
+
+        self.CalJ1But = ctk.CTkButton(self.tab2, text="Calibrate J1 Only", command=self.calRobotJ1, width=120)
+        self.CalJ1But.place(x=285, y=275)
+
+        self.CalJ2But = ctk.CTkButton(self.tab2, text="Calibrate J2 Only", command=self.calRobotJ2, width=120)
+        self.CalJ2But.place(x=285, y=310)
+
+        self.CalJ3But = ctk.CTkButton(self.tab2, text="Calibrate J3 Only", command=self.calRobotJ3, width=120)
+        self.CalJ3But.place(x=285, y=345)
+
+        self.CalZeroBut = ctk.CTkButton(self.tab2, text="Force CaL to Home", command=self.CalZeroPos, width=140)
+        self.CalZeroBut.place(x=270, y=485)
+
+        self.CalRestBut = ctk.CTkButton(self.tab2, text="Force Cal to Rest", command=self.CalRestPos, width=140)
+        self.CalRestBut.place(x=270, y=520)
+
+        self.J1OpenLoopCbut = ctk.CTkCheckBox(self.tab2, text="J1 Open Loop (disable encoder)", variable=self.J1OpenLoopStat, width=200)
+        self.J1OpenLoopCbut.place(x=665, y=90)
+
+        self.J2OpenLoopCbut = ctk.CTkCheckBox(self.tab2, text="J2 Open Loop (disable encoder)", variable=self.J2OpenLoopStat, width=200)
+        self.J2OpenLoopCbut.place(x=665, y=110)
+
+        self.J3OpenLoopCbut = ctk.CTkCheckBox(self.tab2, text="J3 Open Loop (disable encoder)", variable=self.J3OpenLoopStat, width=200)
+        self.J3OpenLoopCbut.place(x=665, y=130)
+
+        self.J4OpenLoopCbut = ctk.CTkCheckBox(self.tab2, text="J4 Open Loop (disable encoder)", variable=self.J4OpenLoopStat, width=200)
+        self.J4OpenLoopCbut.place(x=665, y=150)
+
+        self.saveCalBut = ctk.CTkButton(self.tab2, text="SAVE", command=self.SaveAndApplyCalibration, width=140)
+        self.saveCalBut.place(x=1150, y=630)
+
+        """ Tab 2 Entry Fields """
+
+        self.comPortEntryField = ctk.CTkEntry(self.tab2, width=40, justify="center")
+        self.comPortEntryField.place(x=50, y=114)
+
+        self.com2PortEntryField = ctk.CTkEntry(self.tab2, width=40, justify="center")
+        self.com2PortEntryField.place(x=50, y=184)
+
+        self.com3PortEntryField = ctk.CTkEntry(self.tab2, width=40, justify="center")
+        self.com3PortEntryField.place(x=50, y=254)
+
+        self.com3charPortEntryField = ctk.CTkEntry(self.tab2, width=40, justify="center")
+        self.com3charPortEntryField.place(x=50, y=284)
+
+        self.com3outPortEntryField = ctk.CTkEntry(self.tab2, width=250, justify="center")
+        self.com3outPortEntryField.place(x=50, y=354)
+
+        self.cmdSentEntryField = ctk.CTkEntry(self.tab2, width=950, justify="center")
+        self.cmdSentEntryField.place(x=10, y=585)
+
+        self.cmdRecEntryField = ctk.CTkEntry(self.tab2, width=950, justify="center")
+        self.cmdRecEntryField.place(x=10, y=645)
+
+        self.J1calOffEntryField = ctk.CTkEntry(self.tab2, width=80, justify="center")
+        self.J1calOffEntryField.place(x=540, y=90)
+
+        self.J2calOffEntryField = ctk.CTkEntry(self.tab2, width=80, justify="center")
+        self.J2calOffEntryField.place(x=540, y=120)
+
+        self.J3calOffEntryField = ctk.CTkEntry(self.tab2, width=80, justify="center")
+        self.J3calOffEntryField.place(x=540, y=150)
+
+        self.J4calOffEntryField = ctk.CTkEntry(self.tab2, width=80, justify="center")
+        self.J4calOffEntryField.place(x=540, y=180)
+
+        self.J5calOffEntryField = ctk.CTkEntry(self.tab2, width=80, justify="center")
+        self.J5calOffEntryField.place(x=540, y=210)
+
+        self.J6calOffEntryField = ctk.CTkEntry(self.tab2, width=80, justify="center")
+        self.J6calOffEntryField.place(x=540, y=240)
+
+        self.J7calOffEntryField = ctk.CTkEntry(self.tab2, width=80, justify="center")
+        self.J7calOffEntryField.place(x=540, y=280)
+
+        self.J8calOffEntryField = ctk.CTkEntry(self.tab2, width=80, justify="center")
+        self.J8calOffEntryField.place(x=540, y=310)
+
+        self.J9calOffEntryField = ctk.CTkEntry(self.tab2, width=80, justify="center")
+        self.J9calOffEntryField.place(x=540, y=340)
+
+        self.axis7lengthEntryField = ctk.CTkEntry(self.tab2, width=60, justify="center")
+        self.axis7lengthEntryField.place(x=750, y=340)
+
+        self.axis7rotEntryField = ctk.CTkEntry(self.tab2, width=60, justify="center")
+        self.axis7rotEntryField.place(x=750, y=370)
+
+        self.axis7stepsEntryField = ctk.CTkEntry(self.tab2, width=60, justify="center")
+        self.axis7stepsEntryField.place(x=750, y=400)
+
+        self.axis8lengthEntryField = ctk.CTkEntry(self.tab2, width=60, justify="center")
+        self.axis8lengthEntryField.place(x=950, y=340)
+
+        self.axis8rotEntryField = ctk.CTkEntry(self.tab2, width=60, justify="center")
+        self.axis8rotEntryField.place(x=950, y=370)
+
+        self.axis8stepsEntryField = ctk.CTkEntry(self.tab2, width=60, justify="center")
+        self.axis8stepsEntryField.place(x=950, y=400)
+
+        self.axis9lengthEntryField = ctk.CTkEntry(self.tab2, width=60, justify="center")
+        self.axis9lengthEntryField.place(x=1150, y=340)
+
+        self.axis9rotEntryField = ctk.CTkEntry(self.tab2, width=60, justify="center")
+        self.axis9rotEntryField.place(x=1150, y=370)
+
+        self.axis9stepsEntryField = ctk.CTkEntry(self.tab2, width=60, justify="center")
+        self.axis9stepsEntryField.place(x=1150, y=400)
+
+        ## TAB 3 LABELS ##
+
+        
+
     # Startup defs #
 
     def startup(self):
