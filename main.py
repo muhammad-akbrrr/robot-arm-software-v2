@@ -33,7 +33,7 @@ class RobotArmApp:
         # Main window setup
         self.root = ctk.CTk()
         self.root.title("Robot Arm Software Ver 6.0")
-        self.root.iconbitmap(r'EE.ico')
+        self.root.iconbitmap(os.path.join('assets', 'EE.ico'))
         self.root.resizable(width=False, height=False)
         self.root.geometry('1536x792+0+0')
 
@@ -878,6 +878,772 @@ class RobotArmApp:
         self.RxcurEntryField = ctk.CTkEntry(self.CartjogFrame, width=40, justify="center")
         self.RxcurEntryField.place(x=1110, y=195)
 
+        # Function to toggle the visibility of SavePosEntryField
+        def posRegFieldVisible(self):
+            curCmdtype = self.options.get()
+            if curCmdtype in ["Move PR", "OFF PR", "Teach PR"]:
+                self.SavePosEntryField.place(x=780, y=183)
+            else:
+                self.SavePosEntryField.place_forget()
+
+        # Create buttons in a consistent style and place them within the GUI
+        self.getSelBut = ctk.CTkButton(self.tab1, text="Get Selected", width=100, height=30, command=self.getSel)
+        self.getSelBut.place(x=10, y=725)
+
+        self.manInsBut = ctk.CTkButton(self.tab1, text="Insert", width=100, height=30, command=self.manInsItem)
+        self.manInsBut.place(x=115, y=725)
+
+        self.manRepBut = ctk.CTkButton(self.tab1, text="Replace", width=100, height=30, command=self.manReplItem)
+        self.manRepBut.place(x=220, y=725)
+
+        self.openTextBut = ctk.CTkButton(self.tab1, text="Open Text", width=100, height=30, command=self.openText)
+        self.openTextBut.place(x=325, y=725)
+
+        self.reloadProgBut = ctk.CTkButton(self.tab1, text="Reload", width=100, height=30, command=self.reloadProg)
+        self.reloadProgBut.place(x=430, y=725)
+
+        # Dropdown menu for speed options
+        self.speedOption = ctk.StringVar(value="Percent")
+        self.speedMenu = ctk.CTkOptionMenu(
+            self.tab1,
+            variable=self.speedOption,
+            values=["Percent", "Seconds", "mm per Sec"],
+            width=120,
+            height=30
+        )
+        self.speedMenu.place(x=412, y=76)
+
+        """ Single buttons """
+
+        # Dropdown menu for options with callback for visibility
+        self.options = ctk.StringVar(value="Move J")
+        self.menu = ctk.CTkOptionMenu(
+            self.tab1,
+            variable=self.options,
+            values=[
+                "Move J", "OFF J", "Move L", "Move R", "Move A Mid", "Move A End",
+                "Move C Center", "Move C Start", "Move C Plane", "Start Spline",
+                "End Spline", "Move PR", "OFF PR", "Teach PR", "Move Vis"
+            ],
+            command=posRegFieldVisible,
+            width=150,
+            height=30
+        )
+        self.menu.place(x=700, y=180)
+
+        # Save Position Entry Field
+        self.SavePosEntryField = ctk.CTkEntry(self.tab1, width=50, justify="center", placeholder_text="Save Pos")
+
+        # self.SavePosEntryField.place(x=800, y=183)
+
+        # Buttons for various operations
+        self.teachInsBut = ctk.CTkButton(
+            self.tab1, text="Teach New Position", width=150, height=30, command=self.teachInsertBelSelected
+        )
+        self.teachInsBut.place(x=700, y=220)
+
+        self.teachReplaceBut = ctk.CTkButton(
+            self.tab1, text="Modify Position", width=150, height=30, command=self.teachReplaceSelected
+        )
+        self.teachReplaceBut.place(x=700, y=260)
+
+        self.deleteBut = ctk.CTkButton(
+            self.tab1, text="Delete", width=150, height=30, command=self.deleteitem
+        )
+        self.deleteBut.place(x=700, y=300)
+
+        self.CalibrateBut = ctk.CTkButton(
+            self.tab1, text="Auto Calibrate CMD", width=150, height=30, command=self.insCalibrate
+        )
+        self.CalibrateBut.place(x=700, y=340)
+
+        self.camOnBut = ctk.CTkButton(
+            self.tab1, text="Camera On", width=150, height=30, command=self.cameraOn
+        )
+        self.camOnBut.place(x=700, y=380)
+
+        self.camOffBut = ctk.CTkButton(
+            self.tab1, text="Camera Off", width=150, height=30, command=self.cameraOff
+        )
+        self.camOffBut.place(x=700, y=420)
+
+        """ Buttons with multiple entry fields """
+
+        # Button and entry for Wait Time
+        self.waitTimeBut = ctk.CTkButton(
+            self.tab1, text="Wait Time (seconds)", width=150, height=30, command=self.waitTime
+        )
+        self.waitTimeBut.place(x=700, y=460)
+
+        self.waitTimeEntryField = ctk.CTkEntry(
+            self.tab1, width=50, justify="center", placeholder_text="Time"
+        )
+        self.waitTimeEntryField.place(x=855, y=465)
+
+        # Button and entry for Wait Input ON
+        self.waitInputOnBut = ctk.CTkButton(
+            self.tab1, text="Wait Input ON", width=150, height=30, command=self.waitInputOn
+        )
+        self.waitInputOnBut.place(x=700, y=500)
+
+        self.waitInputEntryField = ctk.CTkEntry(
+            self.tab1, width=50, justify="center", placeholder_text="Input"
+        )
+        self.waitInputEntryField.place(x=855, y=505)
+
+        # Button and entry for Wait Input OFF
+        self.waitInputOffBut = ctk.CTkButton(
+            self.tab1, text="Wait Input OFF", width=150, height=30, command=self.waitInputOff
+        )
+        self.waitInputOffBut.place(x=700, y=540)
+
+        self.waitInputOffEntryField = ctk.CTkEntry(
+            self.tab1, width=50, justify="center", placeholder_text="Input"
+        )
+        self.waitInputOffEntryField.place(x=855, y=545)
+
+        # Button and entry for Set Output ON
+        self.setOutputOnBut = ctk.CTkButton(
+            self.tab1, text="Set Output On", width=150, height=30, command=self.setOutputOn
+        )
+        self.setOutputOnBut.place(x=700, y=580)
+
+        self.outputOnEntryField = ctk.CTkEntry(
+            self.tab1, width=50, justify="center", placeholder_text="Output"
+        )
+        self.outputOnEntryField.place(x=855, y=585)
+
+        # Button and entry for Set Output OFF
+        self.setOutputOffBut = ctk.CTkButton(
+            self.tab1, text="Set Output OFF", width=150, height=30, command=self.setOutputOff
+        )
+        self.setOutputOffBut.place(x=700, y=620)
+
+        self.outputOffEntryField = ctk.CTkEntry(
+            self.tab1, width=50, justify="center", placeholder_text="Output"
+        )
+        self.outputOffEntryField.place(x=855, y=625)
+
+        # Button and entry for Create Tab
+        self.tabNumBut = ctk.CTkButton(
+            self.tab1, text="Create Tab", width=150, height=30, command=self.tabNumber
+        )
+        self.tabNumBut.place(x=700, y=660)
+
+        self.tabNumEntryField = ctk.CTkEntry(
+            self.tab1, width=50, justify="center", placeholder_text="Tab"
+        )
+        self.tabNumEntryField.place(x=855, y=665)
+
+        # Button and entry for Jump to Tab
+        self.jumpTabBut = ctk.CTkButton(
+            self.tab1, text="Jump to Tab", width=150, height=30, command=self.jumpTab
+        )
+        self.jumpTabBut.place(x=700, y=700)
+
+        self.jumpTabEntryField = ctk.CTkEntry(
+            self.tab1, width=50, justify="center", placeholder_text="Tab"
+        )
+        self.jumpTabEntryField.place(x=855, y=705)
+
+        """ Buttons with multiple entry fields """
+
+        # IF Command Section
+        self.ifSelLabel = ctk.CTkLabel(
+            self.tab1, text="IF", font=("Arial", 10, "bold")
+        )
+        self.ifSelLabel.place(x=950, y=363)
+
+        self.iFOption = ctk.StringVar()
+        self.ifMenu = ctk.CTkOptionMenu(
+            self.tab1,
+            variable=self.iFOption,
+            values=["Input", "Register", "COM Device"],
+            width=80,
+        )
+        self.ifMenu.place(x=970, y=360)
+
+        self.ifVarEntry = ctk.CTkEntry(
+            self.tab1, width=50, justify="center", placeholder_text="Var"
+        )
+        self.ifVarEntry.place(x=1065, y=363)
+
+        self.ifEqualLabel = ctk.CTkLabel(
+            self.tab1, text="=", font=("Arial", 10, "bold")
+        )
+        self.ifEqualLabel.place(x=1102, y=363)
+
+        self.ifInputEntry = ctk.CTkEntry(
+            self.tab1, width=50, justify="center", placeholder_text="Input"
+        )
+        self.ifInputEntry.place(x=1115, y=363)
+
+        self.iFSelection = ctk.StringVar()
+        self.ifSelMenu = ctk.CTkOptionMenu(
+            self.tab1,
+            variable=self.iFSelection,
+            values=["Call Prog", "Jump Tab"],
+            width=90,
+        )
+        self.ifSelMenu.place(x=1160, y=360)
+
+        self.ifDestEntry = ctk.CTkEntry(
+            self.tab1, width=90, justify="center", placeholder_text="Dest"
+        )
+        self.ifDestEntry.place(x=1260, y=363)
+
+        self.ifDotLabel = ctk.CTkLabel(
+            self.tab1, text="•", font=("Arial", 10, "bold")
+        )
+        self.ifDotLabel.place(x=1325, y=363)
+
+        self.insertIfCMDBut = ctk.CTkButton(
+            self.tab1, text="Insert IF CMD", width=100, height=30, command=self.IfCMDInsert
+        )
+        self.insertIfCMDBut.place(x=1340, y=359)
+
+        # Buttons for G-Code and Other Actions
+        self.gcPlayBut = ctk.CTkButton(
+            self.tab1, text="Play Gcode", width=150, height=30, command=self.insertGCprog
+        )
+        self.gcPlayBut.place(x=950, y=400)
+
+        self.readAuxComBut = ctk.CTkButton(
+            self.tab1, text="Read COM Device", width=150, height=30, command=self.ReadAuxCom
+        )
+        self.readAuxComBut.place(x=950, y=440)
+
+        self.servoBut = ctk.CTkButton(
+            self.tab1, text="Servo", width=150, height=30, command=self.Servo
+        )
+        self.servoBut.place(x=950, y=480)
+
+        self.regNumBut = ctk.CTkButton(
+            self.tab1, text="Register", width=150, height=30, command=self.insertRegister
+        )
+        self.regNumBut.place(x=950, y=520)
+
+        self.storPosBut = ctk.CTkButton(
+            self.tab1, text="Position Register", width=150, height=30, command=self.storPos
+        )
+        self.storPosBut.place(x=950, y=560)
+
+        self.callBut = ctk.CTkButton(
+            self.tab1, text="Call Program", width=150, height=30, command=self.insertCallProg
+        )
+        self.callBut.place(x=950, y=600)
+
+        self.returnBut = ctk.CTkButton(
+            self.tab1, text="Return", width=150, height=30, command=self.insertReturn
+        )
+        self.returnBut.place(x=950, y=640)
+
+        self.visFindBut = ctk.CTkButton(
+            self.tab1, text="Vision Find", width=150, height=30, command=self.insertvisFind
+        )
+        self.visFindBut.place(x=950, y=680)
+
+        # Entry Fields and Labels
+        self.playGCEntry = ctk.CTkEntry(
+            self.tab1, width=200, justify="center", placeholder_text="G-Code File"
+        )
+        self.playGCEntry.place(x=1107, y=403)
+
+        self.auxPortEntry = ctk.CTkEntry(
+            self.tab1, width=50, justify="center", placeholder_text="Port"
+        )
+        self.auxPortEntry.place(x=1107, y=443)
+
+        self.auxCharEntry = ctk.CTkEntry(
+            self.tab1, width=50, justify="center", placeholder_text="Char"
+        )
+        self.auxCharEntry.place(x=1147, y=443)
+
+        self.servoNumEntry = ctk.CTkEntry(
+            self.tab1, width=50, justify="center", placeholder_text="Num"
+        )
+        self.servoNumEntry.place(x=1107, y=483)
+
+        self.servoPosEntry = ctk.CTkEntry(
+            self.tab1, width=50, justify="center", placeholder_text="Pos"
+        )
+        self.servoPosEntry.place(x=1147, y=483)
+
+        # Example for Labelling Groups of Entries
+        self.servoLabel = ctk.CTkLabel(
+            self.tab1, text="Number    Position", font=("Arial", 10)
+        )
+        self.servoLabel.place(x=1107, y=469)
+
+        # Load and Create Program Buttons
+        self.loadProgBut = ctk.CTkButton(
+            self.tab1, text="Load", width=80, height=30, command=self.loadProg
+        )
+        self.loadProgBut.place(x=202, y=42)
+
+        self.createProgBut = ctk.CTkButton(
+            self.tab1, text="New Prog", width=80, height=30, command=self.CreateProg
+        )
+        self.createProgBut.place(x=285, y=42)
+
+        # Play, Stop, and Other Icons
+        self.runProgBut = ctk.CTkButton(
+            self.tab1, 
+            text="Play", 
+            image=ctk.CTkImage(Image.open(os.path.join('assets', 'play-icon.png'))), 
+            command=self.runProg
+        )
+        self.runProgBut.place(x=20, y=80)
+
+        self.xboxBut = ctk.CTkButton(
+            self.tab1, 
+            text="Controller", 
+            image=ctk.CTkImage(Image.open(os.path.join('assets', 'xbox-icon.png'))), 
+            command=self.xbox
+        )
+        self.xboxBut.place(x=700, y=80)
+
+        self.stopProgBut = ctk.CTkButton(
+            self.tab1, 
+            text="Stop", 
+            image=ctk.CTkImage(Image.open(os.path.join('assets', 'stop-icon.png'))), 
+            command=self.stopProg
+        )
+        self.stopProgBut.place(x=220, y=80)
+
+        # Checkbutton
+        self.IncJogCbut = ctk.CTkCheckBox(
+            self.tab1, text="Incremental Jog", variable=self.IncJogStat
+        )
+        self.IncJogCbut.place(x=412, y=46)
+
+        """ XYZ Jog Buttons """
+
+        def SelXjogNeg(self, event=None):
+            IncJogStatVal = int(self.IncJogStat.get())
+            if IncJogStatVal == 1:
+                self.XjogNeg(float(self.incrementEntryField.get()))
+            else:
+                self.LiveCarJog(10)
+
+        def SelXjogPos(self, event=None):
+            IncJogStatVal = int(self.IncJogStat.get())
+            if IncJogStatVal == 1:
+                self.XjogPos(float(self.incrementEntryField.get()))
+            else:
+                self.LiveCarJog(11)
+
+        def SelYjogNeg(self, event=None):
+            IncJogStatVal = int(self.IncJogStat.get())
+            if IncJogStatVal == 1:
+                self.YjogNeg(float(self.incrementEntryField.get()))
+            else:
+                self.LiveCarJog(20)
+
+        def SelYjogPos(self, event=None):
+            IncJogStatVal = int(self.IncJogStat.get())
+            if IncJogStatVal == 1:
+                self.YjogPos(float(self.incrementEntryField.get()))
+            else:
+                self.LiveCarJog(21)
+
+        def SelZjogNeg(self, event=None):
+            IncJogStatVal = int(self.IncJogStat.get())
+            if IncJogStatVal == 1:
+                self.ZjogNeg(float(self.incrementEntryField.get()))
+            else:
+                self.LiveCarJog(30)
+
+        def SelZjogPos(self, event=None):
+            IncJogStatVal = int(self.IncJogStat.get())
+            if IncJogStatVal == 1:
+                self.ZjogPos(float(self.incrementEntryField.get()))
+            else:
+                self.LiveCarJog(31)
+
+        # Buttons for Cart Jogging
+        self.XjogNegBut = ctk.CTkButton(self.CartjogFrame, text="-", width=30, height=25)
+        self.XjogNegBut.bind("<ButtonPress>", SelXjogNeg)
+        self.XjogNegBut.bind("<ButtonRelease>", self.StopJog)
+        self.XjogNegBut.place(x=642, y=225)
+
+        self.XjogPosBut = ctk.CTkButton(self.CartjogFrame, text="+", width=30, height=25)
+        self.XjogPosBut.bind("<ButtonPress>", SelXjogPos)
+        self.XjogPosBut.bind("<ButtonRelease>", self.StopJog)
+        self.XjogPosBut.place(x=680, y=225)
+
+        self.YjogNegBut = ctk.CTkButton(self.CartjogFrame, text="-", width=30, height=25)
+        self.YjogNegBut.bind("<ButtonPress>", SelYjogNeg)
+        self.YjogNegBut.bind("<ButtonRelease>", self.StopJog)
+        self.YjogNegBut.place(x=732, y=225)
+
+        self.YjogPosBut = ctk.CTkButton(self.CartjogFrame, text="+", width=30, height=25)
+        self.YjogPosBut.bind("<ButtonPress>", SelYjogPos)
+        self.YjogPosBut.bind("<ButtonRelease>", self.StopJog)
+        self.YjogPosBut.place(x=770, y=225)
+
+        self.ZjogNegBut = ctk.CTkButton(self.CartjogFrame, text="-", width=30, height=25)
+        self.ZjogNegBut.bind("<ButtonPress>", SelZjogNeg)
+        self.ZjogNegBut.bind("<ButtonRelease>", self.StopJog)
+        self.ZjogNegBut.place(x=822, y=225)
+
+        self.ZjogPosBut = ctk.CTkButton(self.CartjogFrame, text="+", width=30, height=25)
+        self.ZjogPosBut.bind("<ButtonPress>", SelZjogPos)
+        self.ZjogPosBut.bind("<ButtonRelease>", self.StopJog)
+        self.ZjogPosBut.place(x=860, y=225)
+
+        """ R(XYZ) Jog Buttons """
+
+        def SelRzjogNeg(self, event=None):
+            IncJogStatVal = int(self.IncJogStat.get())
+            if IncJogStatVal == 1:
+                self.RzjogNeg(float(self.incrementEntryField.get()))
+            else:
+                self.LiveCarJog(40)
+
+        def SelRzjogPos(self, event=None):
+            IncJogStatVal = int(self.IncJogStat.get())
+            if IncJogStatVal == 1:
+                self.RzjogPos(float(self.incrementEntryField.get()))
+            else:
+                self.LiveCarJog(41)
+
+        def SelRyjogNeg(self, event=None):
+            IncJogStatVal = int(self.IncJogStat.get())
+            if IncJogStatVal == 1:
+                self.RyjogNeg(float(self.incrementEntryField.get()))
+            else:
+                self.LiveCarJog(50)
+
+        def SelRyjogPos(self, event=None):
+            IncJogStatVal = int(self.IncJogStat.get())
+            if IncJogStatVal == 1:
+                self.RyjogPos(float(self.incrementEntryField.get()))
+            else:
+                self.LiveCarJog(51)
+
+        def SelRxjogNeg(self, event=None):
+            IncJogStatVal = int(self.IncJogStat.get())
+            if IncJogStatVal == 1:
+                self.RxjogNeg(float(self.incrementEntryField.get()))
+            else:
+                self.LiveCarJog(60)
+
+        def SelRxjogPos(self, event=None):
+            IncJogStatVal = int(self.IncJogStat.get())
+            if IncJogStatVal == 1:
+                self.RxjogPos(float(self.incrementEntryField.get()))
+            else:
+                self.LiveCarJog(61)
+
+        # Buttons for Rotation Jogging
+        self.RzjogNegBut = ctk.CTkButton(self.CartjogFrame, text="-", width=30, height=25)
+        self.RzjogNegBut.bind("<ButtonPress>", SelRzjogNeg)
+        self.RzjogNegBut.bind("<ButtonRelease>", self.StopJog)
+        self.RzjogNegBut.place(x=912, y=225)
+
+        self.RzjogPosBut = ctk.CTkButton(self.CartjogFrame, text="+", width=30, height=25)
+        self.RzjogPosBut.bind("<ButtonPress>", SelRzjogPos)
+        self.RzjogPosBut.bind("<ButtonRelease>", self.StopJog)
+        self.RzjogPosBut.place(x=950, y=225)
+
+        self.RyjogNegBut = ctk.CTkButton(self.CartjogFrame, text="-", width=30, height=25)
+        self.RyjogNegBut.bind("<ButtonPress>", SelRyjogNeg)
+        self.RyjogNegBut.bind("<ButtonRelease>", self.StopJog)
+        self.RyjogNegBut.place(x=1002, y=225)
+
+        self.RyjogPosBut = ctk.CTkButton(self.CartjogFrame, text="+", width=30, height=25)
+        self.RyjogPosBut.bind("<ButtonPress>", SelRyjogPos)
+        self.RyjogPosBut.bind("<ButtonRelease>", self.StopJog)
+        self.RyjogPosBut.place(x=1040, y=225)
+
+        self.RxjogNegBut = ctk.CTkButton(self.CartjogFrame, text="-", width=30, height=25)
+        self.RxjogNegBut.bind("<ButtonPress>", SelRxjogNeg)
+        self.RxjogNegBut.bind("<ButtonRelease>", self.StopJog)
+        self.RxjogNegBut.place(x=1092, y=225)
+
+        self.RxjogPosBut = ctk.CTkButton(self.CartjogFrame, text="+", width=30, height=25)
+        self.RxjogPosBut.bind("<ButtonPress>", SelRxjogPos)
+        self.RxjogPosBut.bind("<ButtonRelease>", self.StopJog)
+        self.RxjogPosBut.place(x=1130, y=225)
+
+        """ T(XYZ) Jog Buttons """
+
+        def SelTxjogNeg(self, event=None):
+            IncJogStatVal = int(self.IncJogStat.get())
+            if IncJogStatVal == 1:
+                self.TXjogNeg(float(self.incrementEntryField.get()))
+            else:
+                self.LiveToolJog(10)
+
+        def SelTxjogPos(self, event=None):
+            IncJogStatVal = int(self.IncJogStat.get())
+            if IncJogStatVal == 1:
+                self.TXjogPos(float(self.incrementEntryField.get()))
+            else:
+                self.LiveToolJog(11)
+
+        def SelTyjogNeg(self, event=None):
+            IncJogStatVal = int(self.IncJogStat.get())
+            if IncJogStatVal == 1:
+                self.TYjogNeg(float(self.incrementEntryField.get()))
+            else:
+                self.LiveToolJog(20)
+
+        def SelTyjogPos(self, event=None):
+            IncJogStatVal = int(self.IncJogStat.get())
+            if IncJogStatVal == 1:
+                self.TYjogPos(float(self.incrementEntryField.get()))
+            else:
+                self.LiveToolJog(21)
+
+        def SelTzjogNeg(self, event=None):
+            IncJogStatVal = int(self.IncJogStat.get())
+            if IncJogStatVal == 1:
+                self.TZjogNeg(float(self.incrementEntryField.get()))
+            else:
+                self.LiveToolJog(30)
+
+        def SelTzjogPos(self, event=None):
+            IncJogStatVal = int(self.IncJogStat.get())
+            if IncJogStatVal == 1:
+                self.TZjogPos(float(self.incrementEntryField.get()))
+            else:
+                self.LiveToolJog(31)
+
+        # Buttons for Tool Jogging
+        self.TXjogNegBut = ctk.CTkButton(self.CartjogFrame, text="-", width=30, height=25)
+        self.TXjogNegBut.bind("<ButtonPress>", SelTxjogNeg)
+        self.TXjogNegBut.bind("<ButtonRelease>", self.StopJog)
+        self.TXjogNegBut.place(x=642, y=300)
+
+        self.TXjogPosBut = ctk.CTkButton(self.CartjogFrame, text="+", width=30, height=25)
+        self.TXjogPosBut.bind("<ButtonPress>", SelTxjogPos)
+        self.TXjogPosBut.bind("<ButtonRelease>", self.StopJog)
+        self.TXjogPosBut.place(x=680, y=300)
+
+        self.TYjogNegBut = ctk.CTkButton(self.CartjogFrame, text="-", width=30, height=25)
+        self.TYjogNegBut.bind("<ButtonPress>", SelTyjogNeg)
+        self.TYjogNegBut.bind("<ButtonRelease>", self.StopJog)
+        self.TYjogNegBut.place(x=732, y=300)
+
+        self.TYjogPosBut = ctk.CTkButton(self.CartjogFrame, text="+", width=30, height=25)
+        self.TYjogPosBut.bind("<ButtonPress>", SelTyjogPos)
+        self.TYjogPosBut.bind("<ButtonRelease>", self.StopJog)
+        self.TYjogPosBut.place(x=770, y=300)
+
+        self.TZjogNegBut = ctk.CTkButton(self.CartjogFrame, text="-", width=30, height=25)
+        self.TZjogNegBut.bind("<ButtonPress>", SelTzjogNeg)
+        self.TZjogNegBut.bind("<ButtonRelease>", self.StopJog)
+        self.TZjogNegBut.place(x=822, y=300)
+
+        self.TZjogPosBut = ctk.CTkButton(self.CartjogFrame, text="+", width=30, height=25)
+        self.TZjogPosBut.bind("<ButtonPress>", SelTzjogPos)
+        self.TZjogPosBut.bind("<ButtonRelease>", self.StopJog)
+        self.TZjogPosBut.place(x=860, y=300)
+
+        """ T(R(XYZ)) Jog Buttons """
+
+        def SelTRzjogNeg(self, event=None):
+            IncJogStatVal = int(self.IncJogStat.get())
+            if IncJogStatVal == 1:
+                self.TRzjogNeg(float(self.incrementEntryField.get()))
+            else:
+                self.LiveToolJog(40)
+
+        def SelTRzjogPos(self, event=None):
+            IncJogStatVal = int(self.IncJogStat.get())
+            if IncJogStatVal == 1:
+                self.TRzjogPos(float(self.incrementEntryField.get()))
+            else:
+                self.LiveToolJog(41)
+
+        def SelTRyjogNeg(self, event=None):
+            IncJogStatVal = int(self.IncJogStat.get())
+            if IncJogStatVal == 1:
+                self.TRyjogNeg(float(self.incrementEntryField.get()))
+            else:
+                self.LiveToolJog(50)
+
+        def SelTRyjogPos(self, event=None):
+            IncJogStatVal = int(self.IncJogStat.get())
+            if IncJogStatVal == 1:
+                self.TRyjogPos(float(self.incrementEntryField.get()))
+            else:
+                self.LiveToolJog(51)
+
+        def SelTRxjogNeg(self, event=None):
+            IncJogStatVal = int(self.IncJogStat.get())
+            if IncJogStatVal == 1:
+                self.TRxjogNeg(float(self.incrementEntryField.get()))
+            else:
+                self.LiveToolJog(60)
+
+        def SelTRxjogPos(self, event=None):
+            IncJogStatVal = int(self.IncJogStat.get())
+            if IncJogStatVal == 1:
+                self.TRxjogPos(float(self.incrementEntryField.get()))
+            else:
+                self.LiveToolJog(61)
+
+        # Buttons for Tool Rotation Jogging
+        self.TRzjogNegBut = ctk.CTkButton(self.CartjogFrame, text="-", width=30, height=25)
+        self.TRzjogNegBut.bind("<ButtonPress>", SelTRzjogNeg)
+        self.TRzjogNegBut.bind("<ButtonRelease>", self.StopJog)
+        self.TRzjogNegBut.place(x=912, y=300)
+
+        self.TRzjogPosBut = ctk.CTkButton(self.CartjogFrame, text="+", width=30, height=25)
+        self.TRzjogPosBut.bind("<ButtonPress>", SelTRzjogPos)
+        self.TRzjogPosBut.bind("<ButtonRelease>", self.StopJog)
+        self.TRzjogPosBut.place(x=950, y=300)
+
+        self.TRyjogNegBut = ctk.CTkButton(self.CartjogFrame, text="-", width=30, height=25)
+        self.TRyjogNegBut.bind("<ButtonPress>", SelTRyjogNeg)
+        self.TRyjogNegBut.bind("<ButtonRelease>", self.StopJog)
+        self.TRyjogNegBut.place(x=1002, y=300)
+
+        self.TRyjogPosBut = ctk.CTkButton(self.CartjogFrame, text="+", width=30, height=25)
+        self.TRyjogPosBut.bind("<ButtonPress>", SelTRyjogPos)
+        self.TRyjogPosBut.bind("<ButtonRelease>", self.StopJog)
+        self.TRyjogPosBut.place(x=1040, y=300)
+
+        self.TRxjogNegBut = ctk.CTkButton(self.CartjogFrame, text="-", width=30, height=25)
+        self.TRxjogNegBut.bind("<ButtonPress>", SelTRxjogNeg)
+        self.TRxjogNegBut.bind("<ButtonRelease>", self.StopJog)
+        self.TRxjogNegBut.place(x=1092, y=300)
+
+        self.TRxjogPosBut = ctk.CTkButton(self.CartjogFrame, text="+", width=30, height=25)
+        self.TRxjogPosBut.bind("<ButtonPress>", SelTRxjogPos)
+        self.TRxjogPosBut.bind("<ButtonRelease>", self.StopJog)
+        self.TRxjogPosBut.place(x=1130, y=300)
+
+        ## TAB 2 LABELS ##
+
+        self.ComPortLab = ctk.CTkLabel(self.tab2, text="TEENSY COM PORT:")
+        self.ComPortLab.place(x=66, y=90)
+
+        self.ComPortLab2 = ctk.CTkLabel(self.tab2, text="IO BOARD COM PORT:")
+        self.ComPortLab2.place(x=60, y=160)
+
+        self.ComPortLab3 = ctk.CTkLabel(self.tab2, text="TEST AUX COM DEVICE")
+        self.ComPortLab3.place(x=60, y=230)
+
+        self.AuxPortNumLab = ctk.CTkLabel(self.tab2, text="Aux Com Port")
+        self.AuxPortNumLab.place(x=84, y=254)
+
+        self.AuxPortCharLab = ctk.CTkLabel(self.tab2, text="Char to Read")
+        self.AuxPortCharLab.place(x=84, y=284)
+
+        self.almStatusLab2 = ctk.CTkLabel(self.tab2, text="SYSTEM READY - NO ACTIVE ALARMS")
+        self.almStatusLab2.place(x=25, y=20)
+
+        self.comLab = ctk.CTkLabel(self.tab2, text="Communication")
+        self.comLab.place(x=72, y=60)
+
+        # Calibration Labels
+        self.jointCalLab = ctk.CTkLabel(self.tab2, text="Robot Calibration")
+        self.jointCalLab.place(x=290, y=60)
+
+        # 7th Axis Labels
+        self.axis7Lab = ctk.CTkLabel(self.tab2, text="7th Axis Calibration")
+        self.axis7Lab.place(x=665, y=300)
+
+        self.axis7lengthLab = ctk.CTkLabel(self.tab2, text="7th Axis Length:")
+        self.axis7lengthLab.place(x=651, y=340)
+
+        self.axis7rotLab = ctk.CTkLabel(self.tab2, text="MM per Rotation:")
+        self.axis7rotLab.place(x=645, y=370)
+
+        self.axis7stepsLab = ctk.CTkLabel(self.tab2, text="Drive Steps:")
+        self.axis7stepsLab.place(x=675, y=400)
+
+        self.axis7pinsetLab = ctk.CTkLabel(
+            self.tab2, font=("Arial", 8), text="StepPin = 12 / DirPin = 13 / CalPin = 36"
+        )
+        self.axis7pinsetLab.place(x=627, y=510)
+
+        # 8th Axis Labels
+        self.axis8Lab = ctk.CTkLabel(self.tab2, text="8th Axis Calibration")
+        self.axis8Lab.place(x=865, y=300)
+
+        self.axis8lengthLab = ctk.CTkLabel(self.tab2, text="8th Axis Length:")
+        self.axis8lengthLab.place(x=851, y=340)
+
+        self.axis8rotLab = ctk.CTkLabel(self.tab2, text="MM per Rotation:")
+        self.axis8rotLab.place(x=845, y=370)
+
+        self.axis8stepsLab = ctk.CTkLabel(self.tab2, text="Drive Steps:")
+        self.axis8stepsLab.place(x=875, y=400)
+
+        self.axis8pinsetLab = ctk.CTkLabel(
+            self.tab2, font=("Arial", 8), text="StepPin = 32 / DirPin = 33 / CalPin = 37"
+        )
+        self.axis8pinsetLab.place(x=827, y=510)
+
+        # 9th Axis Labels
+        self.axis9Lab = ctk.CTkLabel(self.tab2, text="9th Axis Calibration")
+        self.axis9Lab.place(x=1065, y=300)
+
+        self.axis9lengthLab = ctk.CTkLabel(self.tab2, text="9th Axis Length:")
+        self.axis9lengthLab.place(x=1051, y=340)
+
+        self.axis9rotLab = ctk.CTkLabel(self.tab2, text="MM per Rotation:")
+        self.axis9rotLab.place(x=1045, y=370)
+
+        self.axis9stepsLab = ctk.CTkLabel(self.tab2, text="Drive Steps:")
+        self.axis9stepsLab.place(x=1075, y=400)
+
+        self.axis9pinsetLab = ctk.CTkLabel(
+            self.tab2, font=("Arial", 8), text="StepPin = 34 / DirPin = 35 / CalPin = 38"
+        )
+        self.axis9pinsetLab.place(x=1027, y=510)
+
+        # Calibration Offsets
+        self.CalibrationOffsetsLab = ctk.CTkLabel(self.tab2, text="Calibration Offsets")
+        self.CalibrationOffsetsLab.place(x=485, y=60)
+
+        self.J1calLab = ctk.CTkLabel(self.tab2, text="J1 Offset")
+        self.J1calLab.place(x=480, y=90)
+
+        self.J2calLab = ctk.CTkLabel(self.tab2, text="J2 Offset")
+        self.J2calLab.place(x=480, y=120)
+
+        self.J3calLab = ctk.CTkLabel(self.tab2, text="J3 Offset")
+        self.J3calLab.place(x=480, y=150)
+
+        self.J4calLab = ctk.CTkLabel(self.tab2, text="J4 Offset")
+        self.J4calLab.place(x=480, y=180)
+
+        self.J5calLab = ctk.CTkLabel(self.tab2, text="J5 Offset")
+        self.J5calLab.place(x=480, y=210)
+
+        self.J6calLab = ctk.CTkLabel(self.tab2, text="J6 Offset")
+        self.J6calLab.place(x=480, y=240)
+
+        self.J7calLab = ctk.CTkLabel(self.tab2, text="J7 Offset")
+        self.J7calLab.place(x=480, y=280)
+
+        self.J8calLab = ctk.CTkLabel(self.tab2, text="J8 Offset")
+        self.J8calLab.place(x=480, y=310)
+
+        self.J9calLab = ctk.CTkLabel(self.tab2, text="J9 Offset")
+        self.J9calLab.place(x=480, y=340)
+
+        # Encoder Control
+        self.CalibrationOffsetsLab2 = ctk.CTkLabel(self.tab2, text="Encoder Control")
+        self.CalibrationOffsetsLab2.place(x=715, y=60)
+
+        # Command Status
+        self.cmdSentLab = ctk.CTkLabel(self.tab2, text="Last Command Sent to Controller")
+        self.cmdSentLab.place(x=10, y=565)
+
+        self.cmdRecLab = ctk.CTkLabel(self.tab2, text="Last Response From Controller")
+        self.cmdRecLab.place(x=10, y=625)
+
+        # Theme
+        self.ThemeLab = ctk.CTkLabel(self.tab2, text="Theme")
+        self.ThemeLab.place(x=925, y=60)
+
     # Startup defs #
 
     def startup(self):
@@ -901,8 +1667,8 @@ class RobotArmApp:
             self.ser = serial.Serial(port, baud)
 
             # Update status labels
-            self.almStatusLab.config(text="SYSTEM READY", style="OK.TLabel")
-            self.almStatusLab2.config(text="SYSTEM READY", style="OK.TLabel")
+            self.almStatusLab.configure(text="SYSTEM READY", style="OK.TLabel")
+            self.almStatusLab2.configure(text="SYSTEM READY", style="OK.TLabel")
 
             # Log success
             Curtime = datetime.datetime.now().strftime("%B %d %Y - %I:%M%p")
@@ -921,8 +1687,8 @@ class RobotArmApp:
             error_message = (
                 "UNABLE TO ESTABLISH COMMUNICATIONS WITH TEENSY 4.1 CONTROLLER"
             )
-            self.almStatusLab.config(text=error_message, style="Alarm.TLabel")
-            self.almStatusLab2.config(text=error_message, style="Alarm.TLabel")
+            self.almStatusLab.configure(text=error_message, style="Alarm.TLabel")
+            self.almStatusLab2.configure(text=error_message, style="Alarm.TLabel")
 
             # Log failure
             Curtime = datetime.datetime.now().strftime("%B %d %Y - %I:%M%p")
@@ -939,8 +1705,8 @@ class RobotArmApp:
             self.ser2 = serial.Serial(port, baud)
 
             # Update status labels
-            self.almStatusLab.config(text="SYSTEM READY", style="OK.TLabel")
-            self.almStatusLab2.config(text="SYSTEM READY", style="OK.TLabel")
+            self.almStatusLab.configure(text="SYSTEM READY", style="OK.TLabel")
+            self.almStatusLab2.configure(text="SYSTEM READY", style="OK.TLabel")
 
             # Log success
             Curtime = datetime.datetime.now().strftime("%B %d %Y - %I:%M%p")
@@ -1676,8 +2442,8 @@ class RobotArmApp:
         if self.moveInProc == 1:
             self.moveInProc = 2
         statusText = "SYSTEM READY"
-        self.almStatusLab.config(text=statusText, style="OK.TLabel")
-        self.almStatusLab2.config(text=statusText, style="OK.TLabel")
+        self.almStatusLab.configure(text=statusText, style="OK.TLabel")
+        self.almStatusLab2.configure(text=statusText, style="OK.TLabel")
 
         # Extract coordinates for Tool S
         xIndex = command.find(" X ")
@@ -1695,16 +2461,16 @@ class RobotArmApp:
 
         # Populate entry fields with extracted values
         for field, value in zip(
-                [TFxEntryField, TFyEntryField, TFzEntryField, 
-                TFrzEntryField, TFryEntryField, TFrxEntryField],
-                [xVal, yVal, zVal, rzVal, ryVal, rxVal]):
+                [self.TFxEntryField, self.TFyEntryField, self.TFzEntryField, 
+                self.TFrzEntryField, self.TFryEntryField, self.TFrxEntryField],
+                [self.xVal, self.yVal, self.zVal, self.rzVal, self.ryVal, self.rxVal]):
             field.delete(0, 'end')
             field.insert(0, value)
 
         # Format and send the command
         formattedCommand = f"TF A{xVal} B{yVal} C{zVal} D{rzVal} E{ryVal} F{rxVal}\n"
-        cmdSentEntryField.delete(0, 'end')
-        cmdSentEntryField.insert(0, formattedCommand)
+        self.cmdSentEntryField.delete(0, 'end')
+        self.cmdSentEntryField.insert(0, formattedCommand)
         self.ser.write(formattedCommand.encode())
         self.ser.flushInput()
         time.sleep(0.1)
@@ -1716,14 +2482,14 @@ class RobotArmApp:
         response = str(self.ser.readline().strip(), 'utf-8')
         if response.startswith('E'):
             # Display error message
-            errorStatusLabel.config(text=response, style="Error.TLabel")
+            self.errorStatusLabel.configure(text=response, style="Error.TLabel")
             print(f"Error: {response}")
         else:
             # Display position data from the response
             try:
                 position_fields = {
-                    "X": PositionXField, "Y": PositionYField, "Z": PositionZField,
-                    "Rz": PositionRzField, "Ry": PositionRyField, "Rx": PositionRxField
+                    "X": self.PositionXField, "Y": self.PositionYField, "Z": self.PositionZField,
+                    "Rz": self.PositionRzField, "Ry": self.PositionRyField, "Rx": self.PositionRxField
                 }
                 for key, field in position_fields.items():
                     # Extract value for each position key
@@ -1740,7 +2506,7 @@ class RobotArmApp:
 
             except Exception as e:
                 errorMsg = f"Failed to display position: {str(e)}"
-                errorStatusLabel.config(text=errorMsg, style="Error.TLabel")
+                self.errorStatusLabel.configure(text=errorMsg, style="Error.TLabel")
                 print(f"Error: {errorMsg}")
 
     def processMoveJ(self, command):
@@ -1799,7 +2565,7 @@ class RobotArmApp:
         response = str(self.ser.readline().strip(), 'utf-8')
         if response.startswith('E'):
             # Handle errors by displaying the error message
-            self.errorStatusLabel.config(text=response, style="Error.TLabel")
+            self.errorStatusLabel.configure(text=response, style="Error.TLabel")
             print(f"Error: {response}")
         else:
             # Display position data based on response received from the device
@@ -1831,7 +2597,7 @@ class RobotArmApp:
 
             except Exception as e:
                 errorMsg = f"Failed to display position: {str(e)}"
-                self.errorStatusLabel.config(text=errorMsg, style="Error.TLabel")
+                self.errorStatusLabel.configure(text=errorMsg, style="Error.TLabel")
                 print(f"Error: {errorMsg}")
 
     def processOffJ(self, command):
@@ -1925,7 +2691,7 @@ class RobotArmApp:
         response = str(self.ser.readline().strip(), 'utf-8')
         if response.startswith('E'):
             # Handle errors by displaying the error message
-            self.errorStatusLabel.config(text=response, style="Error.TLabel")
+            self.errorStatusLabel.configure(text=response, style="Error.TLabel")
             print(f"Error: {response}")
         else:
             # Extract position values from response and update fields
@@ -1957,7 +2723,7 @@ class RobotArmApp:
 
             except Exception as e:
                 errorMsg = f"Failed to display position: {str(e)}"
-                self.errorStatusLabel.config(text=errorMsg, style="Error.TLabel")
+                self.errorStatusLabel.configure(text=errorMsg, style="Error.TLabel")
                 print(f"Error: {errorMsg}")
 
     # Process the Move V command, send it to the device, handle errors, and display position.
@@ -2023,7 +2789,7 @@ class RobotArmApp:
             # Handle errors
             error_msg = f"Error: {response}"
             print(error_msg)
-            self.errorStatusLabel.config(text=response, style="Error.TLabel")
+            self.errorStatusLabel.configure(text=response, style="Error.TLabel")
         else:
             # Display position
             try:
@@ -2047,7 +2813,7 @@ class RobotArmApp:
             except Exception as e:
                 error_msg = f"Failed to display position: {str(e)}"
                 print(error_msg)
-                self.errorStatusLabel.config(text=error_msg, style="Error.TLabel")
+                self.errorStatusLabel.configure(text=error_msg, style="Error.TLabel")
 
     # Process the MoveP command, send it to the device, handle errors, and display position data.
     def handleMovePCommand(self, command):
@@ -2113,7 +2879,7 @@ class RobotArmApp:
         # Check for errors in the response
         if response.startswith('E'):
             print(f"Error: {response}")  # Log the error for debugging
-            self.errorStatusLabel.config(text=response, style="Error.TLabel")  # Display error in UI
+            self.errorStatusLabel.configure(text=response, style="Error.TLabel")  # Display error in UI
             return  # Exit if there's an error
 
         # Process and display position data if no errors
@@ -2138,7 +2904,7 @@ class RobotArmApp:
             # Handle any issues during the display update
             errorMsg = f"Failed to display position: {str(e)}"
             print(f"Error: {errorMsg}")
-            self.errorStatusLabel.config(text=errorMsg, style="Error.TLabel")
+            self.errorStatusLabel.configure(text=errorMsg, style="Error.TLabel")
 
     # Process the OffsPR command, construct the command string, send it to the device, and handle response errors.
     def handleOffsPRCommand(self, command):
@@ -2202,7 +2968,7 @@ class RobotArmApp:
         # Error handling
         if response.startswith('E'):
             print(f"Error: {response}")
-            self.errorStatusLabel.config(text=response, style="Error.TLabel")
+            self.errorStatusLabel.configure(text=response, style="Error.TLabel")
             return
 
         # Update position fields if no error
@@ -2228,7 +2994,7 @@ class RobotArmApp:
         except Exception as e:
             errorMsg = f"Failed to display position: {str(e)}"
             print(f"Error: {errorMsg}")
-            self.errorStatusLabel.config(text=errorMsg, style="Error.TLabel")
+            self.errorStatusLabel.configure(text=errorMsg, style="Error.TLabel")
 
     def handleMoveL(self, command):
         # Check and start move if not already in process
@@ -2304,7 +3070,7 @@ class RobotArmApp:
         if response.startswith('E'):
             # Display error message
             print(f"Error: {response}")
-            self.errorStatusLabel.config(text=response, style="Error.TLabel")
+            self.errorStatusLabel.configure(text=response, style="Error.TLabel")
         else:
             # Display position data with inline extraction function
             def extractValue(response, label):
@@ -2331,7 +3097,7 @@ class RobotArmApp:
             except Exception as e:
                 # Error handling if display fails
                 print(f"Failed to display position: {str(e)}")
-                self.errorStatusLabel.config(text=f"Display Error: {str(e)}", style="Error.TLabel")
+                self.errorStatusLabel.configure(text=f"Display Error: {str(e)}", style="Error.TLabel")
 
     def handleMoveR(self, command):
         # Start move if not already in process
@@ -2400,7 +3166,7 @@ class RobotArmApp:
         if response.startswith('E'):
             # Error handling: Display error message
             print(f"Error: {response}")
-            self.errorStatusLabel.config(text=response, style="Error.TLabel")
+            self.errorStatusLabel.configure(text=response, style="Error.TLabel")
         else:
             # Display position data with inline extraction function
             def extractValue(response, label):
@@ -2427,7 +3193,7 @@ class RobotArmApp:
             except Exception as e:
                 # Error handling if display fails
                 print(f"Failed to display position: {str(e)}")
-                self.errorStatusLabel.config(text=f"Display Error: {str(e)}", style="Error.TLabel")
+                self.errorStatusLabel.configure(text=f"Display Error: {str(e)}", style="Error.TLabel")
 
     def handleMoveA(self, command):
         # Start move if not already in process
@@ -2436,8 +3202,8 @@ class RobotArmApp:
 
         # Check command validity
         if command.startswith("Move A End"):
-            self.almStatusLab.config(text="Move A must start with a Mid followed by End", style="Alarm.TLabel")
-            self.almStatusLab2.config(text="Move A must start with a Mid followed by End", style="Alarm.TLabel")
+            self.almStatusLab.configure(text="Move A must start with a Mid followed by End", style="Alarm.TLabel")
+            self.almStatusLab2.configure(text="Move A must start with a Mid followed by End", style="Alarm.TLabel")
             return
 
         # Extract move values from command
@@ -2528,7 +3294,7 @@ class RobotArmApp:
         if response.startswith('E'):
             # Error handling: Display error message
             print(f"Error: {response}")
-            self.errorStatusLabel.config(text=response, style="Error.TLabel")
+            self.errorStatusLabel.configure(text=response, style="Error.TLabel")
         else:
             # Display position data with inline extraction function
             def extractValue(response, label):
@@ -2555,7 +3321,7 @@ class RobotArmApp:
             except Exception as e:
                 # Error handling if display fails
                 print(f"Failed to display position: {str(e)}")
-                self.errorStatusLabel.config(text=f"Display Error: {str(e)}", style="Error.TLabel")
+                self.errorStatusLabel.configure(text=f"Display Error: {str(e)}", style="Error.TLabel")
 
     def handleMoveC(self, command):
         if self.moveInProc == 0:
@@ -2566,8 +3332,8 @@ class RobotArmApp:
         if subCmd in ["Move C Sta", "Move C Pla"]:
             # Inline showError logic
             message = "Move C must start with a Center followed by Start & Plane"
-            self.almStatusLab.config(text=message, style="Alarm.TLabel")
-            self.almStatusLab2.config(text=message, style="Alarm.TLabel")
+            self.almStatusLab.configure(text=message, style="Alarm.TLabel")
+            self.almStatusLab2.configure(text=message, style="Alarm.TLabel")
             return
 
         # Inline extractMoveCValues logic to extract command values
@@ -2699,7 +3465,7 @@ class RobotArmApp:
         if response[:1] == 'E':
             # Handle error by displaying the error message
             print(f"Error: {response}")  # Log the error
-            self.errorStatusLabel.config(text=response, style="Error.TLabel")
+            self.errorStatusLabel.configure(text=response, style="Error.TLabel")
         else:
             # Display position data based on response received from the device
             def extractValue(response, label):
@@ -2737,7 +3503,7 @@ class RobotArmApp:
                 # Handle display error
                 errorMsg = f"Failed to display position: {str(e)}"
                 print(f"Error: {errorMsg}")  # Log the error
-                self.errorStatusLabel.config(text=errorMsg, style="Error.TLabel")
+                self.errorStatusLabel.configure(text=errorMsg, style="Error.TLabel")
 
     def cameraOn(self):
         if self.moveInProc == 1:
@@ -2790,20 +3556,20 @@ class RobotArmApp:
 
     def xbox(self):
         def update_status(label_text, label_style="Warn.TLabel"):
-            self.almStatusLab.config(text=label_text, style=label_style)
-            self.almStatusLab2.config(text=label_text, style=label_style)
+            self.almStatusLab.configure(text=label_text, style=label_style)
+            self.almStatusLab2.configure(text=label_text, style=label_style)
 
         def toggle_xbox():
             if self.xboxUse == 0:
                 self.xboxUse = 1
                 self.mainMode, self.jogMode, self.grip = 1, 1, 0
                 update_status('JOGGING JOINTS 1 & 2')
-                self.xbcStatusLab.config(text='Xbox ON')
+                self.xbcStatusLab.configure(text='Xbox ON')
                 self.ChgDis(2)
             else:
                 self.xboxUse = 0
                 update_status('XBOX CONTROLLER OFF')
-                self.xbcStatusLab.config(text='Xbox OFF')
+                self.xbcStatusLab.configure(text='Xbox OFF')
 
         def handle_event(event):
             increment = float(self.incrementEntryField.get())
@@ -2986,8 +3752,8 @@ class RobotArmApp:
         # Update the "SYSTEM READY" status
         self.checkSpeedVals()
         if self.xboxUse != 1:
-            self.almStatusLab.config(text="SYSTEM READY", style="OK.TLabel")
-            self.almStatusLab2.config(text="SYSTEM READY", style="OK.TLabel")
+            self.almStatusLab.configure(text="SYSTEM READY", style="OK.TLabel")
+            self.almStatusLab2.configure(text="SYSTEM READY", style="OK.TLabel")
 
         # Determine speed type and prefix
         speedtype = self.speedOption.get()
@@ -3172,8 +3938,8 @@ class RobotArmApp:
 
         self.checkSpeedVals()
         if self.xboxUse != 1:
-            self.almStatusLab.config(text="SYSTEM READY", style="OK.TLabel")
-            self.almStatusLab2.config(text="SYSTEM READY", style="OK.TLabel")
+            self.almStatusLab.configure(text="SYSTEM READY", style="OK.TLabel")
+            self.almStatusLab2.configure(text="SYSTEM READY", style="OK.TLabel")
 
         # Determine speed prefix and set default speed if needed
         speedtype = self.speedOption.get()
@@ -3255,8 +4021,8 @@ class RobotArmApp:
         # Check if Xbox controller is in use
         self.checkSpeedVals()
         if self.xboxUse != 1:
-            self.almStatusLab.config(text="SYSTEM READY", style="OK.TLabel")
-            self.almStatusLab2.config(text="SYSTEM READY", style="OK.TLabel")
+            self.almStatusLab.configure(text="SYSTEM READY", style="OK.TLabel")
+            self.almStatusLab2.configure(text="SYSTEM READY", style="OK.TLabel")
         
         # Calculate new positions based on axis and value
         xVal = self.XcurPos if axis != 'X' else str(float(self.XcurPos) - value)
@@ -3321,8 +4087,8 @@ class RobotArmApp:
         # Check if Xbox controller is in use
         self.checkSpeedVals()
         if self.xboxUse != 1:
-            self.almStatusLab.config(text="SYSTEM READY", style="OK.TLabel")
-            self.almStatusLab2.config(text="SYSTEM READY", style="OK.TLabel")
+            self.almStatusLab.configure(text="SYSTEM READY", style="OK.TLabel")
+            self.almStatusLab2.configure(text="SYSTEM READY", style="OK.TLabel")
         
         # Calculate new positions based on axis and value for positive jog
         xVal = self.XcurPos if axis != 'X' else str(float(self.XcurPos) + value)
@@ -3883,7 +4649,7 @@ class RobotArmApp:
         
         if not variable:
             localErrorFlag = True
-            self.almStatusLab.config(text="Please enter an input, register number or COM Port", style="Alarm.TLabel")
+            self.almStatusLab.configure(text="Please enter an input, register number or COM Port", style="Alarm.TLabel")
             
         inputVal = self.IfInputEntryField.get()
         destVal = self.IfDestEntryField.get()
@@ -3894,30 +4660,30 @@ class RobotArmApp:
                 prefix = f"If Input # {variable} = {inputVal} :"
             else:
                 localErrorFlag = True
-                self.almStatusLab.config(text="Please enter a 1 or 0 for the = value", style="Alarm.TLabel")
+                self.almStatusLab.configure(text="Please enter a 1 or 0 for the = value", style="Alarm.TLabel")
         
         elif option == "Register":
             if not inputVal:
                 localErrorFlag = True
-                self.almStatusLab.config(text="Please enter a register number", style="Alarm.TLabel")
+                self.almStatusLab.configure(text="Please enter a register number", style="Alarm.TLabel")
             prefix = f"If Register # {variable} = {inputVal} :"
 
         elif option == "COM Device":
             if not inputVal:
                 localErrorFlag = True
-                self.almStatusLab.config(text="Please enter expected COM device input", style="Alarm.TLabel")
+                self.almStatusLab.configure(text="Please enter expected COM device input", style="Alarm.TLabel")
             prefix = f"If COM Device # {variable} = {inputVal} :"
         
         if selection == "Call Prog":
             if not destVal:
                 localErrorFlag = True
-                self.almStatusLab.config(text="Please enter a program name", style="Alarm.TLabel")
+                self.almStatusLab.configure(text="Please enter a program name", style="Alarm.TLabel")
             value = f"{prefix} Call Prog {destVal}"
         
         elif selection == "Jump Tab":
             if not destVal:
                 localErrorFlag = True
-                self.almStatusLab.config(text="Please enter a destination tab", style="Alarm.TLabel")
+                self.almStatusLab.configure(text="Please enter a destination tab", style="Alarm.TLabel")
             value = f"{prefix} Jump to Tab {destVal}"
         
         if not localErrorFlag:
@@ -4031,7 +4797,7 @@ class RobotArmApp:
                     self.tab1.progView.insert(ctk.END, item)
             
             self.tab1.progView.pack()
-            self.scrollbar.config(command=self.tab1.progView.yview)
+            self.scrollbar.configure(command=self.tab1.progView.yview)
             self.savePosData()
 
     def callProg(self, name):
@@ -4467,8 +5233,8 @@ class RobotArmApp:
             self.displayPosition(response) if success else self.ErrorHandler(response)
             message = f"Auto Calibration Stage {stage} {'Successful' if success else 'Failed - See Log'}"
             style = "OK.TLabel" if success else "Alarm.TLabel"
-            self.almStatusLab.config(text=message, style=style)
-            self.almStatusLab2.config(text=message, style=style)
+            self.almStatusLab.configure(text=message, style=style)
+            self.almStatusLab2.configure(text=message, style=style)
             return message
 
         def update_log(message):
@@ -4517,12 +5283,12 @@ class RobotArmApp:
         if response.startswith("A"):
             self.displayPosition(response)
             message = f"J{joint_id} Calibrated Successfully"
-            self.almStatusLab.config(text=message, style="OK.TLabel")
-            self.almStatusLab2.config(text=message, style="OK.TLabel")
+            self.almStatusLab.configure(text=message, style="OK.TLabel")
+            self.almStatusLab2.configure(text=message, style="OK.TLabel")
         else:
             message = f"J{joint_id} Calibration Failed"
-            self.almStatusLab.config(text=message, style="Alarm.TLabel")
-            self.almStatusLab2.config(text=message, style="Alarm.TLabel")
+            self.almStatusLab.configure(text=message, style="Alarm.TLabel")
+            self.almStatusLab2.configure(text=message, style="Alarm.TLabel")
             self.ErrorHandler(response)
         
         Curtime = datetime.datetime.now().strftime("%B %d %Y - %I:%M%p")
@@ -4693,8 +5459,8 @@ class RobotArmApp:
         self.ser.flushInput()
         time.sleep(0.1)
         status_text = f"{axis_name} Calibration Forced to Zero"
-        self.almStatusLab.config(text=status_text, style="Warn.TLabel")
-        self.almStatusLab2.config(text=status_text, style="Warn.TLabel")
+        self.almStatusLab.configure(text=status_text, style="Warn.TLabel")
+        self.almStatusLab2.configure(text=status_text, style="Warn.TLabel")
         message = f"{axis_name} Calibration Forced to Zero - this is for commissioning and testing - be careful!"
         curtime = datetime.datetime.now().strftime("%B %d %Y - %I:%M%p")
         self.tab8.ElogView.insert(END, f"{curtime} - {message}")
@@ -4736,8 +5502,8 @@ class RobotArmApp:
         # Request updated position and update status labels
         self.requestPos()
         status_message = "Calibration Forced to Home"
-        self.almStatusLab.config(text=status_message, style="Warn.TLabel")
-        self.almStatusLab2.config(text=status_message, style="Warn.TLabel")
+        self.almStatusLab.configure(text=status_message, style="Warn.TLabel")
+        self.almStatusLab2.configure(text=status_message, style="Warn.TLabel")
 
         # Log the calibration event
         log_message = f"{current_time} - {status_message} - this is for commissioning and testing - be careful!"
@@ -4759,8 +5525,8 @@ class RobotArmApp:
         # Request updated position and update status labels
         self.requestPos()
         status_message = "Calibration Forced to Vertical Rest Pos"
-        self.almStatusLab.config(text=status_message, style="Warn.TLabel")
-        self.almStatusLab2.config(text=status_message, style="Warn.TLabel")
+        self.almStatusLab.configure(text=status_message, style="Warn.TLabel")
+        self.almStatusLab2.configure(text=status_message, style="Warn.TLabel")
 
         # Log the calibration event
         log_message = f"{current_time} - Calibration Forced to Vertical - this is for commissioning and testing - be careful!"
@@ -4850,8 +5616,8 @@ class RobotArmApp:
             message = "Max Speed Violation - Reduce Speed Setpoint or Travel Distance"
             self.tab8.ElogView.insert(END, f"{current_time} - {message}")
             pickle.dump(self.tab8.ElogView.get(0, END), open("ErrorLog", "wb"))
-            self.almStatusLab.config(text=message, style="Warn.TLabel")
-            self.almStatusLab2.config(text=message, style="Warn.TLabel")
+            self.almStatusLab.configure(text=message, style="Warn.TLabel")
+            self.almStatusLab2.configure(text=message, style="Warn.TLabel")
 
     def ClearKinTabFields(self):
         # Define field groups for organized clearing
@@ -5292,9 +6058,9 @@ class RobotArmApp:
 
         # Update alarm labels with a specific message and style.
         def update_alarm_status(message):
-            self.almStatusLab.config(text=message, style="Alarm.TLabel")
-            self.almStatusLab2.config(text=message, style="Alarm.TLabel")
-            self.GCalmStatusLab.config(text=message, style="Alarm.TLabel")
+            self.almStatusLab.configure(text=message, style="Alarm.TLabel")
+            self.almStatusLab2.configure(text=message, style="Alarm.TLabel")
+            self.GCalmStatusLab.configure(text=message, style="Alarm.TLabel")
 
         # Handle specific axis limit errors based on response.
         def handle_axis_limit_error():
@@ -5399,7 +6165,7 @@ class RobotArmApp:
 
         # Update system status label
         def update_status(label, text="SYSTEM READY", style="OK.TLabel"):
-            label.config(text=text, style=style)
+            label.configure(text=text, style=style)
 
         # Read the last line from a file, retry if file not found.
         def read_last_line(file_path):
@@ -5445,7 +6211,7 @@ class RobotArmApp:
 
         # Update a label with specified text and style.
         def update_status(label, text, style):
-            label.config(text=text, style=style)
+            label.configure(text=text, style=style)
 
         # Read the last line from a file, retry if file not found.
         def read_last_line(file_path):
@@ -5498,7 +6264,7 @@ class RobotArmApp:
 
         # Update a label with specified text and style.
         def update_status(label, text, style):
-            label.config(text=text, style=style)
+            label.configure(text=text, style=style)
 
         # Read the last line from a file, retry if file not found.
         def read_last_line(file_path):
@@ -6099,7 +6865,7 @@ class RobotArmApp:
                 previtem = item
 
         # Configure scrollbar for gcodeView
-        self.gcodescrollbar.config(command=self.tab7.gcodeView.yview)
+        self.gcodescrollbar.configure(command=self.tab7.gcodeView.yview)
 
     def SetGcodeStartPos(self):
         # List of entry fields and corresponding position variables
@@ -6173,7 +6939,7 @@ class RobotArmApp:
 
     def GCstepFwd(self):
         # Update GCode status
-        self.GCalmStatusLab.config(text="GCODE READY", style="OK.TLabel")
+        self.GCalmStatusLab.configure(text="GCODE READY", style="OK.TLabel")
         self.GCexecuteRow()
 
         # Get the currently selected row and total rows
@@ -6225,11 +6991,11 @@ class RobotArmApp:
 
         # Handle successful or failed deletion
         if response == "P":
-            self.GCalmStatusLab.config(
+            self.GCalmStatusLab.configure(
                 text=f"{full_filename} has been deleted", style="OK.TLabel")
             self.GCread("no")
         elif response == "F":
-            self.GCalmStatusLab.config(
+            self.GCalmStatusLab.configure(
                 text=f"{full_filename} was not found", style="Alarm.TLabel")
 
     def GCread(self, status):
@@ -6264,11 +7030,11 @@ class RobotArmApp:
         
         if not filename:
             messagebox.showwarning("Warning", "Please enter a valid filename.")
-            self.GCalmStatusLab.config(text="No G-code file specified", style="Alarm.TLabel")
+            self.GCalmStatusLab.configure(text="No G-code file specified", style="Alarm.TLabel")
             return
         
         # If filename exists, update status and run the file
-        self.GCalmStatusLab.config(text=f"Running G-code File: {filename}", style="OK.TLabel")
+        self.GCalmStatusLab.configure(text=f"Running G-code File: {filename}", style="OK.TLabel")
 
     def GCplayProg(self, Filename):
         self.GCalmStatusLab.configure(text="GCODE FILE RUNNING", fg_color="green")
@@ -6342,11 +7108,11 @@ class RobotArmApp:
 
             while self.tab7.GCrunTrue == 1:
                 if self.tab7.GCrunTrue == 0:
-                    self.GCalmStatusLab.config(
+                    self.GCalmStatusLab.configure(
                         text="GCODE CONVERSION STOPPED", style="Alarm.TLabel")
                     break
 
-                self.GCalmStatusLab.config(
+                self.GCalmStatusLab.configure(
                     text="GCODE CONVERSION RUNNING", style="OK.TLabel")
 
                 self.GCrowinproc = 1
@@ -6367,7 +7133,7 @@ class RobotArmApp:
                     self.GcodCurRowEntryField.delete(0, 'end')
                     self.GcodCurRowEntryField.insert(0, "---")
                     self.tab7.GCrunTrue = 0
-                    self.GCalmStatusLab.config(
+                    self.GCalmStatusLab.configure(
                         text="GCODE CONVERSION STOPPED", style="Alarm.TLabel")
 
         GCt = threading.Thread(target=GCthreadProg)
@@ -6375,7 +7141,7 @@ class RobotArmApp:
 
     def GCstopProg(self):
         self.tab7.GCrunTrue = 0
-        self.GCalmStatusLab.config(text="GCODE CONVERSION STOPPED", style="Alarm.TLabel")
+        self.GCalmStatusLab.configure(text="GCODE CONVERSION STOPPED", style="Alarm.TLabel")
 
         if self.splineActive == 1:
             self.splineActive = "0"
@@ -6457,7 +7223,7 @@ class RobotArmApp:
                     self.ErrorHandler(response)
                     self.GCstopProg()
                     self.tab7.GCrunTrue = 0
-                    self.GCalmStatusLab.config(text="UNABLE TO WRITE TO SD CARD", style="Alarm.TLabel")
+                    self.GCalmStatusLab.configure(text="UNABLE TO WRITE TO SD CARD", style="Alarm.TLabel")
                 else:
                     self.displayPosition(response)
 
@@ -6484,7 +7250,7 @@ class RobotArmApp:
                 if response.startswith('E'):
                     self.ErrorHandler(response)
                     self.tab7.GCrunTrue = 0
-                    self.GCalmStatusLab.config(text="UNABLE TO WRITE TO SD CARD", style="Alarm.TLabel")
+                    self.GCalmStatusLab.configure(text="UNABLE TO WRITE TO SD CARD", style="Alarm.TLabel")
                 else:
                     self.displayPosition(response)
 
