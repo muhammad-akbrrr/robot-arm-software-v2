@@ -1800,6 +1800,375 @@ class RobotArmApp:
 
         ## TAB 3 LABELS ##
 
+        # Tool Frames
+        self.ToolFrameLab = ctk.CTkLabel(self.tab3, text="Tool Frame Offset")
+        self.ToolFrameLab.place(x=970, y=60)
+
+        self.UFxLab = ctk.CTkLabel(self.tab3, font=("Arial", 11), text="X")
+        self.UFxLab.place(x=920, y=90)
+
+        self.UFyLab = ctk.CTkLabel(self.tab3, font=("Arial", 11), text="Y")
+        self.UFyLab.place(x=960, y=90)
+
+        self.UFzLab = ctk.CTkLabel(self.tab3, font=("Arial", 11), text="Z")
+        self.UFzLab.place(x=1000, y=90)
+
+        self.UFRxLab = ctk.CTkLabel(self.tab3, font=("Arial", 11), text="Rz")
+        self.UFRxLab.place(x=1040, y=90)
+
+        self.UFRyLab = ctk.CTkLabel(self.tab3, font=("Arial", 11), text="Ry")
+        self.UFRyLab.place(x=1080, y=90)
+
+        self.UFRzLab = ctk.CTkLabel(self.tab3, font=("Arial", 11), text="Rx")
+        self.UFRzLab.place(x=1120, y=90)
+
+        self.TFxEntryField = ctk.CTkEntry(self.tab3, width=50, justify="center")
+        self.TFxEntryField.place(x=910, y=115)
+
+        self.TFyEntryField = ctk.CTkEntry(self.tab3, width=50, justify="center")
+        self.TFyEntryField.place(x=950, y=115)
+
+        self.TFzEntryField = ctk.CTkEntry(self.tab3, width=50, justify="center")
+        self.TFzEntryField.place(x=990, y=115)
+
+        self.TFrzEntryField = ctk.CTkEntry(self.tab3, width=50, justify="center")
+        self.TFrzEntryField.place(x=1030, y=115)
+
+        self.TFryEntryField = ctk.CTkEntry(self.tab3, width=50, justify="center")
+        self.TFryEntryField.place(x=1070, y=115)
+
+        self.TFrxEntryField = ctk.CTkEntry(self.tab3, width=50, justify="center")
+        self.TFrxEntryField.place(x=1110, y=115)
+
+        self.DisableWristCbut = ctk.CTkCheckBox(
+            self.tab3, text="Disable Wrist Rotation - Linear Moves", variable=self.DisableWristRot
+        )
+        self.DisableWristCbut.place(x=910, y=150)
+
+        # Motor Direction Labels and Entry Fields
+        self.J1MotDirLab = ctk.CTkLabel(self.tab3, font=("Arial", 8), text="J1 Motor Direction")
+        self.J1MotDirLab.place(x=10, y=20)
+
+        self.J2MotDirLab = ctk.CTkLabel(self.tab3, font=("Arial", 8), text="J2 Motor Direction")
+        self.J2MotDirLab.place(x=10, y=45)
+
+        self.J3MotDirLab = ctk.CTkLabel(self.tab3, font=("Arial", 8), text="J3 Motor Direction")
+        self.J3MotDirLab.place(x=10, y=70)
+
+        self.J4MotDirLab = ctk.CTkLabel(self.tab3, font=("Arial", 8), text="J4 Motor Direction")
+        self.J4MotDirLab.place(x=10, y=95)
+
+        self.J5MotDirLab = ctk.CTkLabel(self.tab3, font=("Arial", 8), text="J5 Motor Direction")
+        self.J5MotDirLab.place(x=10, y=120)
+
+        self.J6MotDirLab = ctk.CTkLabel(self.tab3, font=("Arial", 8), text="J6 Motor Direction")
+        self.J6MotDirLab.place(x=10, y=145)
+
+        self.J7MotDirLab = ctk.CTkLabel(self.tab3, font=("Arial", 8), text="J7 Motor Direction")
+        self.J7MotDirLab.place(x=10, y=170)
+
+        self.J8MotDirLab = ctk.CTkLabel(self.tab3, font=("Arial", 8), text="J8 Motor Direction")
+        self.J8MotDirLab.place(x=10, y=195)
+
+        self.J9MotDirLab = ctk.CTkLabel(self.tab3, font=("Arial", 8), text="J9 Motor Direction")
+        self.J9MotDirLab.place(x=10, y=220)
+
+        self.J1MotDirEntryField = ctk.CTkEntry(self.tab3, width=80, justify="center")
+        self.J1MotDirEntryField.place(x=110, y=20)
+
+        self.J2MotDirEntryField = ctk.CTkEntry(self.tab3, width=80, justify="center")
+        self.J2MotDirEntryField.place(x=110, y=45)
+
+        self.J3MotDirEntryField = ctk.CTkEntry(self.tab3, width=80, justify="center")
+        self.J3MotDirEntryField.place(x=110, y=70)
+
+        self.J4MotDirEntryField = ctk.CTkEntry(self.tab3, width=80, justify="center")
+        self.J4MotDirEntryField.place(x=110, y=95)
+
+        self.J5MotDirEntryField = ctk.CTkEntry(self.tab3, width=80, justify="center")
+        self.J5MotDirEntryField.place(x=110, y=120)
+
+        self.J6MotDirEntryField = ctk.CTkEntry(self.tab3, width=80, justify="center")
+        self.J6MotDirEntryField.place(x=110, y=145)
+
+        self.J7MotDirEntryField = ctk.CTkEntry(self.tab3, width=80, justify="center")
+        self.J7MotDirEntryField.place(x=110, y=170)
+
+        self.J8MotDirEntryField = ctk.CTkEntry(self.tab3, width=80, justify="center")
+        self.J8MotDirEntryField.place(x=110, y=195)
+
+        self.J9MotDirEntryField = ctk.CTkEntry(self.tab3, width=80, justify="center")
+        self.J9MotDirEntryField.place(x=110, y=220)
+
+        # Calibration Directions Labels and Entry Fields
+        self.J1CalDirLab = ctk.CTkLabel(self.tab3, font=("Arial", 8), text="J1 Calibration Dir.")
+        self.J1CalDirLab.place(x=10, y=280)
+
+        self.J2CalDirLab = ctk.CTkLabel(self.tab3, font=("Arial", 8), text="J2 Calibration Dir.")
+        self.J2CalDirLab.place(x=10, y=305)
+
+        self.J3CalDirLab = ctk.CTkLabel(self.tab3, font=("Arial", 8), text="J3 Calibration Dir.")
+        self.J3CalDirLab.place(x=10, y=330)
+
+        self.J4CalDirLab = ctk.CTkLabel(self.tab3, font=("Arial", 8), text="J4 Calibration Dir.")
+        self.J4CalDirLab.place(x=10, y=355)
+
+        self.J5CalDirLab = ctk.CTkLabel(self.tab3, font=("Arial", 8), text="J5 Calibration Dir.")
+        self.J5CalDirLab.place(x=10, y=380)
+
+        self.J6CalDirLab = ctk.CTkLabel(self.tab3, font=("Arial", 8), text="J6 Calibration Dir.")
+        self.J6CalDirLab.place(x=10, y=405)
+
+        self.J7CalDirLab = ctk.CTkLabel(self.tab3, font=("Arial", 8), text="J7 Calibration Dir.")
+        self.J7CalDirLab.place(x=10, y=430)
+
+        self.J8CalDirLab = ctk.CTkLabel(self.tab3, font=("Arial", 8), text="J8 Calibration Dir.")
+        self.J8CalDirLab.place(x=10, y=455)
+
+        self.J9CalDirLab = ctk.CTkLabel(self.tab3, font=("Arial", 8), text="J9 Calibration Dir.")
+        self.J9CalDirLab.place(x=10, y=480)
+
+        self.J1CalDirEntryField = ctk.CTkEntry(self.tab3, width=80, justify="center")
+        self.J1CalDirEntryField.place(x=110, y=280)
+
+        self.J2CalDirEntryField = ctk.CTkEntry(self.tab3, width=80, justify="center")
+        self.J2CalDirEntryField.place(x=110, y=305)
+
+        self.J3CalDirEntryField = ctk.CTkEntry(self.tab3, width=80, justify="center")
+        self.J3CalDirEntryField.place(x=110, y=330)
+
+        self.J4CalDirEntryField = ctk.CTkEntry(self.tab3, width=80, justify="center")
+        self.J4CalDirEntryField.place(x=110, y=355)
+
+        self.J5CalDirEntryField = ctk.CTkEntry(self.tab3, width=80, justify="center")
+        self.J5CalDirEntryField.place(x=110, y=380)
+
+        self.J6CalDirEntryField = ctk.CTkEntry(self.tab3, width=80, justify="center")
+        self.J6CalDirEntryField.place(x=110, y=405)
+
+        self.J7CalDirEntryField = ctk.CTkEntry(self.tab3, width=80, justify="center")
+        self.J7CalDirEntryField.place(x=110, y=430)
+
+        self.J8CalDirEntryField = ctk.CTkEntry(self.tab3, width=80, justify="center")
+        self.J8CalDirEntryField.place(x=110, y=455)
+
+        self.J9CalDirEntryField = ctk.CTkEntry(self.tab3, width=80, justify="center")
+        self.J9CalDirEntryField.place(x=110, y=480)
+
+        # Axis Limits Labels and Entry Fields
+        self.J1PosLimLab = ctk.CTkLabel(self.tab3, font=("Arial", 8), text="J1 Pos Limit")
+        self.J1PosLimLab.place(x=200, y=20)
+        self.J1NegLimLab = ctk.CTkLabel(self.tab3, font=("Arial", 8), text="J1 Neg Limit")
+        self.J1NegLimLab.place(x=200, y=45)
+
+        self.J2PosLimLab = ctk.CTkLabel(self.tab3, font=("Arial", 8), text="J2 Pos Limit")
+        self.J2PosLimLab.place(x=200, y=70)
+        self.J2NegLimLab = ctk.CTkLabel(self.tab3, font=("Arial", 8), text="J2 Neg Limit")
+        self.J2NegLimLab.place(x=200, y=95)
+
+        self.J3PosLimLab = ctk.CTkLabel(self.tab3, font=("Arial", 8), text="J3 Pos Limit")
+        self.J3PosLimLab.place(x=200, y=120)
+        self.J3NegLimLab = ctk.CTkLabel(self.tab3, font=("Arial", 8), text="J3 Neg Limit")
+        self.J3NegLimLab.place(x=200, y=145)
+
+        self.J4PosLimLab = ctk.CTkLabel(self.tab3, font=("Arial", 8), text="J4 Pos Limit")
+        self.J4PosLimLab.place(x=200, y=170)
+        self.J4NegLimLab = ctk.CTkLabel(self.tab3, font=("Arial", 8), text="J4 Neg Limit")
+        self.J4NegLimLab.place(x=200, y=195)
+
+        self.J5PosLimLab = ctk.CTkLabel(self.tab3, font=("Arial", 8), text="J5 Pos Limit")
+        self.J5PosLimLab.place(x=200, y=220)
+        self.J5NegLimLab = ctk.CTkLabel(self.tab3, font=("Arial", 8), text="J5 Neg Limit")
+        self.J5NegLimLab.place(x=200, y=245)
+
+        self.J6PosLimLab = ctk.CTkLabel(self.tab3, font=("Arial", 8), text="J6 Pos Limit")
+        self.J6PosLimLab.place(x=200, y=270)
+        self.J6NegLimLab = ctk.CTkLabel(self.tab3, font=("Arial", 8), text="J6 Neg Limit")
+        self.J6NegLimLab.place(x=200, y=295)
+
+        self.J1PosLimEntryField = ctk.CTkEntry(self.tab3, width=80, justify="center")
+        self.J1PosLimEntryField.place(x=280, y=20)
+        self.J1NegLimEntryField = ctk.CTkEntry(self.tab3, width=80, justify="center")
+        self.J1NegLimEntryField.place(x=280, y=45)
+
+        self.J2PosLimEntryField = ctk.CTkEntry(self.tab3, width=80, justify="center")
+        self.J2PosLimEntryField.place(x=280, y=70)
+        self.J2NegLimEntryField = ctk.CTkEntry(self.tab3, width=80, justify="center")
+        self.J2NegLimEntryField.place(x=280, y=95)
+
+        self.J3PosLimEntryField = ctk.CTkEntry(self.tab3, width=80, justify="center")
+        self.J3PosLimEntryField.place(x=280, y=120)
+        self.J3NegLimEntryField = ctk.CTkEntry(self.tab3, width=80, justify="center")
+        self.J3NegLimEntryField.place(x=280, y=145)
+
+        self.J4PosLimEntryField = ctk.CTkEntry(self.tab3, width=80, justify="center")
+        self.J4PosLimEntryField.place(x=280, y=170)
+        self.J4NegLimEntryField = ctk.CTkEntry(self.tab3, width=80, justify="center")
+        self.J4NegLimEntryField.place(x=280, y=195)
+
+        self.J5PosLimEntryField = ctk.CTkEntry(self.tab3, width=80, justify="center")
+        self.J5PosLimEntryField.place(x=280, y=220)
+        self.J5NegLimEntryField = ctk.CTkEntry(self.tab3, width=80, justify="center")
+        self.J5NegLimEntryField.place(x=280, y=245)
+
+        self.J6PosLimEntryField = ctk.CTkEntry(self.tab3, width=80, justify="center")
+        self.J6PosLimEntryField.place(x=280, y=270)
+        self.J6NegLimEntryField = ctk.CTkEntry(self.tab3, width=80, justify="center")
+        self.J6NegLimEntryField.place(x=280, y=295)
+
+        # Steps per Degree Labels and Entry Fields
+        self.J1StepDegLab = ctk.CTkLabel(self.tab3, font=("Arial", 8), text="J1 Step/Deg")
+        self.J1StepDegLab.place(x=200, y=345)
+
+        self.J2StepDegLab = ctk.CTkLabel(self.tab3, font=("Arial", 8), text="J2 Step/Deg")
+        self.J2StepDegLab.place(x=200, y=370)
+
+        self.J3StepDegLab = ctk.CTkLabel(self.tab3, font=("Arial", 8), text="J3 Step/Deg")
+        self.J3StepDegLab.place(x=200, y=395)
+
+        self.J4StepDegLab = ctk.CTkLabel(self.tab3, font=("Arial", 8), text="J4 Step/Deg")
+        self.J4StepDegLab.place(x=200, y=420)
+
+        self.J5StepDegLab = ctk.CTkLabel(self.tab3, font=("Arial", 8), text="J5 Step/Deg")
+        self.J5StepDegLab.place(x=200, y=445)
+
+        self.J6StepDegLab = ctk.CTkLabel(self.tab3, font=("Arial", 8), text="J6 Step/Deg")
+        self.J6StepDegLab.place(x=200, y=470)
+
+        self.J1StepDegEntryField = ctk.CTkEntry(self.tab3, width=80, justify="center")
+        self.J1StepDegEntryField.place(x=280, y=345)
+
+        self.J2StepDegEntryField = ctk.CTkEntry(self.tab3, width=80, justify="center")
+        self.J2StepDegEntryField.place(x=280, y=370)
+
+        self.J3StepDegEntryField = ctk.CTkEntry(self.tab3, width=80, justify="center")
+        self.J3StepDegEntryField.place(x=280, y=395)
+
+        self.J4StepDegEntryField = ctk.CTkEntry(self.tab3, width=80, justify="center")
+        self.J4StepDegEntryField.place(x=280, y=420)
+
+        self.J5StepDegEntryField = ctk.CTkEntry(self.tab3, width=80, justify="center")
+        self.J5StepDegEntryField.place(x=280, y=445)
+
+        self.J6StepDegEntryField = ctk.CTkEntry(self.tab3, width=80, justify="center")
+        self.J6StepDegEntryField.place(x=280, y=470)
+
+        # Driver Steps Labels and Entry Fields
+        self.J1DriveMSLab = ctk.CTkLabel(self.tab3, font=("Arial", 8), text="J1 Drive Microstep")
+        self.J1DriveMSLab.place(x=390, y=20)
+
+        self.J2DriveMSLab = ctk.CTkLabel(self.tab3, font=("Arial", 8), text="J2 Drive Microstep")
+        self.J2DriveMSLab.place(x=390, y=45)
+
+        self.J3DriveMSLab = ctk.CTkLabel(self.tab3, font=("Arial", 8), text="J3 Drive Microstep")
+        self.J3DriveMSLab.place(x=390, y=70)
+
+        self.J4DriveMSLab = ctk.CTkLabel(self.tab3, font=("Arial", 8), text="J4 Drive Microstep")
+        self.J4DriveMSLab.place(x=390, y=95)
+
+        self.J5DriveMSLab = ctk.CTkLabel(self.tab3, font=("Arial", 8), text="J5 Drive Microstep")
+        self.J5DriveMSLab.place(x=390, y=120)
+
+        self.J6DriveMSLab = ctk.CTkLabel(self.tab3, font=("Arial", 8), text="J6 Drive Microstep")
+        self.J6DriveMSLab.place(x=390, y=145)
+
+        self.J1DriveMSEntryField = ctk.CTkEntry(self.tab3, width=80, justify="center")
+        self.J1DriveMSEntryField.place(x=500, y=20)
+
+        self.J2DriveMSEntryField = ctk.CTkEntry(self.tab3, width=80, justify="center")
+        self.J2DriveMSEntryField.place(x=500, y=45)
+
+        self.J3DriveMSEntryField = ctk.CTkEntry(self.tab3, width=80, justify="center")
+        self.J3DriveMSEntryField.place(x=500, y=70)
+
+        self.J4DriveMSEntryField = ctk.CTkEntry(self.tab3, width=80, justify="center")
+        self.J4DriveMSEntryField.place(x=500, y=95)
+
+        self.J5DriveMSEntryField = ctk.CTkEntry(self.tab3, width=80, justify="center")
+        self.J5DriveMSEntryField.place(x=500, y=120)
+
+        self.J6DriveMSEntryField = ctk.CTkEntry(self.tab3, width=80, justify="center")
+        self.J6DriveMSEntryField.place(x=500, y=145)
+
+        # Encoder CPR Labels and Entry Fields
+        self.J1EncCPRLab = ctk.CTkLabel(self.tab3, font=("Arial", 8), text="J1 Encoder CPR")
+        self.J1EncCPRLab.place(x=390, y=195)
+
+        self.J2EncCPRLab = ctk.CTkLabel(self.tab3, font=("Arial", 8), text="J2 Encoder CPR")
+        self.J2EncCPRLab.place(x=390, y=220)
+
+        self.J3EncCPRLab = ctk.CTkLabel(self.tab3, font=("Arial", 8), text="J3 Encoder CPR")
+        self.J3EncCPRLab.place(x=390, y=245)
+
+        self.J4EncCPRLab = ctk.CTkLabel(self.tab3, font=("Arial", 8), text="J4 Encoder CPR")
+        self.J4EncCPRLab.place(x=390, y=270)
+
+        self.J5EncCPRLab = ctk.CTkLabel(self.tab3, font=("Arial", 8), text="J5 Encoder CPR")
+        self.J5EncCPRLab.place(x=390, y=295)
+
+        self.J6EncCPRLab = ctk.CTkLabel(self.tab3, font=("Arial", 8), text="J6 Encoder CPR")
+        self.J6EncCPRLab.place(x=390, y=320)
+
+        self.J1EncCPREntryField = ctk.CTkEntry(self.tab3, width=80, justify="center")
+        self.J1EncCPREntryField.place(x=500, y=195)
+
+        self.J2EncCPREntryField = ctk.CTkEntry(self.tab3, width=80, justify="center")
+        self.J2EncCPREntryField.place(x=500, y=220)
+
+        self.J3EncCPREntryField = ctk.CTkEntry(self.tab3, width=80, justify="center")
+        self.J3EncCPREntryField.place(x=500, y=245)
+
+        self.J4EncCPREntryField = ctk.CTkEntry(self.tab3, width=80, justify="center")
+        self.J4EncCPREntryField.place(x=500, y=270)
+
+        self.J5EncCPREntryField = ctk.CTkEntry(self.tab3, width=80, justify="center")
+        self.J5EncCPREntryField.place(x=500, y=295)
+
+        self.J6EncCPREntryField = ctk.CTkEntry(self.tab3, width=80, justify="center")
+        self.J6EncCPREntryField.place(x=500, y=320)
+
+        # DH Parameters Labels
+        self.JointLabels = []
+        for i in range(1, 7):
+            joint_label = ctk.CTkLabel(self.tab3, font=("Arial", 8), text=f"J{i}")
+            joint_label.place(x=600, y=25 + i * 25)
+            self.JointLabels.append(joint_label)
+
+        self.DHParamLabels = {
+            "Θ": ctk.CTkLabel(self.tab3, font=("Arial", 8), text="DH-Θ"),
+            "α": ctk.CTkLabel(self.tab3, font=("Arial", 8), text="DH-α"),
+            "d": ctk.CTkLabel(self.tab3, font=("Arial", 8), text="DH-d"),
+            "a": ctk.CTkLabel(self.tab3, font=("Arial", 8), text="DH-a")
+        }
+        self.DHParamLabels["Θ"].place(x=645, y=20)
+        self.DHParamLabels["α"].place(x=700, y=20)
+        self.DHParamLabels["d"].place(x=755, y=20)
+        self.DHParamLabels["a"].place(x=810, y=20)
+
+        # DH Parameters Entry Fields
+        self.DHEntryFields = {
+            "Θ": [],
+            "α": [],
+            "d": [],
+            "a": []
+        }
+
+        for i in range(6):  # J1 to J6
+            for param, x_offset in zip(["Θ", "α", "d", "a"], [630, 685, 740, 795]):
+                entry_field = ctk.CTkEntry(self.tab3, width=80, justify="center")
+                entry_field.place(x=x_offset, y=45 + i * 25)
+                self.DHEntryFields[param].append(entry_field)
+
+        # Load Default Profiles
+        self.loadAR4Mk2But = ctk.CTkButton(self.tab3, text="Load AR4-MK3 Defaults", width=200, command=self.LoadAR4Mk3default)
+        self.loadAR4Mk2But.place(x=1150, y=590)
+
+        # Save Cablibration Profile
+        self.saveCalBut = ctk.CTkButton(self.tab3, text="SAVE", width=200, command=self.SaveAndApplyCalibration)
+        self.saveCalBut.place(x=1150, y=630)
+
+        ## TAB 4 LABELS ##
+
         
 
     # Startup defs #
