@@ -177,9 +177,6 @@ class RobotArmApp:
         )
         self.almStatusLab.place(x=25, y=12)
 
-        self.xbcStatusLab = ctk.CTkLabel(self.tab1, text="Xbox OFF")
-        self.xbcStatusLab.place(x=1270, y=80)
-
         self.runStatusLab = ctk.CTkLabel(self.tab1, text="PROGRAM STOPPED")
         self.runStatusLab.place(x=20, y=150)
 
@@ -818,8 +815,8 @@ class RobotArmApp:
         self.progView = ctk.CTkTextbox(
             self.progframe,
             exportselection=0,
-            width=740,  # Approximation based on original width (105 chars * ~7px per char)
-            height=560,  # Approximation based on original height
+            width=680,  # Approximation based on original width (105 chars * ~7px per char)
+            height=490,  # Approximation based on original height
             yscrollcommand=self.scrollbar.set,
         )
         self.progView.bind("<<ListboxSelect>>", self.progViewselect)
@@ -833,8 +830,8 @@ class RobotArmApp:
         self.curRowEntryField = ctk.CTkEntry(self.tab1, width=40, justify="center", placeholder_text="Current Row")
         self.curRowEntryField.place(x=174, y=120)
 
-        self.manEntryField = ctk.CTkEntry(self.tab1, width=740, placeholder_text="Manual Entry")
-        self.manEntryField.place(x=10, y=700)
+        self.manEntryField = ctk.CTkEntry(self.tab1, width=680, placeholder_text="Manual Entry")
+        self.manEntryField.place(x=10, y=670)
 
         self.ProgEntryField = ctk.CTkEntry(self.tab1, width=150, justify="center", placeholder_text="Program")
         self.ProgEntryField.place(x=70, y=45)
@@ -888,19 +885,19 @@ class RobotArmApp:
 
         # Create buttons in a consistent style and place them within the GUI
         self.getSelBut = ctk.CTkButton(self.tab1, text="Get Selected", width=100, height=30, command=self.getSel)
-        self.getSelBut.place(x=10, y=725)
+        self.getSelBut.place(x=10, y=700)
 
         self.manInsBut = ctk.CTkButton(self.tab1, text="Insert", width=100, height=30, command=self.manInsItem)
-        self.manInsBut.place(x=115, y=725)
+        self.manInsBut.place(x=115, y=700)
 
         self.manRepBut = ctk.CTkButton(self.tab1, text="Replace", width=100, height=30, command=self.manReplItem)
-        self.manRepBut.place(x=220, y=725)
+        self.manRepBut.place(x=220, y=700)
 
         self.openTextBut = ctk.CTkButton(self.tab1, text="Open Text", width=100, height=30, command=self.openText)
-        self.openTextBut.place(x=325, y=725)
+        self.openTextBut.place(x=325, y=700)
 
         self.reloadProgBut = ctk.CTkButton(self.tab1, text="Reload", width=100, height=30, command=self.reloadProg)
-        self.reloadProgBut.place(x=430, y=725)
+        self.reloadProgBut.place(x=430, y=700)
 
         # Dropdown menu for speed options
         self.speedOption = ctk.StringVar(value="Percent")
@@ -1189,7 +1186,8 @@ class RobotArmApp:
         # Play, Stop, and Other Icons
         self.runProgBut = ctk.CTkButton(
             self.tab1, 
-            text="Play", 
+            text="Play",
+            width=80, 
             image=ctk.CTkImage(Image.open(os.path.join('assets', 'play-icon.png'))), 
             command=self.runProg
         )
@@ -1198,6 +1196,7 @@ class RobotArmApp:
         self.xboxBut = ctk.CTkButton(
             self.tab1, 
             text="Controller", 
+            width=80,
             image=ctk.CTkImage(Image.open(os.path.join('assets', 'xbox-icon.png'))), 
             command=self.xbox
         )
@@ -1206,10 +1205,21 @@ class RobotArmApp:
         self.stopProgBut = ctk.CTkButton(
             self.tab1, 
             text="Stop", 
+            width=80,
             image=ctk.CTkImage(Image.open(os.path.join('assets', 'stop-icon.png'))), 
             command=self.stopProg
         )
         self.stopProgBut.place(x=220, y=80)
+
+        self.revBut = ctk.CTkButton(
+            self.tab1, text="REV", width=50, command=self.stepRev
+        )
+        self.revBut.place(x=105, y=80)
+
+        self.fwdBut = ctk.CTkButton(
+            self.tab1, text="FWD", width=50, command=self.stepFwd
+        )
+        self.fwdBut.place(x=160, y=80)
 
         # Checkbutton
         self.IncJogCbut = ctk.CTkCheckBox(
@@ -1664,6 +1674,7 @@ class RobotArmApp:
         self.autoCalBut = ctk.CTkButton(self.tab2, text="Auto Calibrate", command=self.calRobotAll, width=120)
         self.autoCalBut.place(x=285, y=90)
 
+        # Calibration Checkboxes
         self.J1calCbut = ctk.CTkCheckBox(self.tab2, text="J1", variable=self.J1CalStat, width=40)
         self.J1calCbut.place(x=285, y=125)
 
@@ -1673,6 +1684,52 @@ class RobotArmApp:
         self.J3calCbut = ctk.CTkCheckBox(self.tab2, text="J3", variable=self.J3CalStat, width=40)
         self.J3calCbut.place(x=355, y=125)
 
+        self.J4calCbut = ctk.CTkCheckBox(self.tab2, text="J4", variable=self.J4CalStat, width=40)
+        self.J4calCbut.place(x=285, y=145)
+
+        self.J5calCbut = ctk.CTkCheckBox(self.tab2, text="J5", variable=self.J5CalStat, width=40)
+        self.J5calCbut.place(x=320, y=145)
+
+        self.J6calCbut = ctk.CTkCheckBox(self.tab2, text="J6", variable=self.J6CalStat, width=40)
+        self.J6calCbut.place(x=355, y=145)
+
+        self.J7calCbut = ctk.CTkCheckBox(self.tab2, text="J7", variable=self.J7CalStat, width=40)
+        self.J7calCbut.place(x=285, y=165)
+
+        self.J8calCbut = ctk.CTkCheckBox(self.tab2, text="J8", variable=self.J8CalStat, width=40)
+        self.J8calCbut.place(x=320, y=165)
+
+        self.J9calCbut = ctk.CTkCheckBox(self.tab2, text="J9", variable=self.J9CalStat, width=40)
+        self.J9calCbut.place(x=355, y=165)
+
+        self.J1calCbut2 = ctk.CTkCheckBox(self.tab2, text="J1", variable=self.J1CalStat2, width=40)
+        self.J1calCbut2.place(x=285, y=200)
+
+        self.J2calCbut2 = ctk.CTkCheckBox(self.tab2, text="J2", variable=self.J2CalStat2, width=40)
+        self.J2calCbut2.place(x=320, y=200)
+
+        self.J3calCbut2 = ctk.CTkCheckBox(self.tab2, text="J3", variable=self.J3CalStat2, width=40)
+        self.J3calCbut2.place(x=355, y=200)
+
+        self.J4calCbut2 = ctk.CTkCheckBox(self.tab2, text="J4", variable=self.J4CalStat2, width=40)
+        self.J4calCbut2.place(x=285, y=220)
+
+        self.J5calCbut2 = ctk.CTkCheckBox(self.tab2, text="J5", variable=self.J5CalStat2, width=40)
+        self.J5calCbut2.place(x=320, y=220)
+
+        self.J6calCbut2 = ctk.CTkCheckBox(self.tab2, text="J6", variable=self.J6CalStat2, width=40)
+        self.J6calCbut2.place(x=355, y=220)
+
+        self.J7calCbut2 = ctk.CTkCheckBox(self.tab2, text="J7", variable=self.J7CalStat2, width=40)
+        self.J7calCbut2.place(x=285, y=240)
+
+        self.J8calCbut2 = ctk.CTkCheckBox(self.tab2, text="J8", variable=self.J8CalStat2, width=40)
+        self.J8calCbut2.place(x=320, y=240)
+
+        self.J9calCbut2 = ctk.CTkCheckBox(self.tab2, text="J9", variable=self.J9CalStat2, width=40)
+        self.J9calCbut2.place(x=355, y=240)
+
+        # Axis Calibration Buttons
         self.J7zerobut = ctk.CTkButton(self.tab2, text="Set Axis 7 Calibration to Zero", command=self.zeroAxis7, width=200)
         self.J7zerobut.place(x=627, y=440)
 
@@ -1691,6 +1748,7 @@ class RobotArmApp:
         self.J9calbut = ctk.CTkButton(self.tab2, text="Autocalibrate Axis 9", command=self.calRobotJ9, width=200)
         self.J9calbut.place(x=1027, y=475)
 
+        # Individual Joint Calibration Buttons
         self.CalJ1But = ctk.CTkButton(self.tab2, text="Calibrate J1 Only", command=self.calRobotJ1, width=120)
         self.CalJ1But.place(x=285, y=275)
 
@@ -1700,12 +1758,22 @@ class RobotArmApp:
         self.CalJ3But = ctk.CTkButton(self.tab2, text="Calibrate J3 Only", command=self.calRobotJ3, width=120)
         self.CalJ3But.place(x=285, y=345)
 
+        self.CalJ4But = ctk.CTkButton(self.tab2, text="Calibrate J4 Only", command=self.calRobotJ4, width=120)
+        self.CalJ4But.place(x=285, y=380)
+
+        self.CalJ5But = ctk.CTkButton(self.tab2, text="Calibrate J5 Only", command=self.calRobotJ5, width=120)
+        self.CalJ5But.place(x=285, y=415)
+
+        self.CalJ6But = ctk.CTkButton(self.tab2, text="Calibrate J6 Only", command=self.calRobotJ6, width=120)
+        self.CalJ6But.place(x=285, y=450)
+
         self.CalZeroBut = ctk.CTkButton(self.tab2, text="Force CaL to Home", command=self.CalZeroPos, width=140)
         self.CalZeroBut.place(x=270, y=485)
 
         self.CalRestBut = ctk.CTkButton(self.tab2, text="Force Cal to Rest", command=self.CalRestPos, width=140)
         self.CalRestBut.place(x=270, y=520)
 
+        # Open Loop Checkboxes
         self.J1OpenLoopCbut = ctk.CTkCheckBox(self.tab2, text="J1 Open Loop (disable encoder)", variable=self.J1OpenLoopStat, width=200)
         self.J1OpenLoopCbut.place(x=665, y=90)
 
@@ -1718,6 +1786,13 @@ class RobotArmApp:
         self.J4OpenLoopCbut = ctk.CTkCheckBox(self.tab2, text="J4 Open Loop (disable encoder)", variable=self.J4OpenLoopStat, width=200)
         self.J4OpenLoopCbut.place(x=665, y=150)
 
+        self.J5OpenLoopCbut = ctk.CTkCheckBox(self.tab2, text="J5 Open Loop (disable encoder)", variable=self.J5OpenLoopStat, width=200)
+        self.J5OpenLoopCbut.place(x=665, y=170)
+
+        self.J6OpenLoopCbut = ctk.CTkCheckBox(self.tab2, text="J6 Open Loop (disable encoder)", variable=self.J6OpenLoopStat, width=200)
+        self.J6OpenLoopCbut.place(x=665, y=190)
+
+        # Save Button
         self.saveCalBut = ctk.CTkButton(self.tab2, text="SAVE", command=self.SaveAndApplyCalibration, width=140)
         self.saveCalBut.place(x=1150, y=630)
 
@@ -2168,6 +2243,211 @@ class RobotArmApp:
         self.saveCalBut.place(x=1150, y=630)
 
         ## TAB 4 LABELS ##
+
+        # Servo Labels
+        self.servo0onequalsLab = ctk.CTkLabel(self.tab4, text="=")
+        self.servo0onequalsLab.place(x=76, y=12)
+
+        self.servo0offequalsLab = ctk.CTkLabel(self.tab4, text="=")
+        self.servo0offequalsLab.place(x=76, y=52)
+
+        self.servo1onequalsLab = ctk.CTkLabel(self.tab4, text="=")
+        self.servo1onequalsLab.place(x=76, y=92)
+
+        self.servo1offequalsLab = ctk.CTkLabel(self.tab4, text="=")
+        self.servo1offequalsLab.place(x=76, y=132)
+
+        self.servo2onequalsLab = ctk.CTkLabel(self.tab4, text="=")
+        self.servo2onequalsLab.place(x=76, y=172)
+
+        self.servo2offequalsLab = ctk.CTkLabel(self.tab4, text="=")
+        self.servo2offequalsLab.place(x=76, y=212)
+
+        self.servo3onequalsLab = ctk.CTkLabel(self.tab4, text="=")
+        self.servo3onequalsLab.place(x=76, y=252)
+
+        self.servo3offequalsLab = ctk.CTkLabel(self.tab4, text="=")
+        self.servo3offequalsLab.place(x=76, y=292)
+
+        # Digital Output Labels
+        self.Do1onequalsLab = ctk.CTkLabel(self.tab4, text="=")
+        self.Do1onequalsLab.place(x=222, y=12)
+
+        self.Do1offequalsLab = ctk.CTkLabel(self.tab4, text="=")
+        self.Do1offequalsLab.place(x=222, y=52)
+
+        self.Do2onequalsLab = ctk.CTkLabel(self.tab4, text="=")
+        self.Do2onequalsLab.place(x=222, y=92)
+
+        self.Do2offequalsLab = ctk.CTkLabel(self.tab4, text="=")
+        self.Do2offequalsLab.place(x=222, y=132)
+
+        self.Do3onequalsLab = ctk.CTkLabel(self.tab4, text="=")
+        self.Do3onequalsLab.place(x=222, y=172)
+
+        self.Do3offequalsLab = ctk.CTkLabel(self.tab4, text="=")
+        self.Do3offequalsLab.place(x=222, y=212)
+
+        self.Do4onequalsLab = ctk.CTkLabel(self.tab4, text="=")
+        self.Do4onequalsLab.place(x=222, y=252)
+
+        self.Do4offequalsLab = ctk.CTkLabel(self.tab4, text="=")
+        self.Do4offequalsLab.place(x=222, y=292)
+
+        self.Do5onequalsLab = ctk.CTkLabel(self.tab4, text="=")
+        self.Do5onequalsLab.place(x=222, y=332)
+
+        self.Do5offequalsLab = ctk.CTkLabel(self.tab4, text="=")
+        self.Do5offequalsLab.place(x=222, y=372)
+
+        self.Do6onequalsLab = ctk.CTkLabel(self.tab4, text="=")
+        self.Do6onequalsLab.place(x=222, y=412)
+
+        self.Do6offequalsLab = ctk.CTkLabel(self.tab4, text="=")
+        self.Do6offequalsLab.place(x=222, y=452)
+
+        # Note Labels
+        self.inoutavailLab1 = ctk.CTkLabel(
+            self.tab4,
+            text="NOTE: the following are available when using the default Nano board for IO:   Inputs = 2-7  /  Outputs = 8-13  /  Servos = A0-A7",
+            wraplength=800,
+            justify="left",
+        )
+        self.inoutavailLab1.place(x=10, y=640)
+
+        self.inoutavailLab2 = ctk.CTkLabel(
+            self.tab4,
+            text="If using IO on Teensy board:  Inputs = 32-36  /  Outputs = 37-41 - if using IO on Teensy you must manually change the command from 'Out On =' to 'ToutOn ='",
+            wraplength=800,
+            justify="left",
+        )
+        self.inoutavailLab2.place(x=10, y=662)
+
+        # Servo Buttons
+        self.servo0onBut = ctk.CTkButton(self.tab4, text="Servo 0", width=50, command=self.Servo0on)
+        self.servo0onBut.place(x=10, y=10)
+
+        self.servo0offBut = ctk.CTkButton(self.tab4, text="Servo 0", width=50, command=self.Servo0off)
+        self.servo0offBut.place(x=10, y=50)
+
+        self.servo1onBut = ctk.CTkButton(self.tab4, text="Servo 1", width=50, command=self.Servo1on)
+        self.servo1onBut.place(x=10, y=90)
+
+        self.servo1offBut = ctk.CTkButton(self.tab4, text="Servo 1", width=50, command=self.Servo1off)
+        self.servo1offBut.place(x=10, y=130)
+
+        self.servo2onBut = ctk.CTkButton(self.tab4, text="Servo 2", width=50, command=self.Servo2on)
+        self.servo2onBut.place(x=10, y=170)
+
+        self.servo2offBut = ctk.CTkButton(self.tab4, text="Servo 2", width=50, command=self.Servo2off)
+        self.servo2offBut.place(x=10, y=210)
+
+        self.servo3onBut = ctk.CTkButton(self.tab4, text="Servo 3", width=50, command=self.Servo3on)
+        self.servo3onBut.place(x=10, y=250)
+
+        self.servo3offBut = ctk.CTkButton(self.tab4, text="Servo 3", width=50, command=self.Servo3off)
+        self.servo3offBut.place(x=10, y=290)
+
+        # Digital Output Buttons
+        self.DO1onBut = ctk.CTkButton(self.tab4, text="DO on", width=50, command=self.DO1on)
+        self.DO1onBut.place(x=164, y=10)
+
+        self.DO1offBut = ctk.CTkButton(self.tab4, text="DO off", width=50, command=self.DO1off)
+        self.DO1offBut.place(x=164, y=50)
+
+        self.DO2onBut = ctk.CTkButton(self.tab4, text="DO on", width=50, command=self.DO2on)
+        self.DO2onBut.place(x=164, y=90)
+
+        self.DO2offBut = ctk.CTkButton(self.tab4, text="DO off", width=50, command=self.DO2off)
+        self.DO2offBut.place(x=164, y=130)
+
+        self.DO3onBut = ctk.CTkButton(self.tab4, text="DO on", width=50, command=self.DO3on)
+        self.DO3onBut.place(x=164, y=170)
+
+        self.DO3offBut = ctk.CTkButton(self.tab4, text="DO off", width=50, command=self.DO3off)
+        self.DO3offBut.place(x=164, y=210)
+
+        self.DO4onBut = ctk.CTkButton(self.tab4, text="DO on", width=50, command=self.DO4on)
+        self.DO4onBut.place(x=164, y=250)
+
+        self.DO4offBut = ctk.CTkButton(self.tab4, text="DO off", width=50, command=self.DO4off)
+        self.DO4offBut.place(x=164, y=290)
+
+        self.DO5onBut = ctk.CTkButton(self.tab4, text="DO on", width=50, command=self.DO5on)
+        self.DO5onBut.place(x=164, y=330)
+
+        self.DO5offBut = ctk.CTkButton(self.tab4, text="DO off", width=50, command=self.DO5off)
+        self.DO5offBut.place(x=164, y=370)
+
+        self.DO6onBut = ctk.CTkButton(self.tab4, text="DO on",width=50, command=self.DO6on)
+        self.DO6onBut.place(x=164, y=410)
+
+        self.DO6offBut = ctk.CTkButton(self.tab4, text="DO off", width=50, command=self.DO6off)
+        self.DO6offBut.place(x=164, y=450)
+
+        # Servo Entry Fields
+        self.servo0onEntryField = ctk.CTkEntry(self.tab4, width=50, justify="center")
+        self.servo0onEntryField.place(x=90, y=15)
+
+        self.servo0offEntryField = ctk.CTkEntry(self.tab4, width=50, justify="center")
+        self.servo0offEntryField.place(x=90, y=55)
+
+        self.servo1onEntryField = ctk.CTkEntry(self.tab4, width=50, justify="center")
+        self.servo1onEntryField.place(x=90, y=95)
+
+        self.servo1offEntryField = ctk.CTkEntry(self.tab4, width=50, justify="center")
+        self.servo1offEntryField.place(x=90, y=135)
+
+        self.servo2onEntryField = ctk.CTkEntry(self.tab4, width=50, justify="center")
+        self.servo2onEntryField.place(x=90, y=175)
+
+        self.servo2offEntryField = ctk.CTkEntry(self.tab4, width=50, justify="center")
+        self.servo2offEntryField.place(x=90, y=215)
+
+        self.servo3onEntryField = ctk.CTkEntry(self.tab4, width=50, justify="center")
+        self.servo3onEntryField.place(x=90, y=255)
+
+        self.servo3offEntryField = ctk.CTkEntry(self.tab4, width=50, justify="center")
+        self.servo3offEntryField.place(x=90, y=295)
+
+        # Digital Output Entry Fields
+        self.DO1onEntryField = ctk.CTkEntry(self.tab4, width=50, justify="center")
+        self.DO1onEntryField.place(x=238, y=15)
+
+        self.DO1offEntryField = ctk.CTkEntry(self.tab4, width=50, justify="center")
+        self.DO1offEntryField.place(x=238, y=55)
+
+        self.DO2onEntryField = ctk.CTkEntry(self.tab4, width=50, justify="center")
+        self.DO2onEntryField.place(x=238, y=95)
+
+        self.DO2offEntryField = ctk.CTkEntry(self.tab4, width=50, justify="center")
+        self.DO2offEntryField.place(x=238, y=135)
+
+        self.DO3onEntryField = ctk.CTkEntry(self.tab4, width=50, justify="center")
+        self.DO3onEntryField.place(x=238, y=175)
+
+        self.DO3offEntryField = ctk.CTkEntry(self.tab4, width=50, justify="center")
+        self.DO3offEntryField.place(x=238, y=215)
+
+        self.DO4onEntryField = ctk.CTkEntry(self.tab4, width=50, justify="center")
+        self.DO4onEntryField.place(x=238, y=255)
+
+        self.DO4offEntryField = ctk.CTkEntry(self.tab4, width=50, justify="center")
+        self.DO4offEntryField.place(x=238, y=295)
+
+        self.DO5onEntryField = ctk.CTkEntry(self.tab4, width=50, justify="center")
+        self.DO5onEntryField.place(x=238, y=335)
+
+        self.DO5offEntryField = ctk.CTkEntry(self.tab4, width=50, justify="center")
+        self.DO5offEntryField.place(x=238, y=375)
+
+        self.DO6onEntryField = ctk.CTkEntry(self.tab4, width=50, justify="center")
+        self.DO6onEntryField.place(x=238, y=415)
+
+        self.DO6offEntryField = ctk.CTkEntry(self.tab4, width=50, justify="center")
+        self.DO6offEntryField.place(x=238, y=455)
+
+        ## TAB 5 LABELS ##
 
         
 
