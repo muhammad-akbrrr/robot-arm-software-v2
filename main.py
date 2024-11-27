@@ -1140,37 +1140,66 @@ class RobotArmApp:
         )
         self.visFindBut.place(x=950, y=680)
 
-        # Entry Fields and Labels
-        self.playGCEntry = ctk.CTkEntry(
-            self.tab1, width=200, justify="center", placeholder_text="G-Code File"
-        )
-        self.playGCEntry.place(x=1107, y=403)
+        # Entry Fields
+        self.PlayGCEntryField = ctk.CTkEntry(self.tab1, width=150, justify="center")
+        self.PlayGCEntryField.place(x=1107, y=403)
 
-        self.auxPortEntry = ctk.CTkEntry(
-            self.tab1, width=50, justify="center", placeholder_text="Port"
-        )
-        self.auxPortEntry.place(x=1107, y=443)
+        self.auxPortEntryField = ctk.CTkEntry(self.tab1, width=50, justify="center")
+        self.auxPortEntryField.place(x=1107, y=443)
 
-        self.auxCharEntry = ctk.CTkEntry(
-            self.tab1, width=50, justify="center", placeholder_text="Char"
-        )
-        self.auxCharEntry.place(x=1147, y=443)
+        self.auxCharEntryField = ctk.CTkEntry(self.tab1, width=50, justify="center")
+        self.auxCharEntryField.place(x=1147, y=443)
 
-        self.servoNumEntry = ctk.CTkEntry(
-            self.tab1, width=50, justify="center", placeholder_text="Num"
-        )
-        self.servoNumEntry.place(x=1107, y=483)
+        self.servoNumEntryField = ctk.CTkEntry(self.tab1, width=50, justify="center")
+        self.servoNumEntryField.place(x=1107, y=483)
 
-        self.servoPosEntry = ctk.CTkEntry(
-            self.tab1, width=50, justify="center", placeholder_text="Pos"
-        )
-        self.servoPosEntry.place(x=1147, y=483)
+        self.servoPosEntryField = ctk.CTkEntry(self.tab1, width=50, justify="center")
+        self.servoPosEntryField.place(x=1147, y=483)
 
-        # Example for Labelling Groups of Entries
-        self.servoLabel = ctk.CTkLabel(
-            self.tab1, text="Number    Position", font=("Arial", 10)
+        self.regNumEntryField = ctk.CTkEntry(self.tab1, width=50, justify="center")
+        self.regNumEntryField.place(x=1107, y=523)
+
+        self.regEqEntryField = ctk.CTkEntry(self.tab1, width=50, justify="center")
+        self.regEqEntryField.place(x=1147, y=523)
+
+        self.storPosNumEntryField = ctk.CTkEntry(self.tab1, width=50, justify="center")
+        self.storPosNumEntryField.place(x=1107, y=563)
+
+        self.storPosElEntryField = ctk.CTkEntry(self.tab1, width=50, justify="center")
+        self.storPosElEntryField.place(x=1147, y=563)
+
+        self.storPosValEntryField = ctk.CTkEntry(self.tab1, width=50, justify="center")
+        self.storPosValEntryField.place(x=1187, y=563)
+
+        self.changeProgEntryField = ctk.CTkEntry(self.tab1, width=150, justify="center")
+        self.changeProgEntryField.place(x=1107, y=603)
+
+        self.visPassEntryField = ctk.CTkEntry(self.tab1, width=50, justify="center")
+        self.visPassEntryField.place(x=1107, y=683)
+
+        self.visFailEntryField = ctk.CTkEntry(self.tab1, width=50, justify="center")
+        self.visFailEntryField.place(x=1147, y=683)
+
+        # Labels
+        self.manEntLab = ctk.CTkLabel(self.tab1, font=("Arial", 6), text="Manual Program Entry")
+        self.manEntLab.place(x=10, y=685)
+
+        self.auxComLab = ctk.CTkLabel(self.tab1, font=("Arial", 6), text="Port             Char")
+        self.auxComLab.place(x=1107, y=429)
+
+        self.servoLab = ctk.CTkLabel(self.tab1, font=("Arial", 6), text="Number      Position")
+        self.servoLab.place(x=1107, y=469)
+
+        self.regEqLab = ctk.CTkLabel(self.tab1, font=("Arial", 6), text="Register       (++/--)")
+        self.regEqLab.place(x=1107, y=509)
+
+        self.storPosEqLab = ctk.CTkLabel(
+            self.tab1, font=("Arial", 6), text=" Pos Reg      Element       (++/--)"
         )
-        self.servoLabel.place(x=1107, y=469)
+        self.storPosEqLab.place(x=1107, y=549)
+
+        self.visPassLab = ctk.CTkLabel(self.tab1, font=("Arial", 6), text="Pass Tab     Fail Tab")
+        self.visPassLab.place(x=1107, y=670)
 
         # Load and Create Program Buttons
         self.loadProgBut = ctk.CTkButton(
@@ -2448,6 +2477,258 @@ class RobotArmApp:
         self.DO6offEntryField.place(x=238, y=455)
 
         ## TAB 5 LABELS ##
+
+        # Labels for R1-R16
+        self.R_labels = []
+        for i in range(16):
+            label = ctk.CTkLabel(self.tab5, text=f"R{i+1}")
+            label.place(x=86, y=30 + i * 30)
+            self.R_labels.append(label)
+
+        # Labels for PR1-PR16
+        self.PR_labels = []
+        for i in range(16):
+            label = ctk.CTkLabel(self.tab5, text=f"PR{i+1}")
+            label.place(x=656, y=30 + i * 30)
+            self.PR_labels.append(label)
+
+        # Labels for SP_E1 to SP_E6
+        self.SP_E_labels = []
+        SP_E_texts = ["X", "Y", "Z", "Rz", "Ry", "Rx"]
+        SP_E_positions = [410, 450, 490, 530, 570, 610]
+        for i, (text, x_pos) in enumerate(zip(SP_E_texts, SP_E_positions)):
+            label = ctk.CTkLabel(self.tab5, text=text)
+            label.place(x=x_pos, y=10)
+            self.SP_E_labels.append(label)
+
+        # Entry Fields for R1-R16
+        self.R_entry_fields = []
+        for i in range(16):
+            entry = ctk.CTkEntry(self.tab5, width=50, justify="center")
+            entry.place(x=30, y=30 + i * 30)
+            self.R_entry_fields.append(entry)
+
+        # Create SP fields dynamically for E1, E2, ..., E6
+        self.SP_entry_fields = {}  # Dictionary to hold all SP entry fields by column
+        x_coords = [400, 440, 480, 520, 560, 600]  # X-coordinates for columns E1 to E6
+
+        for col, x in enumerate(x_coords, start=1):  # Start column numbering from 1 (E1, E2, ...)
+            self.SP_entry_fields[f"E{col}"] = []
+            for i in range(16):
+                entry = ctk.CTkEntry(self.tab5, width=50, justify="center")
+                entry.place(x=x, y=30 + i * 30)
+                self.SP_entry_fields[f"E{col}"].append(entry)
+
+        ## TAB 6 LABELS ##
+
+        # Visual Backdrop Label
+        self.VisBackdromLbl = ctk.CTkLabel(
+            self.tab6, 
+            image=ctk.CTkImage(Image.open(os.path.join('assets', 'VisBackdrop.png')), size=(690,530)), 
+            text=""
+        )
+        self.VisBackdromLbl.place(x=15, y=215)
+
+        # Video Frame
+        self.video_frame = ctk.CTkFrame(self.tab6, width=640, height=480)
+        self.video_frame.place(x=50, y=250)
+
+        self.vid_lbl = ctk.CTkLabel(self.video_frame, text="")
+        self.vid_lbl.place(x=0, y=0)
+        self.vid_lbl.bind('<Button-1>', self.motion)
+
+        # Live Video Feed
+        self.LiveLab = ctk.CTkLabel(self.tab6, text="LIVE VIDEO FEED", font=("Arial", 12))
+        self.LiveLab.place(x=750, y=390)
+
+        self.liveCanvas = ctk.CTkCanvas(self.tab6, width=490, height=330)
+        self.liveCanvas.place(x=750, y=410)
+
+        self.live_frame = ctk.CTkFrame(self.tab6, width=480, height=320)
+        self.live_frame.place(x=757, y=417)
+
+        self.live_lbl = ctk.CTkLabel(self.live_frame, text="")
+        self.live_lbl.place(x=0, y=0)
+
+        # Template Frame
+        self.template_frame = ctk.CTkFrame(self.tab6, width=150, height=150)
+        self.template_frame.place(x=575, y=50)
+
+        self.template_lbl = ctk.CTkLabel(self.template_frame, text="")
+        self.template_lbl.place(x=0, y=0)
+
+        # Found Values and Calibration Values Labels
+        self.FoundValuesLab = ctk.CTkLabel(self.tab6, text="FOUND VALUES", font=("Arial", 12))
+        self.FoundValuesLab.place(x=750, y=30)
+
+        self.CalValuesLab = ctk.CTkLabel(self.tab6, text="CALIBRATION VALUES", font=("Arial", 12))
+        self.CalValuesLab.place(x=900, y=30)
+
+        # Camera Selection Menu
+        self.graph = FilterGraph()
+
+        try:
+            self.camList = self.graph.get_input_devices()
+        except:
+            self.camList = ["Select a Camera"]
+
+        self.visoptions = ctk.StringVar(value="Select a Camera")
+
+        try:
+            self.vismenu = ctk.CTkOptionMenu(self.tab6, variable=self.visoptions, values=self.camList)
+            self.vismenu.configure(width=200)  # Width in pixels for CTkOptionMenu
+            self.vismenu.place(x=10, y=10)
+        except Exception as e:
+            print("No camera found:", e)
+
+        # Buttons
+        self.StartCamBut = ctk.CTkButton(self.tab6, text="Start Camera", width=140, command=self.start_vid)
+        self.StartCamBut.place(x=200, y=10)
+
+        self.StopCamBut = ctk.CTkButton(self.tab6, text="Stop Camera", width=140, command=self.stop_vid)
+        self.StopCamBut.place(x=315, y=10)
+
+        self.CapImgBut = ctk.CTkButton(self.tab6, text="Snap Image", width=140, command=self.take_pic)
+        self.CapImgBut.place(x=10, y=50)
+
+        self.TeachImgBut = ctk.CTkButton(self.tab6, text="Teach Object", width=140, command=self.selectTemplate)
+        self.TeachImgBut.place(x=140, y=50)
+
+        self.FindVisBut = ctk.CTkButton(self.tab6, text="Snap & Find", width=140, command=self.snapFind)
+        self.FindVisBut.place(x=270, y=50)
+
+        self.ZeroBrCnBut = ctk.CTkButton(self.tab6, text="Zero", width=50, command=self.zeroBrCn)
+        self.ZeroBrCnBut.place(x=10, y=110)
+
+        self.MaskBut = ctk.CTkButton(self.tab6, text="Mask", width=50, command=self.selectMask)
+        self.MaskBut.place(x=10, y=150)
+
+        # Sliders and Labels
+        self.VisZoomSlide = ctk.CTkSlider(self.tab6, from_=50, to=1, width=250, orientation="horizontal", command=self.VisUpdateBriCon)
+        self.VisZoomSlide.place(x=75, y=95)
+        self.VisZoomSlide.set(50)
+
+        self.VisZoomLab = ctk.CTkLabel(self.tab6, text="Zoom")
+        self.VisZoomLab.place(x=75, y=115)
+
+        self.VisBrightSlide = ctk.CTkSlider(self.tab6, from_=-127, to=127, width=250, orientation="horizontal", command=self.VisUpdateBriCon)
+        self.VisBrightSlide.place(x=75, y=130)
+
+        self.VisBrightLab = ctk.CTkLabel(self.tab6, text="Brightness")
+        self.VisBrightLab.place(x=75, y=150)
+
+        self.VisContrastSlide = ctk.CTkSlider(self.tab6, from_=-127, to=127, width=250, orientation="horizontal", command=self.VisUpdateBriCon)
+        self.VisContrastSlide.place(x=75, y=165)
+
+        self.VisContrastLab = ctk.CTkLabel(self.tab6, text="Contrast")
+        self.VisContrastLab.place(x=75, y=185)
+
+        # Checkboxes
+        self.fullRotCbut = ctk.CTkCheckBox(self.tab6, text="Full Rotation Search", variable=self.fullRot)
+        self.fullRotCbut.place(x=900, y=255)
+
+        self.pick180Cbut = ctk.CTkCheckBox(self.tab6, text="Pick Closest 180°", variable=self.pick180)
+        self.pick180Cbut.place(x=900, y=275)
+
+        self.pickClosestCbut = ctk.CTkCheckBox(self.tab6, text="Try Closest When Out of Range", variable=self.pickClosest)
+        self.pickClosestCbut.place(x=900, y=295)
+
+        # Save Button
+        self.SaveCalBut = ctk.CTkButton(self.tab6, text="SAVE VISION DATA", width=200, command=self.SaveAndApplyCalibration)
+        self.SaveCalBut.place(x=915, y=340)
+
+        # Entry Fields and Labels
+        self.VisBacColorEntryField = ctk.CTkEntry(self.tab6, width=150, justify="center")
+        self.VisBacColorEntryField.place(x=390, y=100)
+        self.VisBacColorLab = ctk.CTkLabel(self.tab6, text="Background Color")
+        self.VisBacColorLab.place(x=390, y=120)
+
+        self.bgAutoCbut = ctk.CTkCheckBox(self.tab6, text="Auto", command=self.checkAutoBG, variable=self.autoBG)
+        self.bgAutoCbut.place(x=490, y=101)
+
+        # Score Threshold
+        self.VisScoreEntryField = ctk.CTkEntry(self.tab6, width=150, justify="center")
+        self.VisScoreEntryField.place(x=390, y=150)
+        self.VisScoreLab = ctk.CTkLabel(self.tab6, text="Score Threshold")
+        self.VisScoreLab.place(x=390, y=170)
+
+        # Scored Value
+        self.VisRetScoreEntryField = ctk.CTkEntry(self.tab6, width=150, justify="center")
+        self.VisRetScoreEntryField.place(x=750, y=55)
+        self.VisRetScoreLab = ctk.CTkLabel(self.tab6, text="Scored Value")
+        self.VisRetScoreLab.place(x=750, y=75)
+
+        # Found Angle
+        self.VisRetAngleEntryField = ctk.CTkEntry(self.tab6, width=150, justify="center")
+        self.VisRetAngleEntryField.place(x=750, y=105)
+        self.VisRetAngleLab = ctk.CTkLabel(self.tab6, text="Found Angle")
+        self.VisRetAngleLab.place(x=750, y=125)
+
+        # Pixel Positions
+        self.VisRetXpixEntryField = ctk.CTkEntry(self.tab6, width=150, justify="center")
+        self.VisRetXpixEntryField.place(x=750, y=155)
+        self.VisRetXpixLab = ctk.CTkLabel(self.tab6, text="Pixel X Position")
+        self.VisRetXpixLab.place(x=750, y=175)
+
+        self.VisRetYpixEntryField = ctk.CTkEntry(self.tab6, width=150, justify="center")
+        self.VisRetYpixEntryField.place(x=750, y=205)
+        self.VisRetYpixLab = ctk.CTkLabel(self.tab6, text="Pixel Y Position")
+        self.VisRetYpixLab.place(x=750, y=225)
+
+        # Robot Positions
+        self.VisRetXrobEntryField = ctk.CTkEntry(self.tab6, width=150, justify="center")
+        self.VisRetXrobEntryField.place(x=750, y=255)
+        self.VisRetXrobLab = ctk.CTkLabel(self.tab6, text="Robot X Position")
+        self.VisRetXrobLab.place(x=750, y=275)
+
+        self.VisRetYrobEntryField = ctk.CTkEntry(self.tab6, width=150, justify="center")
+        self.VisRetYrobEntryField.place(x=750, y=305)
+        self.VisRetYrobLab = ctk.CTkLabel(self.tab6, text="Robot Y Position")
+        self.VisRetYrobLab.place(x=750, y=325)
+
+        # Pixel Position X1, Y1, X2, Y2
+        self.VisX1PixEntryField = ctk.CTkEntry(self.tab6, width=150, justify="center")
+        self.VisX1PixEntryField.place(x=900, y=55)
+        self.VisX1PixLab = ctk.CTkLabel(self.tab6, text="X1 Pixel Pos")
+        self.VisX1PixLab.place(x=900, y=75)
+
+        self.VisY1PixEntryField = ctk.CTkEntry(self.tab6, width=150, justify="center")
+        self.VisY1PixEntryField.place(x=900, y=105)
+        self.VisY1PixLab = ctk.CTkLabel(self.tab6, text="Y1 Pixel Pos")
+        self.VisY1PixLab.place(x=900, y=125)
+
+        self.VisX2PixEntryField = ctk.CTkEntry(self.tab6, width=150, justify="center")
+        self.VisX2PixEntryField.place(x=900, y=155)
+        self.VisX2PixLab = ctk.CTkLabel(self.tab6, text="X2 Pixel Pos")
+        self.VisX2PixLab.place(x=900, y=175)
+
+        self.VisY2PixEntryField = ctk.CTkEntry(self.tab6, width=150, justify="center")
+        self.VisY2PixEntryField.place(x=900, y=205)
+        self.VisY2PixLab = ctk.CTkLabel(self.tab6, text="Y2 Pixel Pos")
+        self.VisY2PixLab.place(x=900, y=225)
+
+        # Robot Position X1, Y1, X2, Y2
+        self.VisX1RobEntryField = ctk.CTkEntry(self.tab6, width=150, justify="center")
+        self.VisX1RobEntryField.place(x=1010, y=55)
+        self.VisX1RobLab = ctk.CTkLabel(self.tab6, text="X1 Robot Pos")
+        self.VisX1RobLab.place(x=1010, y=75)
+
+        self.VisY1RobEntryField = ctk.CTkEntry(self.tab6, width=150, justify="center")
+        self.VisY1RobEntryField.place(x=1010, y=105)
+        self.VisY1RobLab = ctk.CTkLabel(self.tab6, text="Y1 Robot Pos")
+        self.VisY1RobLab.place(x=1010, y=125)
+
+        self.VisX2RobEntryField = ctk.CTkEntry(self.tab6, width=150, justify="center")
+        self.VisX2RobEntryField.place(x=1010, y=155)
+        self.VisX2RobLab = ctk.CTkLabel(self.tab6, text="X2 Robot Pos")
+        self.VisX2RobLab.place(x=1010, y=175)
+
+        self.VisY2RobEntryField = ctk.CTkEntry(self.tab6, width=150, justify="center")
+        self.VisY2RobEntryField.place(x=1010, y=205)
+        self.VisY2RobLab = ctk.CTkLabel(self.tab6, text="Y2 Robot Pos")
+        self.VisY2RobLab.place(x=1010, y=225)
+
+        ## TAB 7 LABELS ##
 
         
 
@@ -7170,7 +7451,6 @@ class RobotArmApp:
                 img = Image.fromarray(cv2image).resize((480, 320))
                 imgtk = ImageTk.PhotoImage(image=img)
                 
-                # Update customtkinter label with the new frame
                 self.live_lbl.imgtk = imgtk
                 self.live_lbl.configure(image=imgtk)
 
@@ -7622,7 +7902,6 @@ class RobotArmApp:
         scrollbar = ctk.CTkScrollbar(gcodeframe)
         scrollbar.pack(side=ctk.RIGHT, fill=ctk.Y)
 
-        # Configure the CTkListbox (if `customtkinter` lacks a CTkListbox, you may have to fall back to Listbox)
         self.tab7.gcodeView = ctk.CTkTextbox(gcodeframe, width=105, height=46, yscrollcommand=scrollbar.set)
         self.tab7.gcodeView.bind('<<ListboxSelect>>', self.gcodeViewselect)
         self.tab7.gcodeView.pack()
