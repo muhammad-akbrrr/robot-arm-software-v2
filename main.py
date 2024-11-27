@@ -815,8 +815,8 @@ class RobotArmApp:
         self.progView = ctk.CTkTextbox(
             self.progframe,
             exportselection=0,
-            width=680,  # Approximation based on original width (105 chars * ~7px per char)
-            height=490,  # Approximation based on original height
+            width=680,
+            height=490,
             yscrollcommand=self.scrollbar.set,
         )
         self.progView.bind("<<ListboxSelect>>", self.progViewselect)
@@ -2729,6 +2729,156 @@ class RobotArmApp:
         self.VisY2RobLab.place(x=1010, y=225)
 
         ## TAB 7 LABELS ##
+
+        # G-Code Program Entry Field
+        self.GcodeProgEntryField = ctk.CTkEntry(self.tab7, width=360, justify="center")
+        self.GcodeProgEntryField.place(x=20, y=55)
+
+        # G-Code Current Row Entry Field
+        self.GcodCurRowEntryField = ctk.CTkEntry(self.tab7, width=100, justify="center")
+        self.GcodCurRowEntryField.place(x=1175, y=20)
+
+        # G-Code Start Position Entry Fields
+        self.GC_ST_E1_EntryField = ctk.CTkEntry(self.tab7, width=80, justify="center")
+        self.GC_ST_E1_EntryField.place(x=20, y=140)
+
+        self.GC_ST_E2_EntryField = ctk.CTkEntry(self.tab7, width=80, justify="center")
+        self.GC_ST_E2_EntryField.place(x=75, y=140)
+
+        self.GC_ST_E3_EntryField = ctk.CTkEntry(self.tab7, width=80, justify="center")
+        self.GC_ST_E3_EntryField.place(x=130, y=140)
+
+        self.GC_ST_E4_EntryField = ctk.CTkEntry(self.tab7, width=80, justify="center")
+        self.GC_ST_E4_EntryField.place(x=185, y=140)
+
+        self.GC_ST_E5_EntryField = ctk.CTkEntry(self.tab7, width=80, justify="center")
+        self.GC_ST_E5_EntryField.place(x=240, y=140)
+
+        self.GC_ST_E6_EntryField = ctk.CTkEntry(self.tab7, width=80, justify="center")
+        self.GC_ST_E6_EntryField.place(x=295, y=140)
+
+        self.GC_ST_WC_EntryField = ctk.CTkEntry(self.tab7, width=30, justify="center")
+        self.GC_ST_WC_EntryField.place(x=350, y=140)
+
+        # G-Code Stop Position Entry Fields
+        self.GC_SToff_E1_EntryField = ctk.CTkEntry(self.tab7, width=80, justify="center")
+        self.GC_SToff_E1_EntryField.place(x=20, y=205)
+
+        self.GC_SToff_E2_EntryField = ctk.CTkEntry(self.tab7, width=80, justify="center")
+        self.GC_SToff_E2_EntryField.place(x=75, y=205)
+
+        self.GC_SToff_E3_EntryField = ctk.CTkEntry(self.tab7, width=80, justify="center")
+        self.GC_SToff_E3_EntryField.place(x=130, y=205)
+
+        self.GC_SToff_E4_EntryField = ctk.CTkEntry(self.tab7, width=80, justify="center")
+        self.GC_SToff_E4_EntryField.place(x=185, y=205)
+
+        self.GC_SToff_E5_EntryField = ctk.CTkEntry(self.tab7, width=80, justify="center")
+        self.GC_SToff_E5_EntryField.place(x=240, y=205)
+
+        self.GC_SToff_E6_EntryField = ctk.CTkEntry(self.tab7, width=80, justify="center")
+        self.GC_SToff_E6_EntryField.place(x=295, y=205)
+
+        self.GcodeFilenameField = ctk.CTkEntry(self.tab7, width=260, justify="center")
+        self.GcodeFilenameField.place(x=20, y=340)
+
+        # G-Code Status Label
+        self.GCalmStatusLab = ctk.CTkLabel(self.tab7, text="GCODE IDLE", text_color="green")
+        self.GCalmStatusLab.place(x=400, y=20)
+
+        # G-Code Frame and Scrollable Textbox
+        self.gcodeframe = ctk.CTkFrame(self.tab7)
+        self.gcodeframe.place(x=400, y=53)
+
+        self.gcodescrollbar = ctk.CTkScrollbar(self.gcodeframe, orientation="vertical")
+        self.gcodescrollbar.pack(side=ctk.RIGHT, fill=ctk.Y)
+
+        self.gcodeView = ctk.CTkTextbox(
+            self.gcodeframe,
+            width=790,
+            height=650,
+            yscrollcommand=self.gcodescrollbar.set,
+            state="normal"
+        )
+        self.gcodeView.pack()
+
+        self.gcodescrollbar.configure(command=self.gcodeView.yview)
+
+        def on_gcode_view_select(event=None):
+            try:
+                # Determine the current line at the cursor
+                current_index = self.gcodeView.index("insert linestart")  # Line start of the cursor
+                selected_line = self.gcodeView.get(current_index, f"{current_index} lineend").strip()
+                if selected_line:
+                    # Extract G-Code filename and update fields
+                    data = selected_line.replace('.txt', '')
+                    self.GcodeFilenameField.delete(0, 'end')
+                    self.GcodeFilenameField.insert(0, data)
+                    self.PlayGCEntryField.delete(0, 'end')
+                    self.PlayGCEntryField.insert(0, data)
+                else:
+                    self.GcodeFilenameField.delete(0, 'end')
+            except Exception as e:
+                print(f"Error selecting G-Code: {e}")
+
+        self.gcodeView.bind("<<TextModified>>", on_gcode_view_select)
+
+        # Load Program Button
+        self.LoadGcodeBut = ctk.CTkButton(self.tab7, text="Load Program", width=200, command=self.loadGcodeProg)
+        self.LoadGcodeBut.place(x=20, y=20)
+
+        # Set Start Position Button
+        self.GcodeStartPosBut = ctk.CTkButton(self.tab7, text="Set Start Position", width=200, command=self.SetGcodeStartPos)
+        self.GcodeStartPosBut.place(x=20, y=100)
+
+        # Move to Start Offset Button
+        self.GcodeMoveStartPosBut = ctk.CTkButton(self.tab7, text="Move to Start Offset", width=200, command=self.MoveGcodeStartPos)
+        self.GcodeMoveStartPosBut.place(x=20, y=240)
+
+        # Convert & Upload to SD Button
+        self.runGcodeBut = ctk.CTkButton(self.tab7, text="Convert & Upload to SD", width=200, command=self.GCconvertProg)
+        self.runGcodeBut.place(x=20, y=375)
+
+        # Stop Conversion & Upload Button
+        self.stopGcodeBut = ctk.CTkButton(self.tab7, text="Stop Conversion & Upload", width=200, command=self.GCstopProg)
+        self.stopGcodeBut.place(x=190, y=375)
+
+        # Delete File from SD Button
+        self.delGcodeBut = ctk.CTkButton(self.tab7, text="Delete File from SD", width=200, command=self.GCdelete)
+        self.delGcodeBut.place(x=20, y=415)
+
+        # Read Files from SD Button
+        self.readGcodeBut = ctk.CTkButton(self.tab7, text="Read Files from SD", width=200, command=partial(self.GCread, "yes"))
+        self.readGcodeBut.place(x=20, y=455)
+
+        # Play G-Code File Button
+        self.readGcodeBut = ctk.CTkButton(
+            self.tab7, 
+            text="Play Gcode File", 
+            width=200, 
+            command=self.GCplay, 
+            image=ctk.CTkImage(Image.open(os.path.join('assets', 'play-icon.png'))),  
+            compound="left"
+        )
+        self.readGcodeBut.place(x=20, y=495)
+
+        # Save Data Button
+        self.saveGCBut = ctk.CTkButton(self.tab7, text="SAVE DATA", width=200, command=self.SaveAndApplyCalibration)
+        self.saveGCBut.place(x=20, y=600)
+
+        # Current Row Label
+        self.gcodeCurRowLab = ctk.CTkLabel(self.tab7, text="Current Row:")
+        self.gcodeCurRowLab.place(x=1100, y=21)
+
+        # Start Position Offset Label
+        self.gcodeStartPosOffLab = ctk.CTkLabel(self.tab7, text="Start Position Offset")
+        self.gcodeStartPosOffLab.place(x=20, y=180)
+
+        # Filename Label
+        self.gcodeFilenameLab = ctk.CTkLabel(self.tab7, text="Filename:")
+        self.gcodeFilenameLab.place(x=20, y=320)
+
+        ## TAB 8 LABELS ##
 
         
 
