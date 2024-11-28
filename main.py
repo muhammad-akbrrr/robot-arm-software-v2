@@ -30,14 +30,12 @@ from pygrabber.dshow_graph import FilterGraph
 # Application code #
 class RobotArmApp:
     def __init__(self):
-        # Main window setup
         self.root = ctk.CTk()
         self.root.title("Robot Arm Software Ver 6.0")
         self.root.iconbitmap(os.path.join('assets', 'EE.ico'))
         self.root.resizable(width=False, height=False)
         self.root.geometry('1536x792+0+0')
 
-        # Define on_closing as an instance method
         def on_closing():
             # Handle program exit with cleanup
             if messagebox.askokcancel("Close Program", "Do you want to quit?"):
@@ -129,10 +127,9 @@ class RobotArmApp:
         self.nb = ctk.CTkTabview(self.root, width=1536, height=792)
         self.nb.place(x=0, y=0)
 
-        # Add tabs with frames properly placed
         self.tab1_name = self.nb.add("Main Controls")
         self.tab1 = ctk.CTkFrame(self.tab1_name, width=1536, height=792, fg_color="transparent")
-        self.tab1.place(x=0, y=0)  # Ensure the frame fills the tab
+        self.tab1.place(x=0, y=0)
 
         self.tab2_name = self.nb.add("Config Settings")
         self.tab2 = ctk.CTkFrame(self.tab2_name, width=1536, height=792, fg_color="transparent")
@@ -430,7 +427,6 @@ class RobotArmApp:
         self.J4curAngEntryField = ctk.CTkEntry(self.J4jogFrame, width=50, justify="center")
         self.J4curAngEntryField.place(x=35, y=9)
 
-        # Jog Negative Button
         def SelJ4jogNeg(event):
             IncJogStatVal = int(self.IncJogStat.get())
             if IncJogStatVal == 1:
@@ -443,7 +439,6 @@ class RobotArmApp:
         self.J4jogNegBut.bind("<ButtonRelease>", self.StopJog)
         self.J4jogNegBut.place(x=77, y=7)
 
-        # Jog Positive Button
         def SelJ4jogPos(event):
             IncJogStatVal = int(self.IncJogStat.get())
             if IncJogStatVal == 1:
@@ -465,11 +460,9 @@ class RobotArmApp:
         self.J4slidelabel = ctk.CTkLabel(self.J4jogFrame)
         self.J4slidelabel.place(x=190, y=25)
 
-        # Slider Update Function
         def J4sliderUpdate(value):
             self.J4slidelabel.configure(text=round(float(self.J4jogslide.get()), 2))
 
-        # Slider Execute Function
         def J4sliderExecute(event):
             J4delta = float(self.J4jogslide.get()) - float(self.J4curAngEntryField.get())
             if J4delta < 0:
@@ -494,7 +487,6 @@ class RobotArmApp:
         self.J5curAngEntryField = ctk.CTkEntry(self.J5jogFrame, width=50, justify="center")
         self.J5curAngEntryField.place(x=35, y=9)
 
-        # Jog Negative Button
         def SelJ5jogNeg(event):
             IncJogStatVal = int(self.IncJogStat.get())
             if IncJogStatVal == 1:
@@ -507,7 +499,6 @@ class RobotArmApp:
         self.J5jogNegBut.bind("<ButtonRelease>", self.StopJog)
         self.J5jogNegBut.place(x=77, y=7)
 
-        # Jog Positive Button
         def SelJ5jogPos(event):
             IncJogStatVal = int(self.IncJogStat.get())
             if IncJogStatVal == 1:
@@ -529,11 +520,9 @@ class RobotArmApp:
         self.J5slidelabel = ctk.CTkLabel(self.J5jogFrame)
         self.J5slidelabel.place(x=190, y=25)
 
-        # Slider Update Function
         def J5sliderUpdate(value):
             self.J5slidelabel.configure(text=round(float(self.J5jogslide.get()), 2))
 
-        # Slider Execute Function
         def J5sliderExecute(event):
             J5delta = float(self.J5jogslide.get()) - float(self.J5curAngEntryField.get())
             if J5delta < 0:
@@ -558,7 +547,6 @@ class RobotArmApp:
         self.J6curAngEntryField = ctk.CTkEntry(self.J6jogFrame, width=50, justify="center")
         self.J6curAngEntryField.place(x=35, y=9)
 
-        # Jog Negative Button
         def SelJ6jogNeg(event):
             IncJogStatVal = int(self.IncJogStat.get())
             if IncJogStatVal == 1:
@@ -571,7 +559,6 @@ class RobotArmApp:
         self.J6jogNegBut.bind("<ButtonRelease>", self.StopJog)
         self.J6jogNegBut.place(x=77, y=7)
 
-        # Jog Positive Button
         def SelJ6jogPos(event):
             IncJogStatVal = int(self.IncJogStat.get())
             if IncJogStatVal == 1:
@@ -593,11 +580,9 @@ class RobotArmApp:
         self.J6slidelabel = ctk.CTkLabel(self.J6jogFrame)
         self.J6slidelabel.place(x=190, y=25)
 
-        # Slider Update Function
         def J6sliderUpdate(value):
             self.J6slidelabel.configure(text=round(float(self.J6jogslide.get()), 2))
 
-        # Slider Execute Function
         def J6sliderExecute(event):
             J6delta = float(self.J6jogslide.get()) - float(self.J6curAngEntryField.get())
             if J6delta < 0:
@@ -622,7 +607,6 @@ class RobotArmApp:
         self.J7curAngEntryField = ctk.CTkEntry(self.J7jogFrame, width=50, justify="center")
         self.J7curAngEntryField.place(x=75, y=9)
 
-        # Jog Negative Button
         def SelJ7jogNeg(event):
             IncJogStatVal = int(self.IncJogStat.get())
             if IncJogStatVal == 1:
@@ -635,7 +619,6 @@ class RobotArmApp:
         self.J7jogNegBut.bind("<ButtonRelease>", self.StopJog)
         self.J7jogNegBut.place(x=10, y=65)
 
-        # Jog Positive Button
         def SelJ7jogPos(event):
             IncJogStatVal = int(self.IncJogStat.get())
             if IncJogStatVal == 1:
@@ -657,11 +640,9 @@ class RobotArmApp:
         self.J7slideLimLab = ctk.CTkLabel(self.J7jogFrame)
         self.J7slideLimLab.place(x=60, y=70)
 
-        # Slider Update Function
         def J7sliderUpdate(value):
             self.J7slideLimLab.configure(text=round(float(self.J7jogslide.get()), 2))
 
-        # Slider Execute Function
         def J7sliderExecute(event):
             J7delta = float(self.J7jogslide.get()) - float(self.J7curAngEntryField.get())
             if J7delta < 0:
@@ -686,7 +667,6 @@ class RobotArmApp:
         self.J8curAngEntryField = ctk.CTkEntry(self.J8jogFrame, width=50, justify="center")
         self.J8curAngEntryField.place(x=75, y=9)
 
-        # Jog Negative Button
         def SelJ8jogNeg(event):
             IncJogStatVal = int(self.IncJogStat.get())
             if IncJogStatVal == 1:
@@ -699,7 +679,6 @@ class RobotArmApp:
         self.J8jogNegBut.bind("<ButtonRelease>", self.StopJog)
         self.J8jogNegBut.place(x=10, y=65)
 
-        # Jog Positive Button
         def SelJ8jogPos(event):
             IncJogStatVal = int(self.IncJogStat.get())
             if IncJogStatVal == 1:
@@ -721,11 +700,9 @@ class RobotArmApp:
         self.J8slideLimLab = ctk.CTkLabel(self.J8jogFrame)
         self.J8slideLimLab.place(x=60, y=70)
 
-        # Slider Update Function
         def J8sliderUpdate(value):
             self.J8slideLimLab.configure(text=round(float(self.J8jogslide.get()), 2))
 
-        # Slider Execute Function
         def J8sliderExecute(event):
             J8delta = float(self.J8jogslide.get()) - float(self.J8curAngEntryField.get())
             if J8delta < 0:
@@ -750,7 +727,6 @@ class RobotArmApp:
         self.J9curAngEntryField = ctk.CTkEntry(self.J9jogFrame, width=50, justify="center")
         self.J9curAngEntryField.place(x=75, y=9)
 
-        # Jog Negative Button
         def SelJ9jogNeg(event):
             IncJogStatVal = int(self.IncJogStat.get())
             if IncJogStatVal == 1:
@@ -763,7 +739,6 @@ class RobotArmApp:
         self.J9jogNegBut.bind("<ButtonRelease>", self.StopJog)
         self.J9jogNegBut.place(x=10, y=65)
 
-        # Jog Positive Button
         def SelJ9jogPos(event):
             IncJogStatVal = int(self.IncJogStat.get())
             if IncJogStatVal == 1:
@@ -785,11 +760,9 @@ class RobotArmApp:
         self.J9slideLimLab = ctk.CTkLabel(self.J9jogFrame)
         self.J9slideLimLab.place(x=60, y=70)
 
-        # Slider Update Function
         def J9sliderUpdate(value):
             self.J9slideLimLab.configure(text=round(float(self.J9jogslide.get()), 2))
 
-        # Slider Execute Function
         def J9sliderExecute(event):
             J9delta = float(self.J9jogslide.get()) - float(self.J9curAngEntryField.get())
             if J9delta < 0:
@@ -875,7 +848,6 @@ class RobotArmApp:
         self.RxcurEntryField = ctk.CTkEntry(self.CartjogFrame, width=40, justify="center")
         self.RxcurEntryField.place(x=1110, y=195)
 
-        # Function to toggle the visibility of SavePosEntryField
         def posRegFieldVisible(self):
             curCmdtype = self.options.get()
             if curCmdtype in ["Move PR", "OFF PR", "Teach PR"]:
@@ -883,7 +855,6 @@ class RobotArmApp:
             else:
                 self.SavePosEntryField.place_forget()
 
-        # Create buttons in a consistent style and place them within the GUI
         self.getSelBut = ctk.CTkButton(self.tab1, text="Get Selected", width=100, height=30, command=self.getSel)
         self.getSelBut.place(x=10, y=700)
 
@@ -899,7 +870,6 @@ class RobotArmApp:
         self.reloadProgBut = ctk.CTkButton(self.tab1, text="Reload", width=100, height=30, command=self.reloadProg)
         self.reloadProgBut.place(x=430, y=700)
 
-        # Dropdown menu for speed options
         self.speedOption = ctk.StringVar(value="Percent")
         self.speedMenu = ctk.CTkOptionMenu(
             self.tab1,
@@ -912,7 +882,6 @@ class RobotArmApp:
 
         """ Single buttons """
 
-        # Dropdown menu for options with callback for visibility
         self.options = ctk.StringVar(value="Move J")
         self.menu = ctk.CTkOptionMenu(
             self.tab1,
@@ -928,7 +897,6 @@ class RobotArmApp:
         )
         self.menu.place(x=700, y=180)
 
-        # Save Position Entry Field
         self.SavePosEntryField = ctk.CTkEntry(self.tab1, width=50, justify="center", placeholder_text="Save Pos")
 
         # self.SavePosEntryField.place(x=800, y=183)
@@ -966,7 +934,6 @@ class RobotArmApp:
 
         """ Buttons with multiple entry fields """
 
-        # Button and entry for Wait Time
         self.waitTimeBut = ctk.CTkButton(
             self.tab1, text="Wait Time (seconds)", width=150, height=30, command=self.waitTime
         )
@@ -977,7 +944,6 @@ class RobotArmApp:
         )
         self.waitTimeEntryField.place(x=855, y=465)
 
-        # Button and entry for Wait Input ON
         self.waitInputOnBut = ctk.CTkButton(
             self.tab1, text="Wait Input ON", width=150, height=30, command=self.waitInputOn
         )
@@ -988,7 +954,6 @@ class RobotArmApp:
         )
         self.waitInputEntryField.place(x=855, y=505)
 
-        # Button and entry for Wait Input OFF
         self.waitInputOffBut = ctk.CTkButton(
             self.tab1, text="Wait Input OFF", width=150, height=30, command=self.waitInputOff
         )
@@ -999,7 +964,6 @@ class RobotArmApp:
         )
         self.waitInputOffEntryField.place(x=855, y=545)
 
-        # Button and entry for Set Output ON
         self.setOutputOnBut = ctk.CTkButton(
             self.tab1, text="Set Output On", width=150, height=30, command=self.setOutputOn
         )
@@ -1010,7 +974,6 @@ class RobotArmApp:
         )
         self.outputOnEntryField.place(x=855, y=585)
 
-        # Button and entry for Set Output OFF
         self.setOutputOffBut = ctk.CTkButton(
             self.tab1, text="Set Output OFF", width=150, height=30, command=self.setOutputOff
         )
@@ -1021,7 +984,6 @@ class RobotArmApp:
         )
         self.outputOffEntryField.place(x=855, y=625)
 
-        # Button and entry for Create Tab
         self.tabNumBut = ctk.CTkButton(
             self.tab1, text="Create Tab", width=150, height=30, command=self.tabNumber
         )
@@ -1032,7 +994,6 @@ class RobotArmApp:
         )
         self.tabNumEntryField.place(x=855, y=665)
 
-        # Button and entry for Jump to Tab
         self.jumpTabBut = ctk.CTkButton(
             self.tab1, text="Jump to Tab", width=150, height=30, command=self.jumpTab
         )
@@ -1201,7 +1162,6 @@ class RobotArmApp:
         self.visPassLab = ctk.CTkLabel(self.tab1, font=("Arial", 6), text="Pass Tab     Fail Tab")
         self.visPassLab.place(x=1107, y=670)
 
-        # Load and Create Program Buttons
         self.loadProgBut = ctk.CTkButton(
             self.tab1, text="Load", width=80, height=30, command=self.loadProg
         )
@@ -1212,7 +1172,6 @@ class RobotArmApp:
         )
         self.createProgBut.place(x=285, y=42)
 
-        # Play, Stop, and Other Icons
         self.runProgBut = ctk.CTkButton(
             self.tab1, 
             text="Play",
@@ -1579,11 +1538,9 @@ class RobotArmApp:
         self.comLab = ctk.CTkLabel(self.tab2, text="Communication")
         self.comLab.place(x=72, y=60)
 
-        # Calibration Labels
         self.jointCalLab = ctk.CTkLabel(self.tab2, text="Robot Calibration")
         self.jointCalLab.place(x=290, y=60)
 
-        # 7th Axis Labels
         self.axis7Lab = ctk.CTkLabel(self.tab2, text="7th Axis Calibration")
         self.axis7Lab.place(x=665, y=300)
 
@@ -1601,7 +1558,6 @@ class RobotArmApp:
         )
         self.axis7pinsetLab.place(x=627, y=510)
 
-        # 8th Axis Labels
         self.axis8Lab = ctk.CTkLabel(self.tab2, text="8th Axis Calibration")
         self.axis8Lab.place(x=865, y=300)
 
@@ -1619,7 +1575,6 @@ class RobotArmApp:
         )
         self.axis8pinsetLab.place(x=827, y=510)
 
-        # 9th Axis Labels
         self.axis9Lab = ctk.CTkLabel(self.tab2, text="9th Axis Calibration")
         self.axis9Lab.place(x=1065, y=300)
 
@@ -1668,18 +1623,15 @@ class RobotArmApp:
         self.J9calLab = ctk.CTkLabel(self.tab2, text="J9 Offset")
         self.J9calLab.place(x=480, y=340)
 
-        # Encoder Control
         self.CalibrationOffsetsLab2 = ctk.CTkLabel(self.tab2, text="Encoder Control")
         self.CalibrationOffsetsLab2.place(x=715, y=60)
 
-        # Command Status
         self.cmdSentLab = ctk.CTkLabel(self.tab2, text="Last Command Sent to Controller")
         self.cmdSentLab.place(x=10, y=565)
 
         self.cmdRecLab = ctk.CTkLabel(self.tab2, text="Last Response From Controller")
         self.cmdRecLab.place(x=10, y=625)
 
-        # Theme
         self.ThemeLab = ctk.CTkLabel(self.tab2, text="Theme")
         self.ThemeLab.place(x=925, y=60)
 
@@ -1777,7 +1729,6 @@ class RobotArmApp:
         self.J9calbut = ctk.CTkButton(self.tab2, text="Autocalibrate Axis 9", command=self.calRobotJ9, width=200)
         self.J9calbut.place(x=1027, y=475)
 
-        # Individual Joint Calibration Buttons
         self.CalJ1But = ctk.CTkButton(self.tab2, text="Calibrate J1 Only", command=self.calRobotJ1, width=120)
         self.CalJ1But.place(x=285, y=275)
 
@@ -1802,7 +1753,6 @@ class RobotArmApp:
         self.CalRestBut = ctk.CTkButton(self.tab2, text="Force Cal to Rest", command=self.CalRestPos, width=140)
         self.CalRestBut.place(x=270, y=520)
 
-        # Open Loop Checkboxes
         self.J1OpenLoopCbut = ctk.CTkCheckBox(self.tab2, text="J1 Open Loop (disable encoder)", variable=self.J1OpenLoopStat, width=200)
         self.J1OpenLoopCbut.place(x=665, y=90)
 
@@ -1821,7 +1771,6 @@ class RobotArmApp:
         self.J6OpenLoopCbut = ctk.CTkCheckBox(self.tab2, text="J6 Open Loop (disable encoder)", variable=self.J6OpenLoopStat, width=200)
         self.J6OpenLoopCbut.place(x=665, y=190)
 
-        # Save Button
         self.saveCalBut = ctk.CTkButton(self.tab2, text="SAVE", command=self.SaveAndApplyCalibration, width=140)
         self.saveCalBut.place(x=1150, y=630)
 
@@ -2267,7 +2216,6 @@ class RobotArmApp:
         self.loadAR4Mk2But = ctk.CTkButton(self.tab3, text="Load AR4-MK3 Defaults", width=200, command=self.LoadAR4Mk3default)
         self.loadAR4Mk2But.place(x=1150, y=590)
 
-        # Save Cablibration Profile
         self.saveCalBut = ctk.CTkButton(self.tab3, text="SAVE", width=200, command=self.SaveAndApplyCalibration)
         self.saveCalBut.place(x=1150, y=630)
 
@@ -2508,11 +2456,11 @@ class RobotArmApp:
             entry.place(x=30, y=30 + i * 30)
             self.R_entry_fields.append(entry)
 
-        # Create SP fields dynamically for E1, E2, ..., E6
-        self.SP_entry_fields = {}  # Dictionary to hold all SP entry fields by column
-        x_coords = [400, 440, 480, 520, 560, 600]  # X-coordinates for columns E1 to E6
+        # Create SP fields
+        self.SP_entry_fields = {}
+        x_coords = [400, 440, 480, 520, 560, 600]
 
-        for col, x in enumerate(x_coords, start=1):  # Start column numbering from 1 (E1, E2, ...)
+        for col, x in enumerate(x_coords, start=1):
             self.SP_entry_fields[f"E{col}"] = []
             for i in range(16):
                 entry = ctk.CTkEntry(self.tab5, width=50, justify="center")
@@ -2576,7 +2524,7 @@ class RobotArmApp:
 
         try:
             self.vismenu = ctk.CTkOptionMenu(self.tab6, variable=self.visoptions, values=self.camList)
-            self.vismenu.configure(width=200)  # Width in pixels for CTkOptionMenu
+            self.vismenu.configure(width=200)
             self.vismenu.place(x=10, y=10)
         except Exception as e:
             print("No camera found:", e)
@@ -2633,7 +2581,6 @@ class RobotArmApp:
         self.pickClosestCbut = ctk.CTkCheckBox(self.tab6, text="Try Closest When Out of Range", variable=self.pickClosest)
         self.pickClosestCbut.place(x=900, y=295)
 
-        # Save Button
         self.SaveCalBut = ctk.CTkButton(self.tab6, text="SAVE VISION DATA", width=200, command=self.SaveAndApplyCalibration)
         self.SaveCalBut.place(x=915, y=340)
 
@@ -2730,15 +2677,12 @@ class RobotArmApp:
 
         ## TAB 7 LABELS ##
 
-        # G-Code Program Entry Field
         self.GcodeProgEntryField = ctk.CTkEntry(self.tab7, width=360, justify="center")
         self.GcodeProgEntryField.place(x=20, y=55)
 
-        # G-Code Current Row Entry Field
         self.GcodCurRowEntryField = ctk.CTkEntry(self.tab7, width=100, justify="center")
         self.GcodCurRowEntryField.place(x=1175, y=20)
 
-        # G-Code Start Position Entry Fields
         self.GC_ST_E1_EntryField = ctk.CTkEntry(self.tab7, width=80, justify="center")
         self.GC_ST_E1_EntryField.place(x=20, y=140)
 
@@ -2760,7 +2704,6 @@ class RobotArmApp:
         self.GC_ST_WC_EntryField = ctk.CTkEntry(self.tab7, width=30, justify="center")
         self.GC_ST_WC_EntryField.place(x=350, y=140)
 
-        # G-Code Stop Position Entry Fields
         self.GC_SToff_E1_EntryField = ctk.CTkEntry(self.tab7, width=80, justify="center")
         self.GC_SToff_E1_EntryField.place(x=20, y=205)
 
@@ -2782,11 +2725,9 @@ class RobotArmApp:
         self.GcodeFilenameField = ctk.CTkEntry(self.tab7, width=260, justify="center")
         self.GcodeFilenameField.place(x=20, y=340)
 
-        # G-Code Status Label
         self.GCalmStatusLab = ctk.CTkLabel(self.tab7, text="GCODE IDLE", text_color="green")
         self.GCalmStatusLab.place(x=400, y=20)
 
-        # G-Code Frame and Scrollable Textbox
         self.gcodeframe = ctk.CTkFrame(self.tab7)
         self.gcodeframe.place(x=400, y=53)
 
@@ -2823,35 +2764,27 @@ class RobotArmApp:
 
         self.gcodeView.bind("<<TextModified>>", on_gcode_view_select)
 
-        # Load Program Button
         self.LoadGcodeBut = ctk.CTkButton(self.tab7, text="Load Program", width=200, command=self.loadGcodeProg)
         self.LoadGcodeBut.place(x=20, y=20)
 
-        # Set Start Position Button
         self.GcodeStartPosBut = ctk.CTkButton(self.tab7, text="Set Start Position", width=200, command=self.SetGcodeStartPos)
         self.GcodeStartPosBut.place(x=20, y=100)
 
-        # Move to Start Offset Button
         self.GcodeMoveStartPosBut = ctk.CTkButton(self.tab7, text="Move to Start Offset", width=200, command=self.MoveGcodeStartPos)
         self.GcodeMoveStartPosBut.place(x=20, y=240)
 
-        # Convert & Upload to SD Button
         self.runGcodeBut = ctk.CTkButton(self.tab7, text="Convert & Upload to SD", width=200, command=self.GCconvertProg)
         self.runGcodeBut.place(x=20, y=375)
 
-        # Stop Conversion & Upload Button
         self.stopGcodeBut = ctk.CTkButton(self.tab7, text="Stop Conversion & Upload", width=200, command=self.GCstopProg)
         self.stopGcodeBut.place(x=190, y=375)
 
-        # Delete File from SD Button
         self.delGcodeBut = ctk.CTkButton(self.tab7, text="Delete File from SD", width=200, command=self.GCdelete)
         self.delGcodeBut.place(x=20, y=415)
 
-        # Read Files from SD Button
         self.readGcodeBut = ctk.CTkButton(self.tab7, text="Read Files from SD", width=200, command=partial(self.GCread, "yes"))
         self.readGcodeBut.place(x=20, y=455)
 
-        # Play G-Code File Button
         self.readGcodeBut = ctk.CTkButton(
             self.tab7, 
             text="Play Gcode File", 
@@ -2862,25 +2795,100 @@ class RobotArmApp:
         )
         self.readGcodeBut.place(x=20, y=495)
 
-        # Save Data Button
         self.saveGCBut = ctk.CTkButton(self.tab7, text="SAVE DATA", width=200, command=self.SaveAndApplyCalibration)
         self.saveGCBut.place(x=20, y=600)
 
-        # Current Row Label
         self.gcodeCurRowLab = ctk.CTkLabel(self.tab7, text="Current Row:")
         self.gcodeCurRowLab.place(x=1100, y=21)
 
-        # Start Position Offset Label
         self.gcodeStartPosOffLab = ctk.CTkLabel(self.tab7, text="Start Position Offset")
         self.gcodeStartPosOffLab.place(x=20, y=180)
 
-        # Filename Label
         self.gcodeFilenameLab = ctk.CTkLabel(self.tab7, text="Filename:")
         self.gcodeFilenameLab.place(x=20, y=320)
 
         ## TAB 8 LABELS ##
 
-        
+        self.Elogframe = ctk.CTkFrame(self.tab8, width=750, height=630)
+        self.Elogframe.place(x=40, y=15)
+
+        self.log_container = ctk.CTkFrame(self.Elogframe, fg_color="transparent")
+        self.log_container.pack(fill="both", expand=True)
+
+        self.scrollbar = ctk.CTkScrollbar(self.log_container, orientation="vertical")
+        self.scrollbar.pack(side="right", fill="y")
+
+        self.ElogView = ctk.CTkTextbox(
+            self.log_container, 
+            width=750, 
+            height=630, 
+            wrap="none", 
+            yscrollcommand=self.scrollbar.set
+        )
+        self.ElogView.pack(side="left", fill="both", expand=True)
+
+        self.scrollbar.configure(command=self.ElogView.yview)
+
+        try:
+            self.Elog = pickle.load(open("ErrorLog", "rb"))
+        except FileNotFoundError:
+            self.Elog = ['##BEGINNING OF LOG##']
+            pickle.dump(self.Elog, open("ErrorLog", "wb"))
+
+        # Populate Error Log View
+        self.ElogView.delete("2.0", "end")
+        for item in self.Elog:
+            self.ElogView.insert("end", item + "\n")
+
+        # Clear Log Button
+        def clearLog():
+            self.ElogView.delete("2.0", "end")
+            value = self.ElogView.get("1.0", "end").strip().splitlines()
+            pickle.dump(value, open("ErrorLog", "wb"))
+
+        self.clearLogBut = ctk.CTkButton(self.tab8, text="Clear Log", width=200, command=clearLog)
+        self.clearLogBut.place(x=1000, y=630)
+
+        # Calibration Textbox
+        self.calibration = ctk.CTkTextbox(self.tab2, width=300, height=600)
+
+        # Load Calibration Data
+        try:
+            self.Cal = pickle.load(open("ARbot.cal", "rb"))
+        except FileNotFoundError:
+            self.Cal = ["0"]
+            pickle.dump(self.Cal, open("ARbot.cal", "wb"))
+
+        self.calibration.delete("1.0", "end")
+        for item in self.Cal:
+            self.calibration.insert("end", str(item) + "\n")
+
+        ### Getting Variable Values from Textbox ###
+
+        self.mX1 = 0
+        self.mY1 = 0
+        self.mX2 = 0
+        self.mY2 = 0
+
+        self.J1AngCur = self.calibration.get("1.0", "2.0").strip()
+        self.J2AngCur = self.calibration.get("2.0", "3.0").strip()
+        self.J3AngCur = self.calibration.get("3.0", "4.0").strip()
+        self.J4AngCur = self.calibration.get("4.0", "5.0").strip()
+        self.J5AngCur = self.calibration.get("5.0", "6.0").strip()
+        self.J6AngCur = self.calibration.get("6.0", "7.0").strip()
+
+        self.XcurPos = self.calibration.get("7.0", "8.0").strip()
+        self.YcurPos = self.calibration.get("8.0", "9.0").strip()
+        self.ZcurPos = self.calibration.get("9.0", "10.0").strip()
+
+        self.RXcurPos = self.calibration.get("10.0", "11.0").strip()
+        self.RYcurPos = self.calibration.get("11.0", "12.0").strip()
+        self.RZcurPos = self.calibration.get("12.0", "13.0").strip()
+
+        self.comPort = self.calibration.get("13.0", "14.0").strip()
+        self.Prog = self.calibration.get("14.0", "15.0").strip()
+
+        # End Of Application styling defs
 
     # Startup defs #
 
@@ -2970,8 +2978,8 @@ class RobotArmApp:
         self.curTheme = 0
 
         # Set dark mode
-        ctk.set_appearance_mode("dark")  # "dark" for dark theme
-        ctk.set_default_color_theme("blue")  # Optionally set a specific color theme
+        ctk.set_appearance_mode("dark")
+        ctk.set_default_color_theme("blue")
 
         # Update custom styles (if specific widget styles are still needed)
         self.almStatusLab.configure(text_color="IndianRed1", font=("Arial", 10, "bold"))
@@ -2985,8 +2993,8 @@ class RobotArmApp:
         self.curTheme = 1
 
         # Set light mode
-        ctk.set_appearance_mode("light")  # "light" for light theme
-        ctk.set_default_color_theme("blue")  # Optionally set a specific color theme
+        ctk.set_appearance_mode("light")
+        ctk.set_default_color_theme("blue")
 
         # Update custom styles (if specific widget styles are still needed)
         self.almStatusLab.configure(text_color="red", font=("Arial", 10, "bold"))
@@ -3195,7 +3203,6 @@ class RobotArmApp:
         self.callProg(progNum)
 
         time.sleep(0.4)
-        # Reset the selection to the start
         self.tab1.progView.selection_clear(0, END)
         self.tab1.progView.select_set(0)
 
@@ -3205,7 +3212,6 @@ class RobotArmApp:
         lastRow = self.tab1.progView.curselection()[0]
         lastProg = self.ProgEntryField.get()
 
-        # Extract the filename
         programIndex = command.find("Program -")
         filename = command[programIndex + 10:].strip()
 
@@ -3215,7 +3221,6 @@ class RobotArmApp:
         self.GCplayProg(filename)
 
         time.sleep(0.4)
-        # Reset the selection to the start
         self.tab1.progView.selection_clear(0, END)
         self.tab1.progView.select_set(0)
 
@@ -3230,7 +3235,6 @@ class RobotArmApp:
         self.callProg(lastProg)
 
         time.sleep(0.4)
-        # Re-select the last row
         self.tab1.progView.selection_clear(0, END)
         self.tab1.progView.select_set(lastRow)
 
@@ -3256,7 +3260,7 @@ class RobotArmApp:
         self.ser.write(command.encode())
         self.ser.flushInput()
         time.sleep(0.05)
-        self.ser.read()  # Clearing response from the encoder setting
+        self.ser.read()
 
     def readEncoders(self):
         if self.moveInProc:
@@ -3284,7 +3288,7 @@ class RobotArmApp:
         self.ser2.write(command.encode())
         self.ser2.flushInput()
         time.sleep(0.1)
-        self.ser2.read()  # Clearing response from the servo command
+        self.ser2.read()
 
     def processIfInput(self, command):
         if self.moveInProc:
@@ -3309,19 +3313,16 @@ class RobotArmApp:
         query = 1 if response == "T" else 0
         if query == val_num:
             if action == "Call":
-                # Handle "Call" action
                 self.tab1.lastRow = self.tab1.progView.curselection()[0]
                 self.tab1.lastProg = self.ProgEntryField.get()
                 prog_name = command[command.find("Prog") + 5:] + ".ar"
                 self.callProg(prog_name)
 
-                # Reset selection in progView
                 index = 0
                 self.tab1.progView.selection_clear(0, "end")
                 self.tab1.progView.select_set(index)
 
             elif action == "Jump":
-                # Handle "Jump" action directly
                 tab_num = command[command.find("Tab") + 4:]
                 encoded_tab = ("Tab Number " + tab_num + "\r\n").encode('utf-8')
                 index = self.tab1.progView.get(0, "end").index(encoded_tab) - 1
@@ -3339,7 +3340,6 @@ class RobotArmApp:
         try:
             self.ser3 = serial.Serial(f"COM{com_num}", 115200, timeout=10)
         except:
-            # Log error if connection fails
             timestamp = datetime.datetime.now().strftime("%B %d %Y - %I:%M%p")
             error_message = f"{timestamp} - UNABLE TO ESTABLISH COMMUNICATIONS WITH SERIAL DEVICE"
             self.tab8.ElogView.insert(END, error_message)
@@ -3375,19 +3375,16 @@ class RobotArmApp:
         # Check if register value matches
         if reg_value == val_num:
             if action == "Call":
-                # Handle "Call" action
                 self.tab1.lastRow = self.tab1.progView.curselection()[0]
                 self.tab1.lastProg = self.ProgEntryField.get()
                 prog_name = command[command.find("Prog") + 5:] + ".ar"
                 self.callProg(prog_name)
                 
-                # Reset selection in progView
                 index = 0
                 self.tab1.progView.selection_clear(0, "end")
                 self.tab1.progView.select_set(index)
 
             elif action == "Jump":
-                # Handle "Jump" action within this method
                 tab_num = command[command.find("Tab") + 4:]
                 encoded_tab = ("Tab Number " + tab_num + "\r\n").encode('utf-8')
                 index = self.tab1.progView.get(0, "end").index(encoded_tab) - 1
@@ -3410,23 +3407,19 @@ class RobotArmApp:
         # Check if COM port value matches
         if cur_com_val == val_num:
             if action == "Call":
-                # Handle "Call" action
                 self.tab1.lastRow = self.tab1.progView.curselection()[0]
                 self.tab1.lastProg = self.ProgEntryField.get()
                 prog_name = command[command.find("Prog") + 5:] + ".ar"
                 self.callProg(prog_name)
                 
-                # Reset selection in progView
                 index = 0
                 self.tab1.progView.selection_clear(0, END)
                 self.tab1.progView.select_set(index)
                 
             elif action == "Jump":
-                # Handle "Jump" action
                 tab_num = command[command.find("Tab") + 4:]
                 encoded_tab = ("Tab Number " + tab_num + "\r\n").encode('utf-8')
-                
-                # Find and select the tab by index in progView
+
                 index = self.tab1.progView.get(0, "end").index(encoded_tab) - 1
                 self.tab1.progView.selection_clear(0, END)
                 self.tab1.progView.select_set(index)
@@ -3538,7 +3531,6 @@ class RobotArmApp:
         time.sleep(0.1)
         self.ser.read()
 
-    # Handle 'Wait Input ON' command for the given serial connection.
     def processWaitInputOn(self, command, ser):
         if self.moveInProc:
             self.moveInProc = 2
@@ -3557,7 +3549,6 @@ class RobotArmApp:
         time.sleep(0.1)
         self.ser.read()
 
-    # Handle 'Wait Input OFF' command for the given serial connection.
     def processWaitInputOff(self, command, ser):
         if self.moveInProc:
             self.moveInProc = 2
@@ -3576,7 +3567,6 @@ class RobotArmApp:
         time.sleep(0.1)
         self.ser.read()
 
-    # Handle 'Wait Time' command.
     def processWaitTime(self, command):
         if self.moveInProc:
             self.moveInProc = 2
@@ -3595,7 +3585,6 @@ class RobotArmApp:
         time.sleep(0.1)
         self.ser.read()
 
-    # Handles the 'Set Register' command.
     def processSetRegister(self, command):
         if self.moveInProc:
             self.moveInProc = 2
@@ -3627,7 +3616,6 @@ class RobotArmApp:
         entry_field.delete(0, 'end')
         entry_field.insert(0, str(reg_new_val))
 
-    # Handles the 'Set Position Register' command.
     def processSetPositionRegister(self, command):
         if self.moveInProc:
             self.moveInProc = 2
@@ -3666,7 +3654,6 @@ class RobotArmApp:
         entry_field.delete(0, 'end')
         entry_field.insert(0, str(reg_new_val))
 
-    # Handles the 'Calibrate' command.
     def processCalibrate(self):
         if self.moveInProc:
             self.moveInProc = 2
@@ -3674,7 +3661,6 @@ class RobotArmApp:
         if self.calStat == 0:
             self.stopProg()
 
-    # Process the Tool S command, send it to the device, handle errors, and display position data.
     def processToolS(self, command):
         # Set move process state and system status
         if self.moveInProc == 1:
@@ -3719,26 +3705,22 @@ class RobotArmApp:
         # Read the response
         response = str(self.ser.readline().strip(), 'utf-8')
         if response.startswith('E'):
-            # Display error message
             self.errorStatusLabel.configure(text=response, style="Error.TLabel")
             print(f"Error: {response}")
         else:
-            # Display position data from the response
             try:
                 position_fields = {
                     "X": self.PositionXField, "Y": self.PositionYField, "Z": self.PositionZField,
                     "Rz": self.PositionRzField, "Ry": self.PositionRyField, "Rx": self.PositionRxField
                 }
                 for key, field in position_fields.items():
-                    # Extract value for each position key
                     index = response.find(f"{key}")
                     if index == -1:
                         raise ValueError(f"Label '{key}' not found in response.")
                     start = index + len(key)
                     end = response.find(" ", start)
                     value = response[start:end] if end != -1 else response[start:]
-                    
-                    # Update the field with the extracted value
+
                     field.delete(0, 'end')
                     field.insert(0, value)
 
@@ -3802,11 +3784,9 @@ class RobotArmApp:
         # Read and handle response
         response = str(self.ser.readline().strip(), 'utf-8')
         if response.startswith('E'):
-            # Handle errors by displaying the error message
             self.errorStatusLabel.configure(text=response, style="Error.TLabel")
             print(f"Error: {response}")
         else:
-            # Display position data based on response received from the device
             try:
                 def extract_value(response, label):
                     index = response.find(f"{label}")
@@ -3825,7 +3805,6 @@ class RobotArmApp:
                     "Rx": extract_value(response, "Rx"),
                 }
 
-                # Populate the position fields
                 for key, field in zip(
                         ["X", "Y", "Z", "Rz", "Ry", "Rx"],
                         [self.PositionXField, self.PositionYField, self.PositionZField, 
@@ -3928,11 +3907,9 @@ class RobotArmApp:
         # Read and handle response
         response = str(self.ser.readline().strip(), 'utf-8')
         if response.startswith('E'):
-            # Handle errors by displaying the error message
             self.errorStatusLabel.configure(text=response, style="Error.TLabel")
             print(f"Error: {response}")
         else:
-            # Extract position values from response and update fields
             try:
                 def extract_value(response, label):
                     index = response.find(f"{label}")
@@ -3951,7 +3928,6 @@ class RobotArmApp:
                     "Rx": extract_value(response, "Rx"),
                 }
 
-                # Populate the position fields
                 for key, field in zip(
                         ["X", "Y", "Z", "Rz", "Ry", "Rx"],
                         [self.PositionXField, self.PositionYField, self.PositionZField, 
@@ -3964,7 +3940,6 @@ class RobotArmApp:
                 self.errorStatusLabel.configure(text=errorMsg, style="Error.TLabel")
                 print(f"Error: {errorMsg}")
 
-    # Process the Move V command, send it to the device, handle errors, and display position.
     def handleMoveVCommand(self, command):
 
         # Ensure movement is in progress
@@ -4024,14 +3999,11 @@ class RobotArmApp:
         # Read and handle response
         response = str(self.ser.readline().strip(), 'utf-8')
         if response.startswith('E'):
-            # Handle errors
             error_msg = f"Error: {response}"
             print(error_msg)
             self.errorStatusLabel.configure(text=response, style="Error.TLabel")
         else:
-            # Display position
             try:
-                # Extracts a numeric value from the response string given a label prefix.
                 def extract_value(response, label):
                     index = response.find(f"{label}")
                     if index == -1:
@@ -4053,7 +4025,6 @@ class RobotArmApp:
                 print(error_msg)
                 self.errorStatusLabel.configure(text=error_msg, style="Error.TLabel")
 
-    # Process the MoveP command, send it to the device, handle errors, and display position data.
     def handleMovePCommand(self, command):
 
         # Begin processing MoveP command
@@ -4116,9 +4087,9 @@ class RobotArmApp:
         
         # Check for errors in the response
         if response.startswith('E'):
-            print(f"Error: {response}")  # Log the error for debugging
+            print(f"Error: {response}")
             self.errorStatusLabel.configure(text=response, style="Error.TLabel")  # Display error in UI
-            return  # Exit if there's an error
+            return
 
         # Process and display position data if no errors
         position_fields = {
@@ -4139,12 +4110,10 @@ class RobotArmApp:
                 field.insert(0, value)
                 
         except Exception as e:
-            # Handle any issues during the display update
             errorMsg = f"Failed to display position: {str(e)}"
             print(f"Error: {errorMsg}")
             self.errorStatusLabel.configure(text=errorMsg, style="Error.TLabel")
 
-    # Process the OffsPR command, construct the command string, send it to the device, and handle response errors.
     def handleOffsPRCommand(self, command):
         
         # Set move process state
@@ -4306,11 +4275,9 @@ class RobotArmApp:
 
         # Handle the response
         if response.startswith('E'):
-            # Display error message
             print(f"Error: {response}")
             self.errorStatusLabel.configure(text=response, style="Error.TLabel")
         else:
-            # Display position data with inline extraction function
             def extractValue(response, label):
                 index = response.find(f"{label}")
                 if index == -1:
@@ -4333,7 +4300,6 @@ class RobotArmApp:
                 self.PositionRxField.delete(0, 'end')
                 self.PositionRxField.insert(0, extractValue(response, "Rx"))
             except Exception as e:
-                # Error handling if display fails
                 print(f"Failed to display position: {str(e)}")
                 self.errorStatusLabel.configure(text=f"Display Error: {str(e)}", style="Error.TLabel")
 
@@ -4402,11 +4368,9 @@ class RobotArmApp:
 
         # Handle response
         if response.startswith('E'):
-            # Error handling: Display error message
             print(f"Error: {response}")
             self.errorStatusLabel.configure(text=response, style="Error.TLabel")
         else:
-            # Display position data with inline extraction function
             def extractValue(response, label):
                 index = response.find(f"{label}")
                 if index == -1:
@@ -4429,7 +4393,6 @@ class RobotArmApp:
                 self.PositionRxField.delete(0, 'end')
                 self.PositionRxField.insert(0, extractValue(response, "Rx"))
             except Exception as e:
-                # Error handling if display fails
                 print(f"Failed to display position: {str(e)}")
                 self.errorStatusLabel.configure(text=f"Display Error: {str(e)}", style="Error.TLabel")
 
@@ -4502,7 +4465,7 @@ class RobotArmApp:
         data = list(map(int, self.tab1.progView.curselection()))
         end_command = self.tab1.progView.get(data[0]).decode()
 
-        Xend, Yend, Zend = end_command[:3]  # Extracted Xend, Yend, Zend from end position command
+        Xend, Yend, Zend = end_command[:3]
 
         # Retrieve loop mode
         LoopMode = ''.join(str(getattr(f'J{i}OpenLoopStat.get()')) for i in range(1, 7))
@@ -4530,11 +4493,9 @@ class RobotArmApp:
 
         # Handle response
         if response.startswith('E'):
-            # Error handling: Display error message
             print(f"Error: {response}")
             self.errorStatusLabel.configure(text=response, style="Error.TLabel")
         else:
-            # Display position data with inline extraction function
             def extractValue(response, label):
                 index = response.find(f"{label}")
                 if index == -1:
@@ -4557,7 +4518,6 @@ class RobotArmApp:
                 self.PositionRxField.delete(0, 'end')
                 self.PositionRxField.insert(0, extractValue(response, "Rx"))
             except Exception as e:
-                # Error handling if display fails
                 print(f"Failed to display position: {str(e)}")
                 self.errorStatusLabel.configure(text=f"Display Error: {str(e)}", style="Error.TLabel")
 
@@ -4568,7 +4528,6 @@ class RobotArmApp:
         # Check command format
         subCmd = command[:10]
         if subCmd in ["Move C Sta", "Move C Pla"]:
-            # Inline showError logic
             message = "Move C must start with a Center followed by Start & Plane"
             self.almStatusLab.configure(text=message, style="Alarm.TLabel")
             self.almStatusLab2.configure(text=message, style="Alarm.TLabel")
@@ -4701,11 +4660,9 @@ class RobotArmApp:
         
         # Check for error in response and handle accordingly
         if response[:1] == 'E':
-            # Handle error by displaying the error message
             print(f"Error: {response}")  # Log the error
             self.errorStatusLabel.configure(text=response, style="Error.TLabel")
         else:
-            # Display position data based on response received from the device
             def extractValue(response, label):
                 index = response.find(f"{label}")
                 if index == -1:
@@ -4715,7 +4672,6 @@ class RobotArmApp:
                 return response[start:end] if end != -1 else response[start:]
 
             try:
-                # Extract values from response
                 xVal = extractValue(response, "X")
                 yVal = extractValue(response, "Y")
                 zVal = extractValue(response, "Z")
@@ -4723,7 +4679,6 @@ class RobotArmApp:
                 ryVal = extractValue(response, "Ry")
                 rxVal = extractValue(response, "Rx")
 
-                # Update the UI fields
                 self.PositionXField.delete(0, 'end')
                 self.PositionXField.insert(0, xVal)
                 self.PositionYField.delete(0, 'end')
@@ -4738,7 +4693,6 @@ class RobotArmApp:
                 self.PositionRxField.insert(0, rxVal)
 
             except Exception as e:
-                # Handle display error
                 errorMsg = f"Failed to display position: {str(e)}"
                 print(f"Error: {errorMsg}")  # Log the error
                 self.errorStatusLabel.configure(text=errorMsg, style="Error.TLabel")
@@ -4777,14 +4731,12 @@ class RobotArmApp:
 
         # Handle pass/fail outcomes
         if status == "pass":
-            # Inline updateTabSelection logic for pass case
             tabNum = f"Tab Number {command[passIndex + 6:failIndex]}\r\n".encode('utf-8')
             index = self.tab1.progView.get(0, "end").index(tabNum)
             self.tab1.progView.selection_clear(0, 'end')
             self.tab1.progView.select_set(index)
 
         elif status == "fail":
-            # Inline updateTabSelection logic for fail case
             tabNum = f"Tab Number {command[failIndex + 6:]}\r\n".encode('utf-8')
             index = self.tab1.progView.get(0, "end").index(tabNum)
             self.tab1.progView.selection_clear(0, 'end')
@@ -4947,11 +4899,11 @@ class RobotArmApp:
 
         cur_spd = int(self.incrementEntryField.get())
         
-        if val == 0:  # Increase speed
+        if val == 0:
             cur_spd = increase_speed(cur_spd, 1 if cur_spd < 5 else 5)
-        elif val == 1:  # Decrease speed
+        elif val == 1:
             cur_spd = decrease_speed(cur_spd, 1 if cur_spd <= 5 else 5)
-        elif val == 2:  # Set speed to minimum threshold
+        elif val == 2:
             cur_spd = 5
 
         self.incrementEntryField.delete(0, 'end')
@@ -4968,11 +4920,11 @@ class RobotArmApp:
 
         cur_spd = int(self.speedEntryField.get())
         
-        if val == 0:  # Increase speed
+        if val == 0:
             cur_spd = increase_speed(cur_spd, 1 if cur_spd < 5 else 5)
-        elif val == 1:  # Decrease speed
+        elif val == 1:
             cur_spd = decrease_speed(cur_spd, 1 if cur_spd <= 5 else 5)
-        elif val == 2:  # Set speed to minimum threshold
+        elif val == 2:
             cur_spd = 5
 
         self.speedEntryField.delete(0, 'end')
@@ -5083,7 +5035,6 @@ class RobotArmApp:
         self.ser.read()
 
     def LiveCarJog(self, value):
-
         # Update status labels
         self.almStatusLab.configure(text="SYSTEM READY", text_color="green")
         self.almStatusLab2.configure(text="SYSTEM READY", text_color="green")
@@ -5121,7 +5072,6 @@ class RobotArmApp:
         self.ser.read()
 
     def LiveToolJog(self, value):
-
         # Update status labels
         self.almStatusLab.configure(text="SYSTEM READY", text_color="green")
         self.almStatusLab2.configure(text="SYSTEM READY", text_color="green")
@@ -5173,7 +5123,6 @@ class RobotArmApp:
                 self.displayPosition(response)
 
     def jog_joint_command(self, joint_index, value, direction):
-
         self.checkSpeedVals()
         if self.xboxUse != 1:
             self.almStatusLab.configure(text="SYSTEM READY", style="OK.TLabel")
@@ -5586,31 +5535,26 @@ class RobotArmApp:
 
     def deleteitem(self):
         try:
-            # Get the currently selected row index
             selRow = self.tab1.progView.curselection()[0]
-            
-            # Delete the selected item and clear any selection
+
             self.tab1.progView.delete(selRow)
             self.tab1.progView.selection_clear(0, END)
-            
-            # Re-select the current row if possible
+
             self.tab1.progView.select_set(min(selRow, self.tab1.progView.index('end') - 1))
 
-            # Save the updated list of items back to the file
             items = self.tab1.progView.get(0, END)
             file_path = path.relpath(self.ProgEntryField.get())
             with open(file_path, 'w', encoding='utf-8') as f:
                 for item in items:
                     f.write(str(item.strip(), encoding='utf-8') + '\n')
         except IndexError:
-            # Handle the case when no selection is available
             pass
 
     def manInsItem(self):
         try:
             sel_row = self.tab1.prog_view.curselection()[0]
             sel_row += 1
-        except IndexError:  # handle specific exception for no selection
+        except IndexError:
             last = self.tab1.prog_view.size() - 1
             sel_row = last
             self.tab1.prog_view.select_set(sel_row)
@@ -5638,7 +5582,7 @@ class RobotArmApp:
         # Get the selected row
         try:
             sel_row = self.tab1.prog_view.curselection()[0]
-        except IndexError:  # Handle case where no row is selected
+        except IndexError:
             return
         
         # Delete and replace the item at selected row
@@ -5661,10 +5605,8 @@ class RobotArmApp:
 
     def waitTime(self):
         try:
-            # Get the selected row and increment by 1 to insert below the current selection
             sel_row = self.tab1.prog_view.curselection()[0] + 1
         except IndexError:
-            # If no selection, set sel_row to the last position
             sel_row = self.tab1.prog_view.size()
         
         # Prepare the new "Wait Time" text
@@ -5685,10 +5627,8 @@ class RobotArmApp:
 
     def waitInputOn(self):
         try:
-            # Get the selected row and increment by 1 to insert below the current selection
             sel_row = self.tab1.prog_view.curselection()[0] + 1
         except IndexError:
-            # If no selection, set sel_row to the last position
             sel_row = self.tab1.prog_view.size()
         
         # Prepare the "Wait Input On" text
@@ -5709,10 +5649,8 @@ class RobotArmApp:
 
     def waitInputOff(self):
         try:
-            # Get the selected row and increment by 1 to insert below the current selection
             sel_row = self.tab1.prog_view.curselection()[0] + 1
         except IndexError:
-            # If no selection, set sel_row to the last position
             sel_row = self.tab1.prog_view.size()
         
         # Prepare the "Wait Off Input" text
@@ -5733,10 +5671,8 @@ class RobotArmApp:
 
     def setOutputOn(self):
         try:
-            # Get the selected row and increment by 1 to insert below the current selection
             sel_row = self.tab1.prog_view.curselection()[0] + 1
         except IndexError:
-            # If no selection, set sel_row to the last position
             sel_row = self.tab1.prog_view.size()
         
         # Prepare the "Out On" text
@@ -5757,10 +5693,8 @@ class RobotArmApp:
 
     def setOutputOff(self):
         try:
-            # Get the selected row and increment by 1 to insert below the current selection
             sel_row = self.tab1.prog_view.curselection()[0] + 1
         except IndexError:
-            # If no selection, set sel_row to the last position
             sel_row = self.tab1.prog_view.size()
         
         # Prepare the "Out Off" text
@@ -5781,10 +5715,8 @@ class RobotArmApp:
 
     def tabNumber(self):
         try:
-            # Get the selected row and increment by 1 to insert below the current selection
             sel_row = self.tab1.prog_view.curselection()[0] + 1
         except IndexError:
-            # If no selection, set sel_row to the last position
             sel_row = self.tab1.prog_view.size()
         
         # Prepare the "Tab Number" text
@@ -5805,10 +5737,8 @@ class RobotArmApp:
 
     def jumpTab(self):
         try:
-            # Get the selected row and increment by 1 to insert below the current selection
             sel_row = self.tab1.prog_view.curselection()[0] + 1
         except IndexError:
-            # If no selection, set sel_row to the last position
             sel_row = self.tab1.prog_view.size()
         
         # Prepare the "Jump Tab" text
@@ -5829,10 +5759,8 @@ class RobotArmApp:
 
     def cameraOn(self):
         try:
-            # Get the selected row and increment by 1 to insert below the current selection
             selRow = self.tab1.progView.curselection()[0] + 1
         except IndexError:
-            # If no selection, set selRow to the last position
             selRow = self.tab1.progView.size()
         
         # Insert "Cam On" text into the list
@@ -5867,7 +5795,6 @@ class RobotArmApp:
         
         with open(file_path, 'w', encoding='utf-8') as f:
             for item in items:
-                # Strip and decode each item from bytes back to a string for consistent UTF-8 encoding in the file
                 f.write(item.strip().decode('utf-8'))
                 f.write('\n')
 
@@ -5973,11 +5900,10 @@ class RobotArmApp:
             error_message = f"{Curtime} - UNABLE TO ESTABLISH COMMUNICATIONS WITH SERIAL DEVICE"
             self.tab8.ElogView.insert(ctk.END, error_message)
             
-            # Save error log
             value = self.tab8.ElogView.get(0, ctk.END)
             with open("ErrorLog", "wb") as f:
                 pickle.dump(value, f)
-            return  # Exit if connection fails
+            return
 
         numChar = int(self.com3charPortEntryField.get())
         response = self.ser3.read(numChar).strip().decode('utf-8')
@@ -6026,7 +5952,6 @@ class RobotArmApp:
             self.ProgEntryField.delete(0, ctk.END)
             self.ProgEntryField.insert(0, name)
             
-            # Clear the current content in progView and load the selected file
             self.tab1.progView.delete(0, ctk.END)
             
             with open(filename, "rb") as Prog:
@@ -6060,7 +5985,7 @@ class RobotArmApp:
         # Prompt user for a new program name using CustomTkinter's simpledialog equivalent
         user_input = self.simpledialog.askstring(title="New Program", prompt="New Program Name:")
         if not user_input:
-            return  # Exit if the user cancels or provides no input
+            return
         
         file_path = f"{user_input}.ar"
         
@@ -6187,7 +6112,7 @@ class RobotArmApp:
         self.tab1.progView.delete(0, 'end')
         
         with open(file_path, "r") as Prog:
-            time.sleep(0.1)  # Optional delay for smoother loading
+            time.sleep(0.1)
             for item in Prog:
                 self.tab1.progView.insert('end', item.rstrip('\n'))
         
@@ -6234,7 +6159,6 @@ class RobotArmApp:
 
     def IfRegjumpTab(self):
         try:
-            # Attempt to get the current selection and set the insertion row
             selRow = self.tab1.progView.curselection()[0]
             selRow += 1
         except IndexError:
@@ -6265,7 +6189,6 @@ class RobotArmApp:
 
     def insertRegister(self):
         try:
-            # Attempt to get the current selection and set the insertion row
             selRow = self.tab1.progView.curselection()[0]
             selRow += 1
         except IndexError:
@@ -6295,7 +6218,6 @@ class RobotArmApp:
 
     def storPos(self):
         try:
-            # Attempt to get the current selection and set the insertion row
             selRow = self.tab1.progView.curselection()[0]
             selRow += 1
         except IndexError:
@@ -6326,10 +6248,8 @@ class RobotArmApp:
 
     def insCalibrate(self):
         try:
-            # Attempt to get the current selection and set the insertion row
             selRow = self.tab1.progView.curselection()[0] + 1
         except IndexError:
-            # Default to the end if there is no selection
             selRow = self.tab1.progView.size() - 1
             self.tab1.progView.select_set(selRow)
         
@@ -6352,22 +6272,17 @@ class RobotArmApp:
 
     def progViewselect(self, event):
         try:
-            # Get the selected row index in progView
             selRow = self.tab1.progView.curselection()[0]
             
-            # Update curRowEntryField with the selected row index
             self.curRowEntryField.delete(0, ctk.END)
             self.curRowEntryField.insert(0, selRow)
         except IndexError:
-            # Handle case where no item is selected
             self.curRowEntryField.delete(0, ctk.END)
 
     def getSel(self):
         try:
-            # Get the selected row index in progView
             selRow = self.tab1.progView.curselection()[0]
             
-            # Scroll the view to make the selected row visible
             self.tab1.progView.see(selRow + 2)
             
             data = list(map(int, self.tab1.progView.curselection()))
@@ -6376,7 +6291,6 @@ class RobotArmApp:
             self.manEntryField.delete(0, ctk.END)
             self.manEntryField.insert(0, command)
         except IndexError:
-            # Handle case where no item is selected
             self.manEntryField.delete(0, ctk.END)
 
     def control_servo(self, servo_number, position_field):
@@ -6436,13 +6350,11 @@ class RobotArmApp:
         self.testRecEntryField.delete(0, 'end')
 
     def CalcLinDist(self, X2, Y2, Z2):
-
         # Calculate the linear distance between the current position and (X2, Y2, Z2)
         self.LineDist = (((X2 - self.XcurPos) ** 2) + ((Y2 - self.YcurPos) ** 2) + ((Z2 - self.ZcurPos) ** 2)) ** 0.5
         return self.LineDist
 
     def CalcLinVect(self, X2, Y2, Z2):
-
         # Calculate the vector components from the current position to (X2, Y2, Z2)
         self.Xv = X2 - self.XcurPos
         self.Yv = Y2 - self.YcurPos
@@ -6655,7 +6567,7 @@ class RobotArmApp:
 
     def calExtAxis(self):
         def configure_axis(index, pos_limit, neg_limit_label, pos_limit_label, jog_slider, update_command):
-            neg_limit = 0  # Constant for all axes in this context
+            neg_limit = 0
             neg_limit_label.configure(text=str(-neg_limit))
             pos_limit_label.configure(text=str(pos_limit))
             jog_slider.configure(
@@ -6973,7 +6885,6 @@ class RobotArmApp:
             self.J4aEntryField: 0, self.J5aEntryField: 0, self.J6aEntryField: 0
         }
 
-        # Insert default values into each entry field
         for entry_field, value in default_values.items():
             entry_field.insert(0, str(value))
 
@@ -7028,7 +6939,6 @@ class RobotArmApp:
         self.J9rotation = float(self.axis9rotEntryField.get())
         self.J9steps = float(self.axis9stepsEntryField.get())
 
-        # Apply the updates and save
         try:
             self.updateParams()
             time.sleep(0.1)
@@ -7433,7 +7343,7 @@ class RobotArmApp:
             if self.visfail:
                 time.sleep(0.1)
 
-        open(self.VisFileLoc, "w").close()  # Clear the vision file
+        open(self.VisFileLoc, "w").close()
 
         # Update fields with position data
         update_entry(self.VisXfindEntryField, self.Xpos)
@@ -7475,7 +7385,6 @@ class RobotArmApp:
             update_status(self.almStatusLab, "SYSTEM READY", "OK.TLabel")
             update_status(self.almStatusLab2, "SYSTEM READY", "OK.TLabel")
 
-            # Extract x and y values from the comma-separated value
             index = value.index(',')
             x = float(value[:index])
             y = float(value[index+1:])
@@ -7486,7 +7395,7 @@ class RobotArmApp:
             if self.visfail:
                 time.sleep(0.1)
 
-        open(self.VisFileLoc, "w").close()  # Clear the vision file
+        open(self.VisFileLoc, "w").close()
 
         # Update fields with position data
         update_entry(self.VisXfindEntryField, self.Xpos)
@@ -7525,11 +7434,9 @@ class RobotArmApp:
 
             value = read_last_line(self.VisFileLoc)
 
-            # Update status to indicate system is ready
             update_status(self.almStatusLab, "SYSTEM READY", "OK.TLabel")
             update_status(self.almStatusLab2, "SYSTEM READY", "OK.TLabel")
 
-            # Parse x, y, r values from comma-separated string
             index1 = value.index(',')
             x = float(value[:index1])
 
@@ -7544,7 +7451,7 @@ class RobotArmApp:
             if self.visfail:
                 time.sleep(0.1)
 
-        open(self.VisFileLoc, "w").close()  # Clear the vision file
+        open(self.VisFileLoc, "w").close()
 
         # Update fields with position and rotation data
         update_entry(self.VisXfindEntryField, self.Xpos)
@@ -7589,9 +7496,8 @@ class RobotArmApp:
 
         return xMMpos, yMMpos
 
-    ## Define function to show frame ##
-
     def show_frame(self):
+        # Function to show frame        
         if self.cam_on:
             ret, frame = self.cap.read()
 
@@ -7604,16 +7510,15 @@ class RobotArmApp:
                 self.live_lbl.imgtk = imgtk
                 self.live_lbl.configure(image=imgtk)
 
-            # Schedule the next frame update
             self.live_lbl.after(10, self.show_frame)
 
     def start_vid(self):
-        self.stop_vid()  # Ensure any previous video capture is stopped
+        self.stop_vid()
         self.cam_on = True
 
         # Get the selected camera index
         selectedCam = self.camList.index(self.visoptions.get()) if self.visoptions.get() in self.camList else 0
-        self.cap = cv2.VideoCapture(selectedCam)  # Open the selected camera
+        self.cap = cv2.VideoCapture(selectedCam)
 
         self.show_frame()
 
@@ -7622,8 +7527,6 @@ class RobotArmApp:
 
         if self.cap and self.cap.isOpened():
             self.cap.release()
-
-    ## Define function to show frame ##
 
     def take_pic(self):
         # Capture frame from selected camera
@@ -7768,7 +7671,6 @@ class RobotArmApp:
             self.x_end, self.y_end = x, y
             self.mX1, self.mY1, self.mX2, self.mY2 = self.x_start+3, self.y_start+3, self.x_end-3, self.y_end-3
 
-            # Set background, crop image, and update display
             background = handle_bg_color()
             crop_image_with_bg()
             update_displayed_image()
@@ -7780,11 +7682,11 @@ class RobotArmApp:
             cv2.imshow("image", oriImage)
 
         self.button_down = False
-        self.x_start, self.y_start, self.x_end, self.y_end = 0, 0, 0, 0  # Initialize coordinates
-        self.mask_pic()  # Call external function for initial masking setup
+        self.x_start, self.y_start, self.x_end, self.y_end = 0, 0, 0, 0
+        self.mask_pic()
 
-        oriImage = cv2.imread('curImage.jpg').copy()  # Load and duplicate the current image
-        setup_mask_window()  # Set up the window and callback for cropping
+        oriImage = cv2.imread('curImage.jpg').copy()
+        setup_mask_window()
 
     def mouse_crop(self, event, x, y, flags, param):
         # Draw a rectangle on a copy of the image and display it.
@@ -7820,11 +7722,9 @@ class RobotArmApp:
             refPoint = [(self.x_start + 3, self.y_start + 3), (self.x_end - 3, self.y_end - 3)]
 
             if len(refPoint) == 2:
-                # Crop and save the region of interest
                 roi = self.oriImage[refPoint[0][1]:refPoint[1][1], refPoint[0][0]:refPoint[1][0]]
                 cv2.imshow("Cropped", roi)
 
-                # Prompt for template name and save the cropped image
                 template_name = self.simpledialog.askstring(title="Teach Vision Object", prompt="Save Object As:")
                 if template_name:
                     cv2.imwrite(f"{template_name}.jpg", roi)
@@ -8006,8 +7906,8 @@ class RobotArmApp:
 
     def zeroBrCn(self):
         # Set default coordinates and reset sliders
-        mX1, mY1 = 0, 0
-        mX2, mY2 = 640, 480
+        self.mX1, self.mY1 = 0, 0
+        self.mX2, self.mY2 = 640, 480
         self.VisBrightSlide.set(0)
         self.VisContrastSlide.set(0)
 
@@ -8044,11 +7944,9 @@ class RobotArmApp:
     # GCODE defs #
 
     def gcodeFrame(self):
-        # Create and place the CTkFrame
         gcodeframe = ctk.CTkFrame(self.tab7)
         gcodeframe.place(x=300, y=10)
 
-        # Set up the CTkScrollbar
         scrollbar = ctk.CTkScrollbar(gcodeframe)
         scrollbar.pack(side=ctk.RIGHT, fill=ctk.Y)
 
@@ -8059,7 +7957,6 @@ class RobotArmApp:
         # Configure the scrollbar to scroll the Listbox
         scrollbar.configure(command=self.tab7.gcodeView.yview)
 
-        # Brief delay to allow the interface to update
         time.sleep(0.1)
 
     def gcodeViewselect(self, e):
@@ -8078,7 +7975,7 @@ class RobotArmApp:
         # Open file dialog and get the selected file path
         filename = fd.askopenfilename(title='Open files', initialdir='/', filetypes=filetypes)
         if not filename:
-            return  # Exit if no file is selected
+            return
 
         # Update GcodeProgEntryField with the selected filename
         self.GcodeProgEntryField.delete(0, 'end')
@@ -8091,11 +7988,9 @@ class RobotArmApp:
         with open(filename, "rb") as gcodeProg:
             previtem = b""
             for item in gcodeProg:
-                # Remove comments from each line, if present
                 commentIndex = item.find(b";")
                 item = item[:commentIndex].strip() + b" "
 
-                # Insert only unique lines
                 if item != previtem:
                     self.tab7.gcodeView.insert(END, item)
                 previtem = item
@@ -8276,25 +8171,21 @@ class RobotArmApp:
         self.GCalmStatusLab.configure(text="GCODE FILE RUNNING", fg_color="green")
 
         def GCthreadPlay():
-            # Build the command and update UI fields
             Fn = Filename + ".txt"
             command = "PG" + "Fn" + Fn + "\n"
             self.cmdSentEntryField.delete(0, 'end')
             self.cmdSentEntryField.insert(0, command)
 
-            # Send the command
             self.ser.write(command.encode())
             self.ser.flushInput()
             time.sleep(.1)
 
-            # Process the response
             response = str(self.ser.readline().strip(), 'utf-8')
             if response[:1] == 'E':
                 self.ErrorHandler(response)
             else:
                 self.displayPosition(response)
 
-                # Update status label based on estop state
                 if self.estopActive == True:
                     self.GCalmStatusLab.configure(
                         text="Estop Button was Pressed", fg_color="red")
