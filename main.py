@@ -2472,7 +2472,7 @@ class RobotArmApp:
         # Visual Backdrop Label
         self.VisBackdromLbl = ctk.CTkLabel(
             self.tab6, 
-            image=ctk.CTkImage(Image.open(os.path.join('assets', 'VisBackdrop.png')), size=(690,530)), 
+            image=ctk.CTkImage(Image.open(os.path.join('assets', 'VisBackdrop.png')), size=(690, 530)), 
             text=""
         )
         self.VisBackdromLbl.place(x=15, y=215)
@@ -2522,12 +2522,13 @@ class RobotArmApp:
 
         self.visoptions = ctk.StringVar(value="Select a Camera")
 
-        try:
-            self.vismenu = ctk.CTkOptionMenu(self.tab6, variable=self.visoptions, values=self.camList)
-            self.vismenu.configure(width=200)
-            self.vismenu.place(x=10, y=10)
-        except Exception as e:
-            print("No camera found:", e)
+        self.vismenu = ctk.CTkOptionMenu(
+            self.tab6, 
+            variable=self.visoptions, 
+            values=self.camList
+        )
+        self.vismenu.configure(width=200)
+        self.vismenu.place(x=10, y=10)
 
         # Buttons
         self.StartCamBut = ctk.CTkButton(self.tab6, text="Start Camera", width=140, command=self.start_vid)
@@ -2887,6 +2888,22 @@ class RobotArmApp:
 
         self.comPort = self.calibration.get("13.0", "14.0").strip()
         self.Prog = self.calibration.get("14.0", "15.0").strip()
+
+        self.Servo0on = self.calibration.get("15.0", "16.0").strip()
+        self.Servo0off = self.calibration.get("16.0", "17.0").strip()
+        self.Servo1on = self.calibration.get("17.0", "18.0").strip()
+        self.Servo1off = self.calibration.get("18.0", "19.0").strip()
+        self.DO1on = self.calibration.get("19.0", "20.0").strip()
+        self.DO1off = self.calibration.get("20.0", "21.0").strip()
+        self.DO2on = self.calibration.get("21.0", "22.0").strip()
+        self.DO2off = self.calibration.get("22.0", "23.0").strip()
+
+        self.TFx = self.calibration.get("23.0", "24.0").strip()
+        self.TFy = self.calibration.get("24.0", "25.0").strip()
+        self.TFz = self.calibration.get("25.0", "26.0").strip()
+        self.TFrx = self.calibration.get("26.0", "27.0").strip()
+        self.TFry = self.calibration.get("27.0", "28.0").strip()
+        self.TFrz = self.calibration.get("28.0", "29.0").strip()
 
         # End Of Application styling defs
 
