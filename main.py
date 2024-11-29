@@ -6,7 +6,6 @@ import time
 import threading
 import datetime
 import pickle
-import pathlib
 from functools import partial
 from os import execv, path
 
@@ -87,6 +86,17 @@ class RobotArmApp:
         self.pickClosest = ctk.IntVar()
         self.autoBG = ctk.IntVar()
 
+        # Other key states
+        self.estopActive = False
+        self.posOutreach = False
+        self.SplineTrue = False
+        self.gcodeSpeed = "10"
+        self.inchTrue = False
+        self.moveInProc = 0
+        self.cropping = False
+        self.cam_on = False
+        self.cap = None
+
         # Axis limits
         self.J1PosLim = 170
         self.J1NegLim = 170
@@ -106,22 +116,6 @@ class RobotArmApp:
         self.J8NegLim = 0
         self.J9PosLim = 500
         self.J9NegLim = 0
-
-        # Other key states
-        self.cropping = False
-        self.cam_on = False
-        self.cap = None
-        self.estopActive = False
-        self.posOutreach = False
-        self.SplineTrue = False
-        self.gcodeSpeed = "10"
-        self.inchTrue = False
-        self.moveInProc = 0
-        
-        # Initialize serial connection
-        self.ser = None
-        self.ser2 = None
-        self.ser3 = None
 
         # Define Tabs
         self.nb = ctk.CTkTabview(self.root, width=1536, height=792)
@@ -2212,9 +2206,37 @@ class RobotArmApp:
                 entry_field.place(x=x_offset, y=45 + i * 25)
                 self.DHEntryFields[param].append(entry_field)
 
+        self.J1ΘEntryField = self.DHEntryFields["Θ"][0]
+        self.J2ΘEntryField = self.DHEntryFields["Θ"][1]
+        self.J3ΘEntryField = self.DHEntryFields["Θ"][2]
+        self.J4ΘEntryField = self.DHEntryFields["Θ"][3]
+        self.J5ΘEntryField = self.DHEntryFields["Θ"][4]
+        self.J6ΘEntryField = self.DHEntryFields["Θ"][5]
+
+        self.J1αEntryField = self.DHEntryFields["α"][0]
+        self.J2αEntryField = self.DHEntryFields["α"][1]
+        self.J3αEntryField = self.DHEntryFields["α"][2]
+        self.J4αEntryField = self.DHEntryFields["α"][3]
+        self.J5αEntryField = self.DHEntryFields["α"][4]
+        self.J6αEntryField = self.DHEntryFields["α"][5]
+
+        self.J1dEntryField = self.DHEntryFields["d"][0]
+        self.J2dEntryField = self.DHEntryFields["d"][1]
+        self.J3dEntryField = self.DHEntryFields["d"][2]
+        self.J4dEntryField = self.DHEntryFields["d"][3]
+        self.J5dEntryField = self.DHEntryFields["d"][4]
+        self.J6dEntryField = self.DHEntryFields["d"][5]
+
+        self.J1aEntryField = self.DHEntryFields["a"][0]
+        self.J2aEntryField = self.DHEntryFields["a"][1]
+        self.J3aEntryField = self.DHEntryFields["a"][2]
+        self.J4aEntryField = self.DHEntryFields["a"][3]
+        self.J5aEntryField = self.DHEntryFields["a"][4]
+        self.J6aEntryField = self.DHEntryFields["a"][5]
+
         # Load Default Profiles
-        self.loadAR4Mk2But = ctk.CTkButton(self.tab3, text="Load AR4-MK3 Defaults", width=200, command=self.LoadAR4Mk3default)
-        self.loadAR4Mk2But.place(x=1150, y=590)
+        self.loadAR4But = ctk.CTkButton(self.tab3, text="Load AR4 Defaults", width=200, command=self.LoadAR4default)
+        self.loadAR4But.place(x=1150, y=590)
 
         self.saveCalBut = ctk.CTkButton(self.tab3, text="SAVE", width=200, command=self.SaveAndApplyCalibration)
         self.saveCalBut.place(x=1150, y=630)
@@ -2456,6 +2478,23 @@ class RobotArmApp:
             entry.place(x=30, y=30 + i * 30)
             self.R_entry_fields.append(entry)
 
+        self.R1EntryField = self.R_entry_fields[0]
+        self.R2EntryField = self.R_entry_fields[1]
+        self.R3EntryField = self.R_entry_fields[2]
+        self.R4EntryField = self.R_entry_fields[3]
+        self.R5EntryField = self.R_entry_fields[4]
+        self.R6EntryField = self.R_entry_fields[5]
+        self.R7EntryField = self.R_entry_fields[6]
+        self.R8EntryField = self.R_entry_fields[7]
+        self.R9EntryField = self.R_entry_fields[8]
+        self.R10EntryField = self.R_entry_fields[9]
+        self.R11EntryField = self.R_entry_fields[10]
+        self.R12EntryField = self.R_entry_fields[11]
+        self.R13EntryField = self.R_entry_fields[12]
+        self.R14EntryField = self.R_entry_fields[13]
+        self.R15EntryField = self.R_entry_fields[14]
+        self.R16EntryField = self.R_entry_fields[15]
+
         # Create SP fields
         self.SP_entry_fields = {}
         x_coords = [400, 440, 480, 520, 560, 600]
@@ -2466,6 +2505,108 @@ class RobotArmApp:
                 entry = ctk.CTkEntry(self.tab5, width=50, justify="center")
                 entry.place(x=x, y=30 + i * 30)
                 self.SP_entry_fields[f"E{col}"].append(entry)
+
+        self.SP_1_E1_EntryField = self.SP_entry_fields["E1"][0]
+        self.SP_2_E1_EntryField = self.SP_entry_fields["E1"][1]
+        self.SP_3_E1_EntryField = self.SP_entry_fields["E1"][2]
+        self.SP_4_E1_EntryField = self.SP_entry_fields["E1"][3]
+        self.SP_5_E1_EntryField = self.SP_entry_fields["E1"][4]
+        self.SP_6_E1_EntryField = self.SP_entry_fields["E1"][5]
+        self.SP_7_E1_EntryField = self.SP_entry_fields["E1"][6]
+        self.SP_8_E1_EntryField = self.SP_entry_fields["E1"][7]
+        self.SP_9_E1_EntryField = self.SP_entry_fields["E1"][8]
+        self.SP_10_E1_EntryField = self.SP_entry_fields["E1"][9]
+        self.SP_11_E1_EntryField = self.SP_entry_fields["E1"][10]
+        self.SP_12_E1_EntryField = self.SP_entry_fields["E1"][11]
+        self.SP_13_E1_EntryField = self.SP_entry_fields["E1"][12]
+        self.SP_14_E1_EntryField = self.SP_entry_fields["E1"][13]
+        self.SP_15_E1_EntryField = self.SP_entry_fields["E1"][14]
+        self.SP_16_E1_EntryField = self.SP_entry_fields["E1"][15]
+
+        self.SP_1_E2_EntryField = self.SP_entry_fields["E2"][0]
+        self.SP_2_E2_EntryField = self.SP_entry_fields["E2"][1]
+        self.SP_3_E2_EntryField = self.SP_entry_fields["E2"][2]
+        self.SP_4_E2_EntryField = self.SP_entry_fields["E2"][3]
+        self.SP_5_E2_EntryField = self.SP_entry_fields["E2"][4]
+        self.SP_6_E2_EntryField = self.SP_entry_fields["E2"][5]
+        self.SP_7_E2_EntryField = self.SP_entry_fields["E2"][6]
+        self.SP_8_E2_EntryField = self.SP_entry_fields["E2"][7]
+        self.SP_9_E2_EntryField = self.SP_entry_fields["E2"][8]
+        self.SP_10_E2_EntryField = self.SP_entry_fields["E2"][9]
+        self.SP_11_E2_EntryField = self.SP_entry_fields["E2"][10]
+        self.SP_12_E2_EntryField = self.SP_entry_fields["E2"][11]
+        self.SP_13_E2_EntryField = self.SP_entry_fields["E2"][12]
+        self.SP_14_E2_EntryField = self.SP_entry_fields["E2"][13]
+        self.SP_15_E2_EntryField = self.SP_entry_fields["E2"][14]
+        self.SP_16_E2_EntryField = self.SP_entry_fields["E2"][15]
+
+        self.SP_1_E3_EntryField = self.SP_entry_fields["E3"][0]
+        self.SP_2_E3_EntryField = self.SP_entry_fields["E3"][1]
+        self.SP_3_E3_EntryField = self.SP_entry_fields["E3"][2]
+        self.SP_4_E3_EntryField = self.SP_entry_fields["E3"][3]
+        self.SP_5_E3_EntryField = self.SP_entry_fields["E3"][4]
+        self.SP_6_E3_EntryField = self.SP_entry_fields["E3"][5]
+        self.SP_7_E3_EntryField = self.SP_entry_fields["E3"][6]
+        self.SP_8_E3_EntryField = self.SP_entry_fields["E3"][7]
+        self.SP_9_E3_EntryField = self.SP_entry_fields["E3"][8]
+        self.SP_10_E3_EntryField = self.SP_entry_fields["E3"][9]
+        self.SP_11_E3_EntryField = self.SP_entry_fields["E3"][10]
+        self.SP_12_E3_EntryField = self.SP_entry_fields["E3"][11]
+        self.SP_13_E3_EntryField = self.SP_entry_fields["E3"][12]
+        self.SP_14_E3_EntryField = self.SP_entry_fields["E3"][13]
+        self.SP_15_E3_EntryField = self.SP_entry_fields["E3"][14]
+        self.SP_16_E3_EntryField = self.SP_entry_fields["E3"][15]
+
+        self.SP_1_E4_EntryField = self.SP_entry_fields["E4"][0]
+        self.SP_2_E4_EntryField = self.SP_entry_fields["E4"][1]
+        self.SP_3_E4_EntryField = self.SP_entry_fields["E4"][2]
+        self.SP_4_E4_EntryField = self.SP_entry_fields["E4"][3]
+        self.SP_5_E4_EntryField = self.SP_entry_fields["E4"][4]
+        self.SP_6_E4_EntryField = self.SP_entry_fields["E4"][5]
+        self.SP_7_E4_EntryField = self.SP_entry_fields["E4"][6]
+        self.SP_8_E4_EntryField = self.SP_entry_fields["E4"][7]
+        self.SP_9_E4_EntryField = self.SP_entry_fields["E4"][8]
+        self.SP_10_E4_EntryField = self.SP_entry_fields["E4"][9]
+        self.SP_11_E4_EntryField = self.SP_entry_fields["E4"][10]
+        self.SP_12_E4_EntryField = self.SP_entry_fields["E4"][11]
+        self.SP_13_E4_EntryField = self.SP_entry_fields["E4"][12]
+        self.SP_14_E4_EntryField = self.SP_entry_fields["E4"][13]
+        self.SP_15_E4_EntryField = self.SP_entry_fields["E4"][14]
+        self.SP_16_E4_EntryField = self.SP_entry_fields["E4"][15]
+
+        self.SP_1_E5_EntryField = self.SP_entry_fields["E5"][0]
+        self.SP_2_E5_EntryField = self.SP_entry_fields["E5"][1]
+        self.SP_3_E5_EntryField = self.SP_entry_fields["E5"][2]
+        self.SP_4_E5_EntryField = self.SP_entry_fields["E5"][3]
+        self.SP_5_E5_EntryField = self.SP_entry_fields["E5"][4]
+        self.SP_6_E5_EntryField = self.SP_entry_fields["E5"][5]
+        self.SP_7_E5_EntryField = self.SP_entry_fields["E5"][6]
+        self.SP_8_E5_EntryField = self.SP_entry_fields["E5"][7]
+        self.SP_9_E5_EntryField = self.SP_entry_fields["E5"][8]
+        self.SP_10_E5_EntryField = self.SP_entry_fields["E5"][9]
+        self.SP_11_E5_EntryField = self.SP_entry_fields["E5"][10]
+        self.SP_12_E5_EntryField = self.SP_entry_fields["E5"][11]
+        self.SP_13_E5_EntryField = self.SP_entry_fields["E5"][12]
+        self.SP_14_E5_EntryField = self.SP_entry_fields["E5"][13]
+        self.SP_15_E5_EntryField = self.SP_entry_fields["E5"][14]
+        self.SP_16_E5_EntryField = self.SP_entry_fields["E5"][15]
+
+        self.SP_1_E6_EntryField = self.SP_entry_fields["E6"][0]
+        self.SP_2_E6_EntryField = self.SP_entry_fields["E6"][1]
+        self.SP_3_E6_EntryField = self.SP_entry_fields["E6"][2]
+        self.SP_4_E6_EntryField = self.SP_entry_fields["E6"][3]
+        self.SP_5_E6_EntryField = self.SP_entry_fields["E6"][4]
+        self.SP_6_E6_EntryField = self.SP_entry_fields["E6"][5]
+        self.SP_7_E6_EntryField = self.SP_entry_fields["E6"][6]
+        self.SP_8_E6_EntryField = self.SP_entry_fields["E6"][7]
+        self.SP_9_E6_EntryField = self.SP_entry_fields["E6"][8]
+        self.SP_10_E6_EntryField = self.SP_entry_fields["E6"][9]
+        self.SP_11_E6_EntryField = self.SP_entry_fields["E6"][10]
+        self.SP_12_E6_EntryField = self.SP_entry_fields["E6"][11]
+        self.SP_13_E6_EntryField = self.SP_entry_fields["E6"][12]
+        self.SP_14_E6_EntryField = self.SP_entry_fields["E6"][13]
+        self.SP_15_E6_EntryField = self.SP_entry_fields["E6"][14]
+        self.SP_16_E6_EntryField = self.SP_entry_fields["E6"][15]
 
         ## TAB 6 LABELS ##
 
@@ -2481,20 +2622,24 @@ class RobotArmApp:
         self.video_frame = ctk.CTkFrame(self.tab6, width=640, height=480)
         self.video_frame.place(x=50, y=250)
 
+        # Video Label inside Video Frame
         self.vid_lbl = ctk.CTkLabel(self.video_frame, text="")
         self.vid_lbl.place(x=0, y=0)
         self.vid_lbl.bind('<Button-1>', self.motion)
 
-        # Live Video Feed
+        # Live Video Feed Label
         self.LiveLab = ctk.CTkLabel(self.tab6, text="LIVE VIDEO FEED", font=("Arial", 12))
         self.LiveLab.place(x=750, y=390)
 
+        # Live Canvas
         self.liveCanvas = ctk.CTkCanvas(self.tab6, width=490, height=330)
         self.liveCanvas.place(x=750, y=410)
 
+        # Live Frame
         self.live_frame = ctk.CTkFrame(self.tab6, width=480, height=320)
         self.live_frame.place(x=757, y=417)
 
+        # Live Label inside Live Frame
         self.live_lbl = ctk.CTkLabel(self.live_frame, text="")
         self.live_lbl.place(x=0, y=0)
 
@@ -2502,13 +2647,15 @@ class RobotArmApp:
         self.template_frame = ctk.CTkFrame(self.tab6, width=150, height=150)
         self.template_frame.place(x=575, y=50)
 
+        # Template Label inside Template Frame
         self.template_lbl = ctk.CTkLabel(self.template_frame, text="")
         self.template_lbl.place(x=0, y=0)
 
-        # Found Values and Calibration Values Labels
+        # Found Values Label
         self.FoundValuesLab = ctk.CTkLabel(self.tab6, text="FOUND VALUES", font=("Arial", 12))
         self.FoundValuesLab.place(x=750, y=30)
 
+        # Calibration Values Label
         self.CalValuesLab = ctk.CTkLabel(self.tab6, text="CALIBRATION VALUES", font=("Arial", 12))
         self.CalValuesLab.place(x=900, y=30)
 
@@ -2871,39 +3018,561 @@ class RobotArmApp:
         self.mX2 = 0
         self.mY2 = 0
 
-        self.J1AngCur = self.calibration.get("1.0", "2.0").strip()
-        self.J2AngCur = self.calibration.get("2.0", "3.0").strip()
-        self.J3AngCur = self.calibration.get("3.0", "4.0").strip()
-        self.J4AngCur = self.calibration.get("4.0", "5.0").strip()
-        self.J5AngCur = self.calibration.get("5.0", "6.0").strip()
-        self.J6AngCur = self.calibration.get("6.0", "7.0").strip()
+        calibration_keys = {
+            "J1AngCur": ("1.0", "2.0"),
+            "J2AngCur": ("2.0", "3.0"),
+            "J3AngCur": ("3.0", "4.0"),
+            "J4AngCur": ("4.0", "5.0"),
+            "J5AngCur": ("5.0", "6.0"),
+            "J6AngCur": ("6.0", "7.0"),
+            "XcurPos": ("7.0", "8.0"),
+            "YcurPos": ("8.0", "9.0"),
+            "ZcurPos": ("9.0", "10.0"),
+            "RXcurPos": ("10.0", "11.0"),
+            "RYcurPos": ("11.0", "12.0"),
+            "RZcurPos": ("12.0", "13.0"),
+            "comPort": ("13.0", "14.0"),
+            "Prog": ("14.0", "15.0"),
+            "Servo0on": ("15.0", "16.0"),
+            "Servo0off": ("16.0", "17.0"),
+            "Servo1on": ("17.0", "18.0"),
+            "Servo1off": ("18.0", "19.0"),
+            "DO1on": ("19.0", "20.0"),
+            "DO1off": ("20.0", "21.0"),
+            "DO2on": ("21.0", "22.0"),
+            "DO2off": ("22.0", "23.0"),
+            "TFx": ("23.0", "24.0"),
+            "TFy": ("24.0", "25.0"),
+            "TFz": ("25.0", "26.0"),
+            "TFrx": ("26.0", "27.0"),
+            "TFry": ("27.0", "28.0"),
+            "TFrz": ("28.0", "29.0"),
+            "J7PosCur": ("29.0", "30.0"),
+            "J8PosCur": ("30.0", "31.0"),
+            "J9PosCur": ("31.0", "32.0"),
+            "VisFileLoc": ("32.0", "33.0"),
+            "VisProg": ("33.0", "34.0"),
+            "VisOrigXpix": ("34.0", "35.0"),
+            "VisOrigXmm": ("35.0", "36.0"),
+            "VisOrigYpix": ("36.0", "37.0"),
+            "VisOrigYmm": ("37.0", "38.0"),
+            "VisEndXpix": ("38.0", "39.0"),
+            "VisEndXmm": ("39.0", "40.0"),
+            "VisEndYpix": ("40.0", "41.0"),
+            "VisEndYmm": ("41.0", "42.0"),
+            "J1calOff": ("42.0", "43.0"),
+            "J2calOff": ("43.0", "44.0"),
+            "J3calOff": ("44.0", "45.0"),
+            "J4calOff": ("45.0", "46.0"),
+            "J5calOff": ("46.0", "47.0"),
+            "J6calOff": ("47.0", "48.0"),
+            "J1OpenLoopVal": ("48.0", "49.0"),
+            "J2OpenLoopVal": ("49.0", "50.0"),
+            "J3OpenLoopVal": ("50.0", "51.0"),
+            "J4OpenLoopVal": ("51.0", "52.0"),
+            "J5OpenLoopVal": ("52.0", "53.0"),
+            "J6OpenLoopVal": ("53.0", "54.0"),
+            "com2Port": ("54.0", "55.0"),
+            "curTheme": ("55.0", "56.0"),
+            "J1CalStatVal": ("56.0", "57.0"),
+            "J2CalStatVal": ("57.0", "58.0"),
+            "J3CalStatVal": ("58.0", "59.0"),
+            "J4CalStatVal": ("59.0", "60.0"),
+            "J5CalStatVal": ("60.0", "61.0"),
+            "J6CalStatVal": ("61.0", "62.0"),
+            "J7PosLim": ("62.0", "63.0"),
+            "J7rotation": ("63.0", "64.0"),
+            "J7steps": ("64.0", "65.0"),
+            "J7StepCur": ("65.0", "66.0"),
+            "J1CalStatVal2": ("66.0", "67.0"),
+            "J2CalStatVal2": ("67.0", "68.0"),
+            "J3CalStatVal2": ("68.0", "69.0"),
+            "J4CalStatVal2": ("69.0", "70.0"),
+            "J5CalStatVal2": ("70.0", "71.0"),
+            "J6CalStatVal2": ("71.0", "72.0"),
+            "VisBrightVal": ("72.0", "73.0"),
+            "VisContVal": ("73.0", "74.0"),
+            "VisBacColor": ("74.0", "75.0"),
+            "VisScore": ("75.0", "76.0"),
+            "VisX1Val": ("76.0", "77.0"),
+            "VisY1Val": ("77.0", "78.0"),
+            "VisX2Val": ("78.0", "79.0"),
+            "VisY2Val": ("79.0", "80.0"),
+            "VisRobX1Val": ("80.0", "81.0"),
+            "VisRobY1Val": ("81.0", "82.0"),
+            "VisRobX2Val": ("82.0", "83.0"),
+            "VisRobY2Val": ("83.0", "84.0"),
+            "zoom": ("84.0", "85.0"),
+            "pick180Val": ("85.0", "86.0"),
+            "pickClosestVal": ("86.0", "87.0"),
+            "curCam": ("87.0", "88.0"),
+            "fullRotVal": ("88.0", "89.0"),
+            "autoBGVal": ("89.0", "90.0"),
+            "mX1val": ("90.0", "91.0"),
+            "mY1val": ("91.0", "92.0"),
+            "mX2val": ("92.0", "93.0"),
+            "mY2val": ("93.0", "94.0"),
+            "J8length": ("94.0", "95.0"),
+            "J8rotation": ("95.0", "96.0"),
+            "J8steps": ("96.0", "97.0"),
+            "J9length": ("97.0", "98.0"),
+            "J9rotation": ("98.0", "99.0"),
+            "J9steps": ("99.0", "100.0"),
+            "J7calOff": ("100.0", "101.0"),
+            "J8calOff": ("101.0", "102.0"),
+            "J9calOff": ("102.0", "103.0"),
+            "GC_ST_E1": ("103.0", "104.0"),
+            "GC_ST_E2": ("104.0", "105.0"),
+            "GC_ST_E3": ("105.0", "106.0"),
+            "GC_ST_E4": ("106.0", "107.0"),
+            "GC_ST_E5": ("107.0", "108.0"),
+            "GC_ST_E6": ("108.0", "109.0"),
+            "GC_SToff_E1": ("109.0", "110.0"),
+            "GC_SToff_E2": ("110.0", "111.0"),
+            "GC_SToff_E3": ("111.0", "112.0"),
+            "GC_SToff_E4": ("112.0", "113.0"),
+            "GC_SToff_E5": ("113.0", "114.0"),
+            "GC_SToff_E6": ("114.0", "115.0"),
+            "DisableWristRotVal": ("115.0", "116.0"),
+            "J1MotDir": ("116.0", "117.0"),
+            "J2MotDir": ("117.0", "118.0"),
+            "J3MotDir": ("118.0", "119.0"),
+            "J4MotDir": ("119.0", "120.0"),
+            "J5MotDir": ("120.0", "121.0"),
+            "J6MotDir": ("121.0", "122.0"),
+            "J7MotDir": ("122.0", "123.0"),
+            "J8MotDir": ("123.0", "124.0"),
+            "J9MotDir": ("124.0", "125.0"),
+            "J1CalDir": ("125.0", "126.0"),
+            "J2CalDir": ("126.0", "127.0"),
+            "J3CalDir": ("127.0", "128.0"),
+            "J4CalDir": ("128.0", "129.0"),
+            "J5CalDir": ("129.0", "130.0"),
+            "J6CalDir": ("130.0", "131.0"),
+            "J7CalDir": ("131.0", "132.0"),
+            "J8CalDir": ("132.0", "133.0"),
+            "J9CalDir": ("133.0", "134.0"),
+            "J1PosLim": ("134.0", "135.0"),
+            "J1NegLim": ("135.0", "136.0"),
+            "J2PosLim": ("136.0", "137.0"),
+            "J2NegLim": ("137.0", "138.0"),
+            "J3PosLim": ("138.0", "139.0"),
+            "J3NegLim": ("139.0", "140.0"),
+            "J4PosLim": ("140.0", "141.0"),
+            "J4NegLim": ("141.0", "142.0"),
+            "J5PosLim": ("142.0", "143.0"),
+            "J5NegLim": ("143.0", "144.0"),
+            "J6PosLim": ("144.0", "145.0"),
+            "J6NegLim": ("145.0", "146.0"),
+            "J1StepDeg": ("146.0", "147.0"),
+            "J2StepDeg": ("147.0", "148.0"),
+            "J3StepDeg": ("148.0", "149.0"),
+            "J4StepDeg": ("149.0", "150.0"),
+            "J5StepDeg": ("150.0", "151.0"),
+            "J6StepDeg": ("151.0", "152.0"),
+            "J1DriveMS": ("152.0", "153.0"),
+            "J2DriveMS": ("153.0", "154.0"),
+            "J3DriveMS": ("154.0", "155.0"),
+            "J4DriveMS": ("155.0", "156.0"),
+            "J5DriveMS": ("156.0", "157.0"),
+            "J6DriveMS": ("157.0", "158.0"),
+            "J1EncCPR": ("158.0", "159.0"),
+            "J2EncCPR": ("159.0", "160.0"),
+            "J3EncCPR": ("160.0", "161.0"),
+            "J4EncCPR": ("161.0", "162.0"),
+            "J5EncCPR": ("162.0", "163.0"),
+            "J6EncCPR": ("163.0", "164.0"),
+            "J1ΘDHpar": ("164.0", "165.0"),
+            "J2ΘDHpar": ("165.0", "166.0"),
+            "J3ΘDHpar": ("166.0", "167.0"),
+            "J4ΘDHpar": ("167.0", "168.0"),
+            "J5ΘDHpar": ("168.0", "169.0"),
+            "J6ΘDHpar": ("169.0", "170.0"),
+            "J1αDHpar": ("170.0", "171.0"),
+            "J2αDHpar": ("171.0", "172.0"),
+            "J3αDHpar": ("172.0", "173.0"),
+            "J4αDHpar": ("173.0", "174.0"),
+            "J5αDHpar": ("174.0", "175.0"),
+            "J6αDHpar": ("175.0", "176.0"),
+            "J1dDHpar": ("176.0", "177.0"),
+            "J2dDHpar": ("177.0", "178.0"),
+            "J3dDHpar": ("178.0", "179.0"),
+            "J4dDHpar": ("179.0", "180.0"),
+            "J5dDHpar": ("180.0", "181.0"),
+            "J6dDHpar": ("181.0", "182.0"),
+            "J1aDHpar": ("182.0", "183.0"),
+            "J2aDHpar": ("183.0", "184.0"),
+            "J3aDHpar": ("184.0", "185.0"),
+            "J4aDHpar": ("185.0", "186.0"),
+            "J5aDHpar": ("186.0", "187.0"),
+            "J6aDHpar": ("187.0", "188.0"),
+            "GC_ST_WC": ("188.0", "189.0"),
+            "J7CalStatVal": ("189.0", "190.0"),
+            "J8CalStatVal": ("190.0", "191.0"),
+            "J9CalStatVal": ("191.0", "192.0"),
+            "J7CalStatVal2": ("192.0", "193.0"),
+            "J8CalStatVal2": ("193.0", "194.0"),
+            "J9CalStatVal2": ("194.0", "195.0"),
+        }
 
-        self.XcurPos = self.calibration.get("7.0", "8.0").strip()
-        self.YcurPos = self.calibration.get("8.0", "9.0").strip()
-        self.ZcurPos = self.calibration.get("9.0", "10.0").strip()
+        # Loop through the mapping and extract values
+        for var_name, (start_key, end_key) in calibration_keys.items():
+            value = self.calibration.get(start_key, end_key).strip()
+            setattr(self, var_name, value)
 
-        self.RXcurPos = self.calibration.get("10.0", "11.0").strip()
-        self.RYcurPos = self.calibration.get("11.0", "12.0").strip()
-        self.RZcurPos = self.calibration.get("12.0", "13.0").strip()
+        # Dictionary mapping entry fields to their corresponding values
+        entry_field_mapping = {
+            self.comPortEntryField: str(self.comPort),
+            self.com2PortEntryField: str(self.com2Port),
+            self.incrementEntryField: "10",
+            self.speedEntryField: "25",
+            self.ACCspeedField: "20",
+            self.DECspeedField: "20",
+            self.ACCrampField: "100",
+            self.roundEntryField: "0",
+            self.SavePosEntryField: "1",
+            self.R1EntryField: "0",
+            self.R2EntryField: "0",
+            self.R3EntryField: "0",
+            self.R4EntryField: "0",
+            self.R5EntryField: "0",
+            self.R6EntryField: "0",
+            self.R7EntryField: "0",
+            self.R8EntryField: "0",
+            self.R9EntryField: "0",
+            self.R10EntryField: "0",
+            self.R11EntryField: "0",
+            self.R12EntryField: "0",
+            self.R13EntryField: "0",
+            self.R14EntryField: "0",
+            self.R15EntryField: "0",
+            self.R16EntryField: "0",
+            self.SP_1_E1_EntryField: "0",
+            self.SP_2_E1_EntryField: "0",
+            self.SP_3_E1_EntryField: "0",
+            self.SP_4_E1_EntryField: "0",
+            self.SP_5_E1_EntryField: "0",
+            self.SP_6_E1_EntryField: "0",
+            self.SP_7_E1_EntryField: "0",
+            self.SP_8_E1_EntryField: "0",
+            self.SP_9_E1_EntryField: "0",
+            self.SP_10_E1_EntryField: "0",
+            self.SP_11_E1_EntryField: "0",
+            self.SP_12_E1_EntryField: "0",
+            self.SP_13_E1_EntryField: "0",
+            self.SP_14_E1_EntryField: "0",
+            self.SP_15_E1_EntryField: "0",
+            self.SP_16_E1_EntryField: "0",
+            self.SP_1_E2_EntryField: "0",
+            self.SP_2_E2_EntryField: "0",
+            self.SP_3_E2_EntryField: "0",
+            self.SP_4_E2_EntryField: "0",
+            self.SP_5_E2_EntryField: "0",
+            self.SP_6_E2_EntryField: "0",
+            self.SP_7_E2_EntryField: "0",
+            self.SP_8_E2_EntryField: "0",
+            self.SP_9_E2_EntryField: "0",
+            self.SP_10_E2_EntryField: "0",
+            self.SP_11_E2_EntryField: "0",
+            self.SP_12_E2_EntryField: "0",
+            self.SP_13_E2_EntryField: "0",
+            self.SP_14_E2_EntryField: "0",
+            self.SP_15_E2_EntryField: "0",
+            self.SP_16_E2_EntryField: "0",
+            self.SP_1_E3_EntryField: "0",
+            self.SP_2_E3_EntryField: "0",
+            self.SP_3_E3_EntryField: "0",
+            self.SP_4_E3_EntryField: "0",
+            self.SP_5_E3_EntryField: "0",
+            self.SP_6_E3_EntryField: "0",
+            self.SP_7_E3_EntryField: "0",
+            self.SP_8_E3_EntryField: "0",
+            self.SP_9_E3_EntryField: "0",
+            self.SP_10_E3_EntryField: "0",
+            self.SP_11_E3_EntryField: "0",
+            self.SP_12_E3_EntryField: "0",
+            self.SP_13_E3_EntryField: "0",
+            self.SP_14_E3_EntryField: "0",
+            self.SP_15_E3_EntryField: "0",
+            self.SP_16_E3_EntryField: "0",
+            self.SP_1_E4_EntryField: "0",
+            self.SP_2_E4_EntryField: "0",
+            self.SP_3_E4_EntryField: "0",
+            self.SP_4_E4_EntryField: "0",
+            self.SP_5_E4_EntryField: "0",
+            self.SP_6_E4_EntryField: "0",
+            self.SP_7_E4_EntryField: "0",
+            self.SP_8_E4_EntryField: "0",
+            self.SP_9_E4_EntryField: "0",
+            self.SP_10_E4_EntryField: "0",
+            self.SP_11_E4_EntryField: "0",
+            self.SP_12_E4_EntryField: "0",
+            self.SP_13_E4_EntryField: "0",
+            self.SP_14_E4_EntryField: "0",
+            self.SP_15_E4_EntryField: "0",
+            self.SP_16_E4_EntryField: "0",
+            self.SP_1_E5_EntryField: "0",
+            self.SP_2_E5_EntryField: "0",
+            self.SP_3_E5_EntryField: "0",
+            self.SP_4_E5_EntryField: "0",
+            self.SP_5_E5_EntryField: "0",
+            self.SP_6_E5_EntryField: "0",
+            self.SP_7_E5_EntryField: "0",
+            self.SP_8_E5_EntryField: "0",
+            self.SP_9_E5_EntryField: "0",
+            self.SP_10_E5_EntryField: "0",
+            self.SP_11_E5_EntryField: "0",
+            self.SP_12_E5_EntryField: "0",
+            self.SP_13_E5_EntryField: "0",
+            self.SP_14_E5_EntryField: "0",
+            self.SP_15_E5_EntryField: "0",
+            self.SP_16_E5_EntryField: "0",
+            self.SP_1_E6_EntryField: "0",
+            self.SP_2_E6_EntryField: "0",
+            self.SP_3_E6_EntryField: "0",
+            self.SP_4_E6_EntryField: "0",
+            self.SP_5_E6_EntryField: "0",
+            self.SP_6_E6_EntryField: "0",
+            self.SP_7_E6_EntryField: "0",
+            self.SP_8_E6_EntryField: "0",
+            self.SP_9_E6_EntryField: "0",
+            self.SP_10_E6_EntryField: "0",
+            self.SP_11_E6_EntryField: "0",
+            self.SP_12_E6_EntryField: "0",
+            self.SP_13_E6_EntryField: "0",
+            self.SP_14_E6_EntryField: "0",
+            self.SP_15_E6_EntryField: "0",
+            self.SP_16_E6_EntryField: "0",
+            self.servo0onEntryField: str(self.Servo0on),
+            self.servo0offEntryField: str(self.Servo0off),
+            self.servo1onEntryField: str(self.Servo1on),
+            self.servo1offEntryField: str(self.Servo1off),
+            self.DO1onEntryField: str(self.DO1on),
+            self.DO1offEntryField: str(self.DO1off),
+            self.DO2onEntryField: str(self.DO2on),
+            self.DO2offEntryField: str(self.DO2off),
+            self.TFxEntryField: str(self.TFx),
+            self.TFyEntryField: str(self.TFy),
+            self.TFzEntryField: str(self.TFz),
+            self.TFrxEntryField: str(self.TFrx),
+            self.TFryEntryField: str(self.TFry),
+            self.TFrzEntryField: str(self.TFrz),
+            self.J7curAngEntryField: str(self.J7PosCur),
+            self.J8curAngEntryField: str(self.J8PosCur),
+            self.J9curAngEntryField: str(self.J9PosCur),
+            self.J1calOffEntryField: str(self.J1calOff),
+            self.J2calOffEntryField: str(self.J2calOff),
+            self.J3calOffEntryField: str(self.J3calOff),
+            self.J4calOffEntryField: str(self.J4calOff),
+            self.J5calOffEntryField: str(self.J5calOff),
+            self.J6calOffEntryField: str(self.J6calOff),
+            self.J7calOffEntryField: str(self.J7calOff),
+            self.J8calOffEntryField: str(self.J8calOff),
+            self.J9calOffEntryField: str(self.J9calOff),
+            self.axis7lengthEntryField: str(self.J7PosLim),
+            self.axis7rotEntryField: str(self.J7rotation),
+            self.axis7stepsEntryField: str(self.J7steps),
+            self.VisBacColorEntryField: str(self.VisBacColor),
+            self.VisScoreEntryField: str(self.VisScore),
+            self.VisX1PixEntryField: str(self.VisX1Val),
+            self.VisY1PixEntryField: str(self.VisY1Val),
+            self.VisX2PixEntryField: str(self.VisX2Val),
+            self.VisY2PixEntryField: str(self.VisY2Val),
+            self.VisX1RobEntryField: str(self.VisRobX1Val),
+            self.VisY1RobEntryField: str(self.VisRobY1Val),
+            self.VisX2RobEntryField: str(self.VisRobX2Val),
+            self.VisY2RobEntryField: str(self.VisRobY2Val),
+            self.axis8lengthEntryField: str(self.J8length),
+            self.axis8rotEntryField: str(self.J8rotation),
+            self.axis8stepsEntryField: str(self.J8steps),
+            self.axis9lengthEntryField: str(self.J9length),
+            self.axis9rotEntryField: str(self.J9rotation),
+            self.axis9stepsEntryField: str(self.J9steps),
+            self.GC_ST_E1_EntryField: str(self.GC_ST_E1),
+            self.GC_ST_E2_EntryField: str(self.GC_ST_E2),
+            self.GC_ST_E3_EntryField: str(self.GC_ST_E3),
+            self.GC_ST_E4_EntryField: str(self.GC_ST_E4),
+            self.GC_ST_E5_EntryField: str(self.GC_ST_E5),
+            self.GC_ST_E6_EntryField: str(self.GC_ST_E6),
+            self.GC_ST_WC_EntryField: str(self.GC_ST_WC),
+            self.GC_SToff_E1_EntryField: str(self.GC_SToff_E1),
+            self.GC_SToff_E2_EntryField: str(self.GC_SToff_E2),
+            self.GC_SToff_E3_EntryField: str(self.GC_SToff_E3),
+            self.GC_SToff_E4_EntryField: str(self.GC_SToff_E4),
+            self.GC_SToff_E5_EntryField: str(self.GC_SToff_E5),
+            self.GC_SToff_E6_EntryField: str(self.GC_SToff_E6),
+            self.J1MotDirEntryField: str(self.J1MotDir),
+            self.J2MotDirEntryField: str(self.J2MotDir),
+            self.J3MotDirEntryField: str(self.J3MotDir),
+            self.J4MotDirEntryField: str(self.J4MotDir),
+            self.J5MotDirEntryField: str(self.J5MotDir),
+            self.J6MotDirEntryField: str(self.J6MotDir),
+            self.J7MotDirEntryField: str(self.J7MotDir),
+            self.J8MotDirEntryField: str(self.J8MotDir),
+            self.J9MotDirEntryField: str(self.J9MotDir),
+            self.J1CalDirEntryField: str(self.J1CalDir),
+            self.J2CalDirEntryField: str(self.J2CalDir),
+            self.J3CalDirEntryField: str(self.J3CalDir),
+            self.J4CalDirEntryField: str(self.J4CalDir),
+            self.J5CalDirEntryField: str(self.J5CalDir),
+            self.J6CalDirEntryField: str(self.J6CalDir),
+            self.J7CalDirEntryField: str(self.J7CalDir),
+            self.J8CalDirEntryField: str(self.J8CalDir),
+            self.J9CalDirEntryField: str(self.J9CalDir),
+            self.J1PosLimEntryField: str(self.J1PosLim),
+            self.J1NegLimEntryField: str(self.J1NegLim),
+            self.J2PosLimEntryField: str(self.J2PosLim),
+            self.J2NegLimEntryField: str(self.J2NegLim),
+            self.J3PosLimEntryField: str(self.J3PosLim),
+            self.J3NegLimEntryField: str(self.J3NegLim),
+            self.J4PosLimEntryField: str(self.J4PosLim),
+            self.J4NegLimEntryField: str(self.J4NegLim),
+            self.J5PosLimEntryField: str(self.J5PosLim),
+            self.J5NegLimEntryField: str(self.J5NegLim),
+            self.J6PosLimEntryField: str(self.J6PosLim),
+            self.J6NegLimEntryField: str(self.J6NegLim),
+            self.J1StepDegEntryField: str(self.J1StepDeg),
+            self.J2StepDegEntryField: str(self.J2StepDeg),
+            self.J3StepDegEntryField: str(self.J3StepDeg),
+            self.J4StepDegEntryField: str(self.J4StepDeg),
+            self.J5StepDegEntryField: str(self.J5StepDeg),
+            self.J6StepDegEntryField: str(self.J6StepDeg),
+            self.J1DriveMSEntryField: str(self.J1DriveMS),
+            self.J2DriveMSEntryField: str(self.J2DriveMS),
+            self.J3DriveMSEntryField: str(self.J3DriveMS),
+            self.J4DriveMSEntryField: str(self.J4DriveMS),
+            self.J5DriveMSEntryField: str(self.J5DriveMS),
+            self.J6DriveMSEntryField: str(self.J6DriveMS),
+            self.J1EncCPREntryField: str(self.J1EncCPR),
+            self.J2EncCPREntryField: str(self.J2EncCPR),
+            self.J3EncCPREntryField: str(self.J3EncCPR),
+            self.J4EncCPREntryField: str(self.J4EncCPR),
+            self.J5EncCPREntryField: str(self.J5EncCPR),
+            self.J6EncCPREntryField: str(self.J6EncCPR),
+            self.J1ΘEntryField: str(self.J1ΘDHpar),
+            self.J2ΘEntryField: str(self.J2ΘDHpar),
+            self.J3ΘEntryField: str(self.J3ΘDHpar),
+            self.J4ΘEntryField: str(self.J4ΘDHpar),
+            self.J5ΘEntryField: str(self.J5ΘDHpar),
+            self.J6ΘEntryField: str(self.J6ΘDHpar),
+            self.J1αEntryField: str(self.J1αDHpar),
+            self.J2αEntryField: str(self.J2αDHpar),
+            self.J3αEntryField: str(self.J3αDHpar),
+            self.J4αEntryField: str(self.J4αDHpar),
+            self.J5αEntryField: str(self.J5αDHpar),
+            self.J6αEntryField: str(self.J6αDHpar),
+            self.J1dEntryField: str(self.J1dDHpar),
+            self.J2dEntryField: str(self.J2dDHpar),
+            self.J3dEntryField: str(self.J3dDHpar),
+            self.J4dEntryField: str(self.J4dDHpar),
+            self.J5dEntryField: str(self.J5dDHpar),
+            self.J6dEntryField: str(self.J6dDHpar),
+            self.J1aEntryField: str(self.J1aDHpar),
+            self.J2aEntryField: str(self.J2aDHpar),
+            self.J3aEntryField: str(self.J3aDHpar),
+            self.J4aEntryField: str(self.J4aDHpar),
+            self.J5aEntryField: str(self.J5aDHpar),
+            self.J6aEntryField: str(self.J6aDHpar),
+        }
 
-        self.comPort = self.calibration.get("13.0", "14.0").strip()
-        self.Prog = self.calibration.get("14.0", "15.0").strip()
+        # Loop through the dictionary and populate the entry fields
+        for entry_field, value in entry_field_mapping.items():
+            entry_field.delete(0, "end")
+            entry_field.insert(0, value)
 
-        self.Servo0on = self.calibration.get("15.0", "16.0").strip()
-        self.Servo0off = self.calibration.get("16.0", "17.0").strip()
-        self.Servo1on = self.calibration.get("17.0", "18.0").strip()
-        self.Servo1off = self.calibration.get("18.0", "19.0").strip()
-        self.DO1on = self.calibration.get("19.0", "20.0").strip()
-        self.DO1off = self.calibration.get("20.0", "21.0").strip()
-        self.DO2on = self.calibration.get("21.0", "22.0").strip()
-        self.DO2off = self.calibration.get("22.0", "23.0").strip()
+        # Open Loop Statuses
+        if self.J1OpenLoopVal == 1:
+            self.J1OpenLoopStat.set(True)
+        if self.J2OpenLoopVal == 1:
+            self.J2OpenLoopStat.set(True)
+        if self.J3OpenLoopVal == 1:
+            self.J3OpenLoopStat.set(True)
+        if self.J4OpenLoopVal == 1:
+            self.J4OpenLoopStat.set(True)
+        if self.J5OpenLoopVal == 1:
+            self.J5OpenLoopStat.set(True)
+        if self.J6OpenLoopVal == 1:
+            self.J6OpenLoopStat.set(True)
 
-        self.TFx = self.calibration.get("23.0", "24.0").strip()
-        self.TFy = self.calibration.get("24.0", "25.0").strip()
-        self.TFz = self.calibration.get("25.0", "26.0").strip()
-        self.TFrx = self.calibration.get("26.0", "27.0").strip()
-        self.TFry = self.calibration.get("27.0", "28.0").strip()
-        self.TFrz = self.calibration.get("28.0", "29.0").strip()
+        # Wrist Rotation
+        if self.DisableWristRotVal == 1:
+            self.DisableWristRot.set(True)
+
+        # Theme
+        self.lightTheme() if self.curTheme == 1 else self.darkTheme()
+
+        # Calibration Statuses
+        if self.J1CalStatVal == 1:
+            self.J1CalStat.set(True)
+        if self.J2CalStatVal == 1:
+            self.J2CalStat.set(True)
+        if self.J3CalStatVal == 1:
+            self.J3CalStat.set(True)
+        if self.J4CalStatVal == 1:
+            self.J4CalStat.set(True)
+        if self.J5CalStatVal == 1:
+            self.J5CalStat.set(True)
+        if self.J6CalStatVal == 1:
+            self.J6CalStat.set(True)
+        if self.J7CalStatVal == 1:
+            self.J7CalStat.set(True)
+        if self.J8CalStatVal == 1:
+            self.J8CalStat.set(True)
+        if self.J9CalStatVal == 1:
+            self.J9CalStat.set(True)
+
+        if self.J1CalStatVal2 == 1:
+            self.J1CalStat2.set(True)
+        if self.J2CalStatVal2 == 1:
+            self.J2CalStat2.set(True)
+        if self.J3CalStatVal2 == 1:
+            self.J3CalStat2.set(True)
+        if self.J4CalStatVal2 == 1:
+            self.J4CalStat2.set(True)
+        if self.J5CalStatVal2 == 1:
+            self.J5CalStat2.set(True)
+        if self.J6CalStatVal2 == 1:
+            self.J6CalStat2.set(True)
+        if self.J7CalStatVal2 == 1:
+            self.J7CalStat2.set(True)
+        if self.J8CalStatVal2 == 1:
+            self.J8CalStat2.set(True)
+        if self.J9CalStatVal2 == 1:
+            self.J9CalStat2.set(True)
+
+        # Slider Initializations
+        self.VisBrightSlide.set(self.VisBrightVal)
+        self.VisContrastSlide.set(self.VisContVal)
+        self.VisZoomSlide.set(self.zoom)
+
+        # Additional Toggles
+        if self.pickClosestVal == 1:
+            self.pickClosest.set(True)
+        if self.pick180Val == 1:
+            self.pick180.set(True)
+        if self.fullRotVal == 1:
+            self.fullRot.set(True)
+        if self.autoBGVal == 1:
+            self.autoBG.set(True)
+
+        # Other Initializations
+        self.visoptions.set(self.curCam)
+        self.mX1 = self.mX1val
+        self.mY1 = self.mY1val
+        self.mX2 = self.mX2val
+        self.mY2 = self.mY2val
+        self.xboxUse = 0
+
+        self.setCom()
+        time.sleep(.1)
+
+        self.setCom2()
+        time.sleep(.1)
+
+        self.updateVisOp()
+        time.sleep(.1)
+
+        self.checkAutoBG()
 
         # End Of Application styling defs
 
@@ -2994,32 +3663,30 @@ class RobotArmApp:
     def darkTheme(self):
         self.curTheme = 0
 
-        # Set dark mode
         ctk.set_appearance_mode("dark")
-        ctk.set_default_color_theme("blue")
 
-        # Update custom styles (if specific widget styles are still needed)
-        self.almStatusLab.configure(text_color="IndianRed1", font=("Arial", 10, "bold"))
-        self.almStatusLab2.configure(text_color="IndianRed1", font=("Arial", 10, "bold"))
+        ctk.CTkLabel.configure("Alarm.TLabel", text_color="IndianRed1", font=('Arial', 10, 'bold'))
+        ctk.CTkLabel.configure("Warn.TLabel", text_color="orange", font=('Arial', 10, 'bold'))
+        ctk.CTkLabel.configure("OK.TLabel", text_color="light green", font=('Arial', 10, 'bold'))
+        ctk.CTkLabel.configure("Jointlim.TLabel", text_color="light blue", font=('Arial', 8))
 
-        self.warnLabel.configure(text_color="orange", font=("Arial", 10, "bold"))
-        self.okLabel.configure(text_color="light green", font=("Arial", 10, "bold"))
-        self.jointLimLabel.configure(text_color="light blue", font=("Arial", 8))
+        ctk.CTkButton.configure('AlarmBut.TButton', text_color='IndianRed1')
+
+        ctk.CTkFrame.configure('Frame1.TFrame', bg_color='white')
 
     def lightTheme(self):
         self.curTheme = 1
 
-        # Set light mode
         ctk.set_appearance_mode("light")
-        ctk.set_default_color_theme("blue")
 
-        # Update custom styles (if specific widget styles are still needed)
-        self.almStatusLab.configure(text_color="red", font=("Arial", 10, "bold"))
-        self.almStatusLab2.configure(text_color="red", font=("Arial", 10, "bold"))
+        ctk.CTkLabel.configure("Alarm.TLabel", text_color="red", font=('Arial', 10, 'bold'))
+        ctk.CTkLabel.configure("Warn.TLabel", text_color="dark orange", font=('Arial', 10, 'bold'))
+        ctk.CTkLabel.configure("OK.TLabel", text_color="green", font=('Arial', 10, 'bold'))
+        ctk.CTkLabel.configure("Jointlim.TLabel", text_color="dark blue", font=('Arial', 8))
 
-        self.warnLabel.configure(text_color="dark orange", font=("Arial", 10, "bold"))
-        self.okLabel.configure(text_color="green", font=("Arial", 10, "bold"))
-        self.jointLimLabel.configure(text_color="dark blue", font=("Arial", 8))
+        ctk.CTkButton.configure('AlarmBut.TButton', text_color='red')
+
+        ctk.CTkFrame.configure('Frame1.TFrame', bg_color='black')
 
     # Execution defs #
 
@@ -6850,8 +7517,8 @@ class RobotArmApp:
 
     ## Profiles defs ##
 
-    ## AR4 Mk3 ##
-    def LoadAR4Mk3default(self):
+    ## AR4 ##
+    def LoadAR4default(self):
         self.ClearKinTabFields()
 
         # Define default values for each entry field
