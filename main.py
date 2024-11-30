@@ -34,6 +34,8 @@ class RobotArmApp:
         self.root.iconbitmap(os.path.join('assets', 'EE.ico'))
         self.root.resizable(width=False, height=False)
         self.root.geometry('1536x792+0+0')
+        self.root.runTrue = 0
+        self.root.GCrunTrue = 0
 
         def on_closing():
             # Handle program exit with cleanup
@@ -1645,10 +1647,10 @@ class RobotArmApp:
         self.comPortBut3 = ctk.CTkButton(self.tab2, text="Test Aux COM Device", command=self.TestAuxCom, width=140)
         self.comPortBut3.place(x=50, y=315)
 
-#        self.lightBut = ctk.CTkButton(self.tab2, text="Light", command=self.lightTheme, width=60)
+#        self.lightBut = ctk.CTkButton(self.tab2, text="Light", command=self.lightTheme, width=60)  # TODO fix
 #        self.lightBut.place(x=890, y=90)
 
-#        self.darkBut = ctk.CTkButton(self.tab2, text="Dark", command=self.darkTheme, width=60)
+#        self.darkBut = ctk.CTkButton(self.tab2, text="Dark", command=self.darkTheme, width=60)  # TODO fix
 #        self.darkBut.place(x=950, y=90)
 
         self.autoCalBut = ctk.CTkButton(self.tab2, text="Auto Calibrate", command=self.calRobotAll, width=120)
@@ -3504,7 +3506,7 @@ class RobotArmApp:
             self.DisableWristRot.set(True)
 
         # Theme
-#        self.lightTheme() if self.curTheme == 1 else self.darkTheme()
+#        self.lightTheme() if self.curTheme == 1 else self.darkTheme()  # TODO fix
 
         # Calibration Statuses
         if self.J1CalStatVal == 1:
@@ -3546,9 +3548,9 @@ class RobotArmApp:
             self.J9CalStat2.set(True)
 
         # Slider Initializations
-#        self.VisBrightSlide.set(self.VisBrightVal)
-#        self.VisContrastSlide.set(self.VisContVal)
-#        self.VisZoomSlide.set(self.zoom)
+#        self.VisBrightSlide.set(self.VisBrightVal) # TODO fix
+#        self.VisContrastSlide.set(self.VisContVal) # TODO fix
+#        self.VisZoomSlide.set(self.zoom)   # TODO fix
 
         # Additional Toggles
         if self.pickClosestVal == 1:
@@ -3568,16 +3570,16 @@ class RobotArmApp:
         self.mY2 = self.mY2val
         self.xboxUse = 0
 
-#        self.setCom()
+#        self.setCom() # TODO fix
 #        time.sleep(.1)
 
-#        self.setCom2()
+#        self.setCom2() # TODO fix
 #        time.sleep(.1)
 
         self.updateVisOp()
         time.sleep(.1)
 
-#        self.checkAutoBG()
+#        self.checkAutoBG() # TODO fix
 
         # End Of Application styling defs
 
@@ -3665,7 +3667,7 @@ class RobotArmApp:
             value = self.tab8.ElogView.get(0, END)
             pickle.dump(value, open("ErrorLog", "wb"))
 
-#    def darkTheme(self):
+#    def darkTheme(self):   # TODO fix
 #        self.curTheme = 0
 #
 #        ctk.set_appearance_mode("dark")
@@ -3679,7 +3681,7 @@ class RobotArmApp:
 #
 #        ctk.CTkFrame.configure('Frame1.TFrame', bg_color='white')
 
-#    def lightTheme(self):
+#    def lightTheme(self):  # TODO fix
 #        self.curTheme = 1
 #
 #        ctk.set_appearance_mode("light")
@@ -3710,9 +3712,9 @@ class RobotArmApp:
                 self.tab1.progView.selection_clear(0, END)
                 self.tab1.progView.select_set(curRow)
 
-            runTrue = True
-            while runTrue:
-                if not runTrue:
+            self.tab1.runTrue = 1
+            while self.tab1.runTrue == 1:
+                if (self.tab1.runTrue == 0):
                     if self.estopActive:
                         self.almStatusLab.configure(
                             text="Estop Button was Pressed", fg_color="red")
@@ -3747,7 +3749,7 @@ class RobotArmApp:
                 except:
                     self.curRowEntryField.delete(0, 'end')
                     self.curRowEntryField.insert(0, "---")
-                    runTrue = False
+                    self.tab1.runTrue = 0
                     if self.estopActive:
                         self.almStatusLab.configure(
                             text="Estop Button was Pressed", fg_color="red")
@@ -3811,7 +3813,7 @@ class RobotArmApp:
             self.curRowEntryField.insert(0, "---")
 
     def stopProg(self):
-        runTrue = False
+        self.tab1.runTrue = 0
         if self.estopActive:
             self.almStatusLab.configure(
                 text="Estop Button was Pressed", fg_color="red")
