@@ -117,6 +117,11 @@ class RobotArmApp:
         self.J9PosLim = 500
         self.J9NegLim = 0
 
+        # Initialize serial connection
+        self.ser = None
+        self.ser2 = None
+        self.ser3 = None
+
         # Define Tabs
         self.nb = ctk.CTkTabview(self.root, width=1536, height=792)
         self.nb.place(x=0, y=0)
@@ -1640,11 +1645,11 @@ class RobotArmApp:
         self.comPortBut3 = ctk.CTkButton(self.tab2, text="Test Aux COM Device", command=self.TestAuxCom, width=140)
         self.comPortBut3.place(x=50, y=315)
 
-        self.lightBut = ctk.CTkButton(self.tab2, text="Light", command=self.lightTheme, width=60)
-        self.lightBut.place(x=890, y=90)
+#        self.lightBut = ctk.CTkButton(self.tab2, text="Light", command=self.lightTheme, width=60)
+#        self.lightBut.place(x=890, y=90)
 
-        self.darkBut = ctk.CTkButton(self.tab2, text="Dark", command=self.darkTheme, width=60)
-        self.darkBut.place(x=950, y=90)
+#        self.darkBut = ctk.CTkButton(self.tab2, text="Dark", command=self.darkTheme, width=60)
+#        self.darkBut.place(x=950, y=90)
 
         self.autoCalBut = ctk.CTkButton(self.tab2, text="Auto Calibrate", command=self.calRobotAll, width=120)
         self.autoCalBut.place(x=285, y=90)
@@ -3499,7 +3504,7 @@ class RobotArmApp:
             self.DisableWristRot.set(True)
 
         # Theme
-        self.lightTheme() if self.curTheme == 1 else self.darkTheme()
+#        self.lightTheme() if self.curTheme == 1 else self.darkTheme()
 
         # Calibration Statuses
         if self.J1CalStatVal == 1:
@@ -3541,9 +3546,9 @@ class RobotArmApp:
             self.J9CalStat2.set(True)
 
         # Slider Initializations
-        self.VisBrightSlide.set(self.VisBrightVal)
-        self.VisContrastSlide.set(self.VisContVal)
-        self.VisZoomSlide.set(self.zoom)
+#        self.VisBrightSlide.set(self.VisBrightVal)
+#        self.VisContrastSlide.set(self.VisContVal)
+#        self.VisZoomSlide.set(self.zoom)
 
         # Additional Toggles
         if self.pickClosestVal == 1:
@@ -3563,16 +3568,16 @@ class RobotArmApp:
         self.mY2 = self.mY2val
         self.xboxUse = 0
 
-        self.setCom()
-        time.sleep(.1)
+#        self.setCom()
+#        time.sleep(.1)
 
-        self.setCom2()
-        time.sleep(.1)
+#        self.setCom2()
+#        time.sleep(.1)
 
         self.updateVisOp()
         time.sleep(.1)
 
-        self.checkAutoBG()
+#        self.checkAutoBG()
 
         # End Of Application styling defs
 
@@ -3660,33 +3665,33 @@ class RobotArmApp:
             value = self.tab8.ElogView.get(0, END)
             pickle.dump(value, open("ErrorLog", "wb"))
 
-    def darkTheme(self):
-        self.curTheme = 0
+#    def darkTheme(self):
+#        self.curTheme = 0
+#
+#        ctk.set_appearance_mode("dark")
+#
+#        ctk.CTkLabel.configure("Alarm.TLabel", text_color="IndianRed1", font=('Arial', 10, 'bold'))
+#        ctk.CTkLabel.configure("Warn.TLabel", text_color="orange", font=('Arial', 10, 'bold'))
+#        ctk.CTkLabel.configure("OK.TLabel", text_color="light green", font=('Arial', 10, 'bold'))
+#        ctk.CTkLabel.configure("Jointlim.TLabel", text_color="light blue", font=('Arial', 8))
+#
+#        ctk.CTkButton.configure('AlarmBut.TButton', text_color='IndianRed1')
+#
+#        ctk.CTkFrame.configure('Frame1.TFrame', bg_color='white')
 
-        ctk.set_appearance_mode("dark")
-
-        ctk.CTkLabel.configure("Alarm.TLabel", text_color="IndianRed1", font=('Arial', 10, 'bold'))
-        ctk.CTkLabel.configure("Warn.TLabel", text_color="orange", font=('Arial', 10, 'bold'))
-        ctk.CTkLabel.configure("OK.TLabel", text_color="light green", font=('Arial', 10, 'bold'))
-        ctk.CTkLabel.configure("Jointlim.TLabel", text_color="light blue", font=('Arial', 8))
-
-        ctk.CTkButton.configure('AlarmBut.TButton', text_color='IndianRed1')
-
-        ctk.CTkFrame.configure('Frame1.TFrame', bg_color='white')
-
-    def lightTheme(self):
-        self.curTheme = 1
-
-        ctk.set_appearance_mode("light")
-
-        ctk.CTkLabel.configure("Alarm.TLabel", text_color="red", font=('Arial', 10, 'bold'))
-        ctk.CTkLabel.configure("Warn.TLabel", text_color="dark orange", font=('Arial', 10, 'bold'))
-        ctk.CTkLabel.configure("OK.TLabel", text_color="green", font=('Arial', 10, 'bold'))
-        ctk.CTkLabel.configure("Jointlim.TLabel", text_color="dark blue", font=('Arial', 8))
-
-        ctk.CTkButton.configure('AlarmBut.TButton', text_color='red')
-
-        ctk.CTkFrame.configure('Frame1.TFrame', bg_color='black')
+#    def lightTheme(self):
+#        self.curTheme = 1
+#
+#        ctk.set_appearance_mode("light")
+#
+#        ctk.CTkLabel.configure("Alarm.TLabel", text_color="red", font=('Arial', 10, 'bold'))
+#        ctk.CTkLabel.configure("Warn.TLabel", text_color="dark orange", font=('Arial', 10, 'bold'))
+#        ctk.CTkLabel.configure("OK.TLabel", text_color="green", font=('Arial', 10, 'bold'))
+#        ctk.CTkLabel.configure("Jointlim.TLabel", text_color="dark blue", font=('Arial', 8))
+#
+#        ctk.CTkButton.configure('AlarmBut.TButton', text_color='red')
+#
+#        ctk.CTkFrame.configure('Frame1.TFrame', bg_color='black')
 
     # Execution defs #
 
