@@ -3395,7 +3395,10 @@ class RobotArmApp:
             self.DisableWristRot.set(True)
 
         # Theme
-        self.lightTheme() if self.curTheme == 1 else self.darkTheme()
+        if self.curTheme == 1:
+            self.lightTheme()
+        else:
+            self.darkTheme()
 
         # Calibration Statuses
         if self.J1CalStatVal == 1:
