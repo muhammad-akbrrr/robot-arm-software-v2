@@ -26,6 +26,7 @@ from multiprocessing.resource_sharer import stop
 from pygrabber.dshow_graph import FilterGraph
 
 # Application code #
+
 class RobotArmApp:
     def __init__(self):
         self.root = ctk.CTk()
@@ -35,6 +36,14 @@ class RobotArmApp:
         self.root.geometry('1536x792+0+0')
         self.root.runTrue = 0
         self.root.GCrunTrue = 0
+
+        self.progexec = ProgExec()
+        self.jogbtn = JogButton()
+        self.teachfunc = TeachFunc()
+        self.progfunc = ProgramFunc()
+        self.calibration = Calibration()
+        self.vision = Vision()
+        self.gcode = GCODE()
 
         def on_closing():
             # Handle program exit with cleanup
@@ -159,7 +168,7 @@ class RobotArmApp:
         self.tab8 = ctk.CTkFrame(self.tab8_name, width=1536, height=792, fg_color="transparent")
         self.tab8.place(x=0, y=0)
 
-        # Application styling defs
+        # Application styling defs #
 
         ## TAB 1 LABELS ##
 
@@ -247,7 +256,7 @@ class RobotArmApp:
         self.J1curAngEntryField = ctk.CTkEntry(self.J1jogFrame, width=50, justify="center")
         self.J1curAngEntryField.place(x=35, y=9)
 
-        def SelJ1jogNeg(event):
+        def SelJ1jogNeg():
             IncJogStatVal = int(self.IncJogStat.get())
             if IncJogStatVal == 1:
                 self.J1jogNeg(float(self.incrementEntryField.get()))
@@ -259,7 +268,7 @@ class RobotArmApp:
         self.J1jogNegBut.bind("<ButtonRelease>", self.StopJog)
         self.J1jogNegBut.place(x=77, y=7)
 
-        def SelJ1jogPos(event):
+        def SelJ1jogPos():
             IncJogStatVal = int(self.IncJogStat.get())
             if IncJogStatVal == 1:
                 self.J1jogPos(float(self.incrementEntryField.get()))
@@ -280,10 +289,10 @@ class RobotArmApp:
         self.J1slidelabel = ctk.CTkLabel(self.J1jogFrame)
         self.J1slidelabel.place(x=190, y=25)
 
-        def J1sliderUpdate(value):
+        def J1sliderUpdate():
             self.J1slidelabel.configure(text=round(float(self.J1jogslide.get()), 2))
 
-        def J1sliderExecute(event):
+        def J1sliderExecute():
             J1delta = float(self.J1jogslide.get()) - float(self.J1curAngEntryField.get())
             if J1delta < 0:
                 self.J1jogNeg(abs(J1delta))
@@ -307,7 +316,7 @@ class RobotArmApp:
         self.J2curAngEntryField = ctk.CTkEntry(self.J2jogFrame, width=50, justify="center")
         self.J2curAngEntryField.place(x=35, y=9)
 
-        def SelJ2jogNeg(event):
+        def SelJ2jogNeg():
             IncJogStatVal = int(self.IncJogStat.get())
             if IncJogStatVal == 1:
                 self.J2jogNeg(float(self.incrementEntryField.get()))
@@ -319,7 +328,7 @@ class RobotArmApp:
         self.J2jogNegBut.bind("<ButtonRelease>", self.StopJog)
         self.J2jogNegBut.place(x=77, y=7)
 
-        def SelJ2jogPos(event):
+        def SelJ2jogPos():
             IncJogStatVal = int(self.IncJogStat.get())
             if IncJogStatVal == 1:
                 self.J2jogPos(float(self.incrementEntryField.get()))
@@ -340,10 +349,10 @@ class RobotArmApp:
         self.J2slidelabel = ctk.CTkLabel(self.J2jogFrame)
         self.J2slidelabel.place(x=190, y=25)
 
-        def J2sliderUpdate(value):
+        def J2sliderUpdate():
             self.J2slidelabel.configure(text=round(float(self.J2jogslide.get()), 2))
 
-        def J2sliderExecute(event):
+        def J2sliderExecute():
             J2delta = float(self.J2jogslide.get()) - float(self.J2curAngEntryField.get())
             if J2delta < 0:
                 self.J2jogNeg(abs(J2delta))
@@ -367,7 +376,7 @@ class RobotArmApp:
         self.J3curAngEntryField = ctk.CTkEntry(self.J3jogFrame, width=50, justify="center")
         self.J3curAngEntryField.place(x=35, y=9)
 
-        def SelJ3jogNeg(event):
+        def SelJ3jogNeg():
             IncJogStatVal = int(self.IncJogStat.get())
             if IncJogStatVal == 1:
                 self.J3jogNeg(float(self.incrementEntryField.get()))
@@ -379,7 +388,7 @@ class RobotArmApp:
         self.J3jogNegBut.bind("<ButtonRelease>", self.StopJog)
         self.J3jogNegBut.place(x=77, y=7)
 
-        def SelJ3jogPos(event):
+        def SelJ3jogPos():
             IncJogStatVal = int(self.IncJogStat.get())
             if IncJogStatVal == 1:
                 self.J3jogPos(float(self.incrementEntryField.get()))
@@ -400,10 +409,10 @@ class RobotArmApp:
         self.J3slidelabel = ctk.CTkLabel(self.J3jogFrame)
         self.J3slidelabel.place(x=190, y=25)
 
-        def J3sliderUpdate(value):
+        def J3sliderUpdate():
             self.J3slidelabel.configure(text=round(float(self.J3jogslide.get()), 2))
 
-        def J3sliderExecute(event):
+        def J3sliderExecute():
             J3delta = float(self.J3jogslide.get()) - float(self.J3curAngEntryField.get())
             if J3delta < 0:
                 self.J3jogNeg(abs(J3delta))
@@ -427,7 +436,7 @@ class RobotArmApp:
         self.J4curAngEntryField = ctk.CTkEntry(self.J4jogFrame, width=50, justify="center")
         self.J4curAngEntryField.place(x=35, y=9)
 
-        def SelJ4jogNeg(event):
+        def SelJ4jogNeg():
             IncJogStatVal = int(self.IncJogStat.get())
             if IncJogStatVal == 1:
                 self.J4jogNeg(float(self.incrementEntryField.get()))
@@ -439,7 +448,7 @@ class RobotArmApp:
         self.J4jogNegBut.bind("<ButtonRelease>", self.StopJog)
         self.J4jogNegBut.place(x=77, y=7)
 
-        def SelJ4jogPos(event):
+        def SelJ4jogPos():
             IncJogStatVal = int(self.IncJogStat.get())
             if IncJogStatVal == 1:
                 self.J4jogPos(float(self.incrementEntryField.get()))
@@ -460,10 +469,10 @@ class RobotArmApp:
         self.J4slidelabel = ctk.CTkLabel(self.J4jogFrame)
         self.J4slidelabel.place(x=190, y=25)
 
-        def J4sliderUpdate(value):
+        def J4sliderUpdate():
             self.J4slidelabel.configure(text=round(float(self.J4jogslide.get()), 2))
 
-        def J4sliderExecute(event):
+        def J4sliderExecute():
             J4delta = float(self.J4jogslide.get()) - float(self.J4curAngEntryField.get())
             if J4delta < 0:
                 self.J4jogNeg(abs(J4delta))
@@ -487,7 +496,7 @@ class RobotArmApp:
         self.J5curAngEntryField = ctk.CTkEntry(self.J5jogFrame, width=50, justify="center")
         self.J5curAngEntryField.place(x=35, y=9)
 
-        def SelJ5jogNeg(event):
+        def SelJ5jogNeg():
             IncJogStatVal = int(self.IncJogStat.get())
             if IncJogStatVal == 1:
                 self.J5jogNeg(float(self.incrementEntryField.get()))
@@ -499,7 +508,7 @@ class RobotArmApp:
         self.J5jogNegBut.bind("<ButtonRelease>", self.StopJog)
         self.J5jogNegBut.place(x=77, y=7)
 
-        def SelJ5jogPos(event):
+        def SelJ5jogPos():
             IncJogStatVal = int(self.IncJogStat.get())
             if IncJogStatVal == 1:
                 self.J5jogPos(float(self.incrementEntryField.get()))
@@ -520,10 +529,10 @@ class RobotArmApp:
         self.J5slidelabel = ctk.CTkLabel(self.J5jogFrame)
         self.J5slidelabel.place(x=190, y=25)
 
-        def J5sliderUpdate(value):
+        def J5sliderUpdate():
             self.J5slidelabel.configure(text=round(float(self.J5jogslide.get()), 2))
 
-        def J5sliderExecute(event):
+        def J5sliderExecute():
             J5delta = float(self.J5jogslide.get()) - float(self.J5curAngEntryField.get())
             if J5delta < 0:
                 self.J5jogNeg(abs(J5delta))
@@ -547,7 +556,7 @@ class RobotArmApp:
         self.J6curAngEntryField = ctk.CTkEntry(self.J6jogFrame, width=50, justify="center")
         self.J6curAngEntryField.place(x=35, y=9)
 
-        def SelJ6jogNeg(event):
+        def SelJ6jogNeg():
             IncJogStatVal = int(self.IncJogStat.get())
             if IncJogStatVal == 1:
                 self.J6jogNeg(float(self.incrementEntryField.get()))
@@ -559,7 +568,7 @@ class RobotArmApp:
         self.J6jogNegBut.bind("<ButtonRelease>", self.StopJog)
         self.J6jogNegBut.place(x=77, y=7)
 
-        def SelJ6jogPos(event):
+        def SelJ6jogPos():
             IncJogStatVal = int(self.IncJogStat.get())
             if IncJogStatVal == 1:
                 self.J6jogPos(float(self.incrementEntryField.get()))
@@ -580,10 +589,10 @@ class RobotArmApp:
         self.J6slidelabel = ctk.CTkLabel(self.J6jogFrame)
         self.J6slidelabel.place(x=190, y=25)
 
-        def J6sliderUpdate(value):
+        def J6sliderUpdate():
             self.J6slidelabel.configure(text=round(float(self.J6jogslide.get()), 2))
 
-        def J6sliderExecute(event):
+        def J6sliderExecute():
             J6delta = float(self.J6jogslide.get()) - float(self.J6curAngEntryField.get())
             if J6delta < 0:
                 self.J6jogNeg(abs(J6delta))
@@ -607,7 +616,7 @@ class RobotArmApp:
         self.J7curAngEntryField = ctk.CTkEntry(self.J7jogFrame, width=50, justify="center")
         self.J7curAngEntryField.place(x=75, y=9)
 
-        def SelJ7jogNeg(event):
+        def SelJ7jogNeg():
             IncJogStatVal = int(self.IncJogStat.get())
             if IncJogStatVal == 1:
                 self.J7jogNeg(float(self.incrementEntryField.get()))
@@ -619,7 +628,7 @@ class RobotArmApp:
         self.J7jogNegBut.bind("<ButtonRelease>", self.StopJog)
         self.J7jogNegBut.place(x=10, y=65)
 
-        def SelJ7jogPos(event):
+        def SelJ7jogPos():
             IncJogStatVal = int(self.IncJogStat.get())
             if IncJogStatVal == 1:
                 self.J7jogPos(float(self.incrementEntryField.get()))
@@ -640,10 +649,10 @@ class RobotArmApp:
         self.J7slideLimLab = ctk.CTkLabel(self.J7jogFrame)
         self.J7slideLimLab.place(x=60, y=70)
 
-        def J7sliderUpdate(value):
+        def J7sliderUpdate():
             self.J7slideLimLab.configure(text=round(float(self.J7jogslide.get()), 2))
 
-        def J7sliderExecute(event):
+        def J7sliderExecute():
             J7delta = float(self.J7jogslide.get()) - float(self.J7curAngEntryField.get())
             if J7delta < 0:
                 self.J7jogNeg(abs(J7delta))
@@ -667,7 +676,7 @@ class RobotArmApp:
         self.J8curAngEntryField = ctk.CTkEntry(self.J8jogFrame, width=50, justify="center")
         self.J8curAngEntryField.place(x=75, y=9)
 
-        def SelJ8jogNeg(event):
+        def SelJ8jogNeg():
             IncJogStatVal = int(self.IncJogStat.get())
             if IncJogStatVal == 1:
                 self.J8jogNeg(float(self.incrementEntryField.get()))
@@ -679,7 +688,7 @@ class RobotArmApp:
         self.J8jogNegBut.bind("<ButtonRelease>", self.StopJog)
         self.J8jogNegBut.place(x=10, y=65)
 
-        def SelJ8jogPos(event):
+        def SelJ8jogPos():
             IncJogStatVal = int(self.IncJogStat.get())
             if IncJogStatVal == 1:
                 self.J8jogPos(float(self.incrementEntryField.get()))
@@ -700,10 +709,10 @@ class RobotArmApp:
         self.J8slideLimLab = ctk.CTkLabel(self.J8jogFrame)
         self.J8slideLimLab.place(x=60, y=70)
 
-        def J8sliderUpdate(value):
+        def J8sliderUpdate():
             self.J8slideLimLab.configure(text=round(float(self.J8jogslide.get()), 2))
 
-        def J8sliderExecute(event):
+        def J8sliderExecute():
             J8delta = float(self.J8jogslide.get()) - float(self.J8curAngEntryField.get())
             if J8delta < 0:
                 self.J8jogNeg(abs(J8delta))
@@ -727,7 +736,7 @@ class RobotArmApp:
         self.J9curAngEntryField = ctk.CTkEntry(self.J9jogFrame, width=50, justify="center")
         self.J9curAngEntryField.place(x=75, y=9)
 
-        def SelJ9jogNeg(event):
+        def SelJ9jogNeg():
             IncJogStatVal = int(self.IncJogStat.get())
             if IncJogStatVal == 1:
                 self.J9jogNeg(float(self.incrementEntryField.get()))
@@ -739,7 +748,7 @@ class RobotArmApp:
         self.J9jogNegBut.bind("<ButtonRelease>", self.StopJog)
         self.J9jogNegBut.place(x=10, y=65)
 
-        def SelJ9jogPos(event):
+        def SelJ9jogPos():
             IncJogStatVal = int(self.IncJogStat.get())
             if IncJogStatVal == 1:
                 self.J9jogPos(float(self.incrementEntryField.get()))
@@ -760,10 +769,10 @@ class RobotArmApp:
         self.J9slideLimLab = ctk.CTkLabel(self.J9jogFrame)
         self.J9slideLimLab.place(x=60, y=70)
 
-        def J9sliderUpdate(value):
+        def J9sliderUpdate():
             self.J9slideLimLab.configure(text=round(float(self.J9jogslide.get()), 2))
 
-        def J9sliderExecute(event):
+        def J9sliderExecute():
             J9delta = float(self.J9jogslide.get()) - float(self.J9curAngEntryField.get())
             if J9delta < 0:
                 self.J9jogNeg(abs(J9delta))
@@ -898,10 +907,10 @@ class RobotArmApp:
         self.menu.place(x=700, y=180)
 
         self.SavePosEntryField = ctk.CTkEntry(self.tab1, width=50, justify="center", placeholder_text="Save Pos")
-
         # self.SavePosEntryField.place(x=800, y=183)
 
-        # Buttons for various operations
+        """ Buttons for various operations """
+
         self.teachInsBut = ctk.CTkButton(
             self.tab1, text="Teach New Position", width=150, height=30, command=self.teachInsertBelSelected
         )
@@ -1177,7 +1186,7 @@ class RobotArmApp:
             text="Play",
             width=80, 
             image=ctk.CTkImage(Image.open(os.path.join('assets', 'play-icon.png'))), 
-            command=self.runProg
+            command=self.progexec.runProg
         )
         self.runProgBut.place(x=20, y=80)
 
@@ -1195,17 +1204,17 @@ class RobotArmApp:
             text="Stop", 
             width=80,
             image=ctk.CTkImage(Image.open(os.path.join('assets', 'stop-icon.png'))), 
-            command=self.stopProg
+            command=self.progexec.stopProg
         )
         self.stopProgBut.place(x=220, y=80)
 
         self.revBut = ctk.CTkButton(
-            self.tab1, text="REV", width=50, command=self.stepRev
+            self.tab1, text="REV", width=50, command=self.progexec.stepRev
         )
         self.revBut.place(x=105, y=80)
 
         self.fwdBut = ctk.CTkButton(
-            self.tab1, text="FWD", width=50, command=self.stepFwd
+            self.tab1, text="FWD", width=50, command=self.progexec.stepFwd
         )
         self.fwdBut.place(x=160, y=80)
 
@@ -2212,33 +2221,11 @@ class RobotArmApp:
                 entry_field.place(x=x_offset, y=45 + i * 25)
                 self.DHEntryFields[param].append(entry_field)
 
-        self.J1ΘEntryField = self.DHEntryFields["Θ"][0]
-        self.J2ΘEntryField = self.DHEntryFields["Θ"][1]
-        self.J3ΘEntryField = self.DHEntryFields["Θ"][2]
-        self.J4ΘEntryField = self.DHEntryFields["Θ"][3]
-        self.J5ΘEntryField = self.DHEntryFields["Θ"][4]
-        self.J6ΘEntryField = self.DHEntryFields["Θ"][5]
-
-        self.J1αEntryField = self.DHEntryFields["α"][0]
-        self.J2αEntryField = self.DHEntryFields["α"][1]
-        self.J3αEntryField = self.DHEntryFields["α"][2]
-        self.J4αEntryField = self.DHEntryFields["α"][3]
-        self.J5αEntryField = self.DHEntryFields["α"][4]
-        self.J6αEntryField = self.DHEntryFields["α"][5]
-
-        self.J1dEntryField = self.DHEntryFields["d"][0]
-        self.J2dEntryField = self.DHEntryFields["d"][1]
-        self.J3dEntryField = self.DHEntryFields["d"][2]
-        self.J4dEntryField = self.DHEntryFields["d"][3]
-        self.J5dEntryField = self.DHEntryFields["d"][4]
-        self.J6dEntryField = self.DHEntryFields["d"][5]
-
-        self.J1aEntryField = self.DHEntryFields["a"][0]
-        self.J2aEntryField = self.DHEntryFields["a"][1]
-        self.J3aEntryField = self.DHEntryFields["a"][2]
-        self.J4aEntryField = self.DHEntryFields["a"][3]
-        self.J5aEntryField = self.DHEntryFields["a"][4]
-        self.J6aEntryField = self.DHEntryFields["a"][5]
+        for i in range(6):  # Iterate over indices 0 through 5
+            setattr(self, f"J{i+1}ΘEntryField", self.DHEntryFields["Θ"][i])
+            setattr(self, f"J{i+1}αEntryField", self.DHEntryFields["α"][i])
+            setattr(self, f"J{i+1}dEntryField", self.DHEntryFields["d"][i])
+            setattr(self, f"J{i+1}aEntryField", self.DHEntryFields["a"][i])
 
         # Load Default Profiles
         self.loadAR4But = ctk.CTkButton(self.tab3, text="Load AR4 Defaults", width=200, command=self.LoadAR4default)
@@ -3473,9 +3460,9 @@ class RobotArmApp:
 
         self.checkAutoBG()
 
-        # End Of Application styling defs
+        # End Of Application styling defs #
 
-    # Startup defs #
+    # Startup & Theme defs #
 
     def startup(self):
         self.updateParams()
@@ -3488,6 +3475,14 @@ class RobotArmApp:
         time.sleep(0.1)
 
         self.requestPos()
+
+    def darkTheme(self):
+        self.curTheme = 0
+        ctk.set_appearance_mode("dark")
+
+    def lightTheme(self):
+        self.curTheme = 1
+        ctk.set_appearance_mode("light")
 
     # Communication defs #
 
@@ -3559,16 +3554,8 @@ class RobotArmApp:
             value = self.ElogView.get("1.0", "end")
             pickle.dump(value, open("ErrorLog", "wb"))
 
-    def darkTheme(self):
-        self.curTheme = 0
-        ctk.set_appearance_mode("dark")
 
-    def lightTheme(self):
-        self.curTheme = 1
-        ctk.set_appearance_mode("light")
-
-    # Execution defs #
-
+class ProgExec:
     def runProg(self):
         def threadProg():
             self.estopActive = False
@@ -4966,8 +4953,8 @@ class RobotArmApp:
 
         # Check command validity
         if command.startswith("Move A End"):
-            self.almStatusLab.configure(text="Move A must start with a Mid followed by End", style="Alarm.TLabel")
-            self.almStatusLab2.configure(text="Move A must start with a Mid followed by End", style="Alarm.TLabel")
+            self.almStatusLab.configure(text="Move A must start with a Mid followed by End", text_color="red", font=('Arial', 10, 'bold'))
+            self.almStatusLab2.configure(text="Move A must start with a Mid followed by End", text_color="red", font=('Arial', 10, 'bold'))
             return
 
         # Extract move values from command
@@ -5092,8 +5079,8 @@ class RobotArmApp:
         subCmd = command[:10]
         if subCmd in ["Move C Sta", "Move C Pla"]:
             message = "Move C must start with a Center followed by Start & Plane"
-            self.almStatusLab.configure(text=message, style="Alarm.TLabel")
-            self.almStatusLab2.configure(text=message, style="Alarm.TLabel")
+            self.almStatusLab.configure(text=message, text_color="red", font=('Arial', 10, 'bold'))
+            self.almStatusLab2.configure(text=message, text_color="red", font=('Arial', 10, 'bold'))
             return
 
         # Inline extractMoveCValues logic to extract command values
@@ -5305,12 +5292,12 @@ class RobotArmApp:
             self.progView.selection_clear(0, 'end')
             self.progView.select_set(index)
 
-    # Button jogging #
 
+class JogButton:
     def xbox(self):
-        def update_status(label_text, label_style="Warn.TLabel"):
-            self.almStatusLab.configure(text=label_text, style=label_style)
-            self.almStatusLab2.configure(text=label_text, style=label_style)
+        def update_status(label_text, text_color="orange", font=('Arial', 10, 'bold')):
+            self.almStatusLab.configure(text=label_text, text_color=text_color, font=font)
+            self.almStatusLab2.configure(text=label_text, text_color=text_color, font=font)
 
         def toggle_xbox():
             if self.xboxUse == 0:
@@ -5994,8 +5981,8 @@ class RobotArmApp:
     def TRyjogPos(self, value): self.execute_t_jog_pos('P', value)
     def TRzjogPos(self, value): self.execute_t_jog_pos('R', value)
 
-    # Teach defs #
 
+class TeachFunc:
     def teachInsertBelSelected(self):
         def get_selected_row(self):
             try:
@@ -6094,8 +6081,8 @@ class RobotArmApp:
 
         self.teachInsertBelSelected()
 
-    # Program function defs #
 
+class ProgramFunc:
     def deleteitem(self):
         try:
             selRow = self.progView.curselection()[0]
@@ -6377,7 +6364,7 @@ class RobotArmApp:
         
         if not variable:
             localErrorFlag = True
-            self.almStatusLab.configure(text="Please enter an input, register number or COM Port", style="Alarm.TLabel")
+            self.almStatusLab.configure(text="Please enter an input, register number or COM Port", text_color="red", font=('Arial', 10, 'bold'))
             
         inputVal = self.IfInputEntryField.get()
         destVal = self.IfDestEntryField.get()
@@ -6388,30 +6375,30 @@ class RobotArmApp:
                 prefix = f"If Input # {variable} = {inputVal} :"
             else:
                 localErrorFlag = True
-                self.almStatusLab.configure(text="Please enter a 1 or 0 for the = value", style="Alarm.TLabel")
+                self.almStatusLab.configure(text="Please enter a 1 or 0 for the = value", text_color="red", font=('Arial', 10, 'bold'))
         
         elif option == "Register":
             if not inputVal:
                 localErrorFlag = True
-                self.almStatusLab.configure(text="Please enter a register number", style="Alarm.TLabel")
+                self.almStatusLab.configure(text="Please enter a register number", text_color="red", font=('Arial', 10, 'bold'))
             prefix = f"If Register # {variable} = {inputVal} :"
 
         elif option == "COM Device":
             if not inputVal:
                 localErrorFlag = True
-                self.almStatusLab.configure(text="Please enter expected COM device input", style="Alarm.TLabel")
+                self.almStatusLab.configure(text="Please enter expected COM device input", text_color="red", font=('Arial', 10, 'bold'))
             prefix = f"If COM Device # {variable} = {inputVal} :"
         
         if selection == "Call Prog":
             if not destVal:
                 localErrorFlag = True
-                self.almStatusLab.configure(text="Please enter a program name", style="Alarm.TLabel")
+                self.almStatusLab.configure(text="Please enter a program name", text_color="red", font=('Arial', 10, 'bold'))
             value = f"{prefix} Call Prog {destVal}"
         
         elif selection == "Jump Tab":
             if not destVal:
                 localErrorFlag = True
-                self.almStatusLab.configure(text="Please enter a destination tab", style="Alarm.TLabel")
+                self.almStatusLab.configure(text="Please enter a destination tab", text_color="red", font=('Arial', 10, 'bold'))
             value = f"{prefix} Jump to Tab {destVal}"
         
         if not localErrorFlag:
@@ -6925,7 +6912,10 @@ class RobotArmApp:
 
         return self.Xv, self.Yv, self.Zv
 
-    # Calibration and save defs #
+
+class Calibration:
+    def __init__(self):
+        self.progexec = ProgExec()
 
     def calRobotAll(self):
         def create_calibration_command(stage_values, offsets):
@@ -6945,9 +6935,10 @@ class RobotArmApp:
             success = response.startswith('A')
             self.displayPosition(response) if success else self.ErrorHandler(response)
             message = f"Auto Calibration Stage {stage} {'Successful' if success else 'Failed - See Log'}"
-            style = "OK.TLabel" if success else "Alarm.TLabel"
-            self.almStatusLab.configure(text=message, style=style)
-            self.almStatusLab2.configure(text=message, style=style)
+            text_color = "green" if success else "red"
+            font = ('Arial', 10, 'bold')
+            self.almStatusLab.configure(text=message, text_color=text_color, font=font)
+            self.almStatusLab2.configure(text=message, text_color=text_color, font=font)
             return message
 
         def update_log(message):
@@ -7000,8 +6991,8 @@ class RobotArmApp:
             self.almStatusLab2.configure(text=message, text_color="green", font=('Arial', 10, 'bold'))
         else:
             message = f"J{joint_id} Calibration Failed"
-            self.almStatusLab.configure(text=message, style="Alarm.TLabel")
-            self.almStatusLab2.configure(text=message, style="Alarm.TLabel")
+            self.almStatusLab.configure(text=message, text_color="red", font=('Arial', 10, 'bold'))
+            self.almStatusLab2.configure(text=message, text_color="red", font=('Arial', 10, 'bold'))
             self.ErrorHandler(response)
         
         Curtime = datetime.datetime.now().strftime("%B %d %Y - %I:%M%p")
@@ -7021,7 +7012,7 @@ class RobotArmApp:
     def calRobotJ9(self): self.calibrate_joint(9, "A0B0C0D0E0F0G0H0I1")
 
     def calRobotMid():
-        print("foo")
+        print("")
         # add command here
 
     def correctPos(self):
@@ -7396,7 +7387,6 @@ class RobotArmApp:
 
     ## Profiles defs ##
 
-    ## AR4 ##
     def LoadAR4default(self):
         self.ClearKinTabFields()
 
@@ -7450,6 +7440,8 @@ class RobotArmApp:
 
         for entry_field, value in default_values.items():
             entry_field.insert(0, str(value))
+            
+    ## End of Profiles defs ##
 
     def SaveAndApplyCalibration(self):
         
@@ -7769,9 +7761,9 @@ class RobotArmApp:
 
         # Update alarm labels with a specific message and style.
         def update_alarm_status(message):
-            self.almStatusLab.configure(text=message, style="Alarm.TLabel")
-            self.almStatusLab2.configure(text=message, style="Alarm.TLabel")
-            self.GCalmStatusLab.configure(text=message, style="Alarm.TLabel")
+            self.almStatusLab.configure(text=message, text_color="red", font=('Arial', 10, 'bold'))
+            self.almStatusLab2.configure(text=message, text_color="red", font=('Arial', 10, 'bold'))
+            self.GCalmStatusLab.configure(text=message, text_color="red", font=('Arial', 10, 'bold'))
 
         # Handle specific axis limit errors based on response.
         def handle_axis_limit_error():
@@ -7796,7 +7788,7 @@ class RobotArmApp:
                 if response[i:i+1] == '1':
                     log_error(message)
                     self.correctPos()
-                    self.stopProg()
+                    self.progexec.stopProg
             update_alarm_status("Collision or Motor Error - See Log")
 
         # Handle specific calibration errors based on response.
@@ -7816,7 +7808,7 @@ class RobotArmApp:
         # Axis Limit Error
         if response[1:2] == 'L':
             handle_axis_limit_error()
-            self.stopProg()
+            self.progexec.stopProg
 
         # Collision Error
         elif response[1:2] == 'C':
@@ -7825,26 +7817,26 @@ class RobotArmApp:
         # Position Out of Reach
         elif response[1:2] == 'R':
             self.posOutreach = True
-            self.stopProg()
+            self.progexec.stopProg
             log_error("Position Out of Reach")
             update_alarm_status("Position Out of Reach")
 
         # Spline Error
         elif response[1:2] == 'S':
-            self.stopProg()
+            self.progexec.stopProg
             log_error("Spline Can Only Have Move L Types")
             update_alarm_status("Spline Can Only Have Move L Types")
 
         # GCode Error
         elif response[1:2] == 'G':
-            self.stopProg()
+            self.progexec.stopProg
             log_error("Gcode file not found")
             update_alarm_status("Gcode file not found")
 
         # Estop Button Pressed
         elif response[1:2] == 'B':
             self.estopActive = True
-            self.stopProg()
+            self.progexec.stopProg
             log_error("Estop Button was Pressed")
             update_alarm_status("Estop Button was Pressed")
 
@@ -7854,12 +7846,12 @@ class RobotArmApp:
 
         # Unknown Error
         else:
-            self.stopProg()
+            self.progexec.stopProg
             log_error("Unknown Error")
             update_alarm_status("Unknown Error")
 
-    # Vision defs #
 
+class Vision:
     def testvis(self):
         visprog = self.visoptions.get()
         visprog_functions = {
@@ -7921,8 +7913,8 @@ class RobotArmApp:
         self.visfail = 1
 
         # Update a label with specified text and style.
-        def update_status(label, text, style):
-            label.configure(text=text, style=style)
+        def update_status(label, text, text_color, font):
+            label.configure(text=text, text_color=text_color, font=font)
 
         # Read the last line from a file, retry if file not found.
         def read_last_line(file_path):
@@ -7973,8 +7965,8 @@ class RobotArmApp:
         self.visfail = 1
 
         # Update a label with specified text and style.
-        def update_status(label, text, style):
-            label.configure(text=text, style=style)
+        def update_status(label, text, text_color, font):
+            label.configure(text=text, text_color=text_color, font=font)
 
         # Read the last line from a file, retry if file not found.
         def read_last_line(file_path):
@@ -8504,8 +8496,8 @@ class RobotArmApp:
         self.state = 'disabled' if autoBGVal == 1 else 'normal'
         self.VisBacColorEntryField.configure(state=self.state)
 
-    # GCODE defs #
 
+class GCODE:
     def gcodeFrame(self):
         gcodeframe = ctk.CTkFrame(self.tab7)
         gcodeframe.place(x=300, y=10)
@@ -8690,7 +8682,7 @@ class RobotArmApp:
             self.GCread("no")
         elif response == "F":
             self.GCalmStatusLab.configure(
-                text=f"{full_filename} was not found", style="Alarm.TLabel")
+                text=f"{full_filename} was not found", text_color="red", font=('Arial', 10, 'bold'))
 
     def GCread(self, status):
         # Prepare and send the command
@@ -8724,7 +8716,7 @@ class RobotArmApp:
         
         if not filename:
             messagebox.showwarning("Warning", "Please enter a valid filename.")
-            self.GCalmStatusLab.configure(text="No G-code file specified", style="Alarm.TLabel")
+            self.GCalmStatusLab.configure(text="No G-code file specified", text_color="red", font=('Arial', 10, 'bold'))
             return
         
         # If filename exists, update status and run the file
@@ -8799,7 +8791,7 @@ class RobotArmApp:
             while self.tab7.GCrunTrue == 1:
                 if self.tab7.GCrunTrue == 0:
                     self.GCalmStatusLab.configure(
-                        text="GCODE CONVERSION STOPPED", style="Alarm.TLabel")
+                        text="GCODE CONVERSION STOPPED", text_color="red", font=('Arial', 10, 'bold'))
                     break
 
                 self.GCalmStatusLab.configure(
@@ -8824,14 +8816,14 @@ class RobotArmApp:
                     self.GcodCurRowEntryField.insert(0, "---")
                     self.tab7.GCrunTrue = 0
                     self.GCalmStatusLab.configure(
-                        text="GCODE CONVERSION STOPPED", style="Alarm.TLabel")
+                        text="GCODE CONVERSION STOPPED", text_color="red", font=('Arial', 10, 'bold'))
 
         GCt = threading.Thread(target=GCthreadProg)
         GCt.start()
 
     def GCstopProg(self):
         self.tab7.GCrunTrue = 0
-        self.GCalmStatusLab.configure(text="GCODE CONVERSION STOPPED", style="Alarm.TLabel")
+        self.GCalmStatusLab.configure(text="GCODE CONVERSION STOPPED", text_color="red", font=('Arial', 10, 'bold'))
 
         if self.splineActive == 1:
             self.splineActive = "0"
@@ -8913,7 +8905,7 @@ class RobotArmApp:
                     self.ErrorHandler(response)
                     self.GCstopProg()
                     self.tab7.GCrunTrue = 0
-                    self.GCalmStatusLab.configure(text="UNABLE TO WRITE TO SD CARD", style="Alarm.TLabel")
+                    self.GCalmStatusLab.configure(text="UNABLE TO WRITE TO SD CARD", text_color="red", font=('Arial', 10, 'bold'))
                 else:
                     self.displayPosition(response)
 
@@ -8940,7 +8932,7 @@ class RobotArmApp:
                 if response.startswith('E'):
                     self.ErrorHandler(response)
                     self.tab7.GCrunTrue = 0
-                    self.GCalmStatusLab.configure(text="UNABLE TO WRITE TO SD CARD", style="Alarm.TLabel")
+                    self.GCalmStatusLab.configure(text="UNABLE TO WRITE TO SD CARD", text_color="red", font=('Arial', 10, 'bold'))
                 else:
                     self.displayPosition(response)
 
